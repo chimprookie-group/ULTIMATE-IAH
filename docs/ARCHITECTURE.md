@@ -108,6 +108,24 @@ que des identifiants (`view:home`, `theme:nord`, `session:…`) qu'un unique
 `runCommand()` traduit en appels à `Backend`. La recherche replie les accents
 côté QML, sans dépendance.
 
+### Le terminal
+
+`TerminalSession` ouvre un PTY avec `forkpty`, prépare l'environnement avant le
+fork (le fils n'appelle que `chdir` et `execle`), puis lit le descripteur
+maître via `QSocketNotifier`. Un `QStringDecoder` garde les caractères UTF-8
+coupés entre deux lectures.
+
+Le pont vers la page est QWebChannel : le C++ émet `output`, la page xterm.js
+l'écrit ; l'entrée clavier et les redimensionnements remontent par `input` et
+`resize`. Le thème est poussé par `runJavaScript` à chaque changement de
+palette. Copier/coller passe par le presse-papiers Qt plutôt que par l'API
+navigateur, qui n'est pas fiable dans QtWebEngine.
+
+Le shell reste vivant quand la vue est masquée ; il est arrêté avec
+l'application. Quand le terminal a le focus, les raccourcis globaux qui
+entreraient en conflit avec le shell (Ctrl+K, Ctrl+R, Ctrl+L, Ctrl+N, ?, Q,
+Échap) lui sont rendus.
+
 ### Connexions, diagnostic et notifications
 
 - `runDiagnostics()` vérifie les binaires résolus (y compris un chemin absolu

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terminal — DeepCrasy H</title>
+<link rel="stylesheet" href="xterm.css">
+<style>
+  :root { --term-scrollbar: #5D737D; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--term-scrollbar); border-radius: 4px; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: #0e0e10;
+    overflow: hidden;
+  }
+  #terminal {
+    position: absolute;
+    inset: 0;
+    padding: 8px 8px 8px 12px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+<div id="terminal"></div>
+<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+<script src="xterm.js"></script>
+<script src="addon-fit.js"></script>
+<script>
+(function () {
+  const term = new Terminal({
+    cursorBlink: true,
+    fontSize: 13,
+    fontFamily: "JetBrainsMono Nerd Font, CaskaydiaMono Nerd Font, monospace",
+    lineHeight: 1.2,
+    scrollback: 5000,
+    allowProposedApi: true,
+    theme: {
+      background: "#0e0e10",
+      foreground: "#e6e6e6",
+      cursor: "#FFD60A",
+      selectionBackground: "#2a2a32"
+    }
+  });
+  const fit = new FitAddon.FitAddon();
+  term.loadAddon(fit);
+  term.open(document.getElementById("terminal"));
+
+  const container = document.getElementById("terminal");
+  const cwd = new URLSearchParams(location.search).get("cwd") || "";
+
+  function refit() {
+    try { fit.fit(); } catch (error) { /* the page can be 0-sized while hidden */ }
+  }
+  setTimeout(refit, 30);
+  window.addEventListener("resize", refit);
+  new ResizeObserver(refit).observe(container);
+
+  window.setTerminalTheme = function (theme) {
+    if (!theme) return;
+    const fontFamily = theme.fontFamily;
+    const dimText = theme.dimText;
+    delete theme.fontFamily;
+    delete theme.dimText;
+    document.documentElement.style.setProperty("--term-scrollbar", dimText || theme.foreground);
+    if (fontFamily) term.options.fontFamily = fontFamily;
+    term.options.theme = theme;
+    document.documentElement.style.background = theme.background;
+    document.body.style.background = theme.background;
+  };
+  window.termReset = function () { term.reset(); };
+  window.termClear = function () { term.clear(); };
+  window.termFocus = function () { term.focus(); };
+
+  new QWebChannel(qt.webChannelTransport, function (channel) {
+    const bridge = channel.objects.terminal;
+    bridge.output.connect(function (data) { term.write(data); });
+    bridge.exited.connect(function (code) {
+      term.write("\r\n\x1b[90m[exit " + code + "]\x1b[0m\r\n");
+    });
+    term.onData(function (data) { bridge.input(data); });
+    term.onResize(function (size) { bridge.resize(size.cols, size.rows); });
+    term.attachCustomKeyEventHandler(function (event) {
+      if (event.type !== "keydown" || !event.ctrlKey || !event.shiftKey)
+        return true;
+      if (event.code === "KeyC") {
+        const selection = term.getSelection();
+        if (selection) bridge.copy(selection);
+        return false;
+      }
+      if (event.code === "KeyV") {
+        bridge.paste();
+        return false;
+      }
+      return true;
+    });
+    refit();
+    term.focus();
+    bridge.start(cwd);
+  });
+})();
+</script>
+</body>
+</html>

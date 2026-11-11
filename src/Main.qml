@@ -35,6 +35,7 @@ ApplicationWindow {
     // there, so their shortcuts must stand down.
     property bool typing: false
     property bool forceQuit: false
+    property bool terminalFocused: false
 
     // Split only works when both panes get a usable width. In a tiled
     // half-screen window it would squeeze the chat below 400 px, so fall back
@@ -70,8 +71,9 @@ ApplicationWindow {
         }
 
         add(qsTr("Navigation"), qsTr("Home"), "Ctrl+0", "view:home", "icons/home.svg")
-        add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/terminal.svg")
+        add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/harness.svg")
         add(qsTr("Navigation"), "OpenCode", "Ctrl+2", "view:opencode", "icons/chat.svg")
+        add(qsTr("Navigation"), qsTr("Terminal"), "Ctrl+5", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
         add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
@@ -147,36 +149,55 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+2"; context: Qt.ApplicationShortcut; onActivated: backend.setView("opencode") }
     Shortcut { sequence: "Ctrl+3"; context: Qt.ApplicationShortcut; onActivated: backend.setView("split") }
     Shortcut { sequence: "Ctrl+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("settings") }
-    Shortcut { sequence: "Ctrl+N"; context: Qt.ApplicationShortcut; onActivated: backend.newSession() }
+    Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
+    Shortcut {
+        sequence: "Ctrl+N"
+        context: Qt.ApplicationShortcut
+        enabled: !win.terminalFocused
+        onActivated: backend.newSession()
+    }
     Shortcut {
         sequence: "Ctrl+K"
         context: Qt.ApplicationShortcut
+        enabled: !win.terminalFocused
         onActivated: commandPalette.opened ? commandPalette.close() : commandPalette.open()
     }
     Shortcut {
         sequence: "Ctrl+R"
         context: Qt.ApplicationShortcut
-        enabled: !win.typing
+        enabled: !win.typing && !win.terminalFocused
         onActivated: backend.restartHarness()
     }
-    Shortcut { sequence: "Ctrl+L"; context: Qt.ApplicationShortcut; onActivated: chatPane.focusComposer() }
+    Shortcut {
+        sequence: "Ctrl+L"
+        context: Qt.ApplicationShortcut
+        enabled: !win.terminalFocused
+        onActivated: chatPane.focusComposer()
+    }
     Shortcut { sequence: "Ctrl+Q"; context: Qt.ApplicationShortcut; onActivated: win.requestQuit() }
-    Shortcut { sequence: "F1"; context: Qt.ApplicationShortcut; onActivated: win.helpVisible = !win.helpVisible }
+    Shortcut {
+        sequence: "F1"
+        context: Qt.ApplicationShortcut
+        enabled: !win.terminalFocused
+        onActivated: win.helpVisible = !win.helpVisible
+    }
     Shortcut {
         sequence: "?"
         context: Qt.ApplicationShortcut
-        enabled: !win.typing && !win.helpVisible && !commandPalette.opened
+        enabled: !win.typing && !win.helpVisible && !commandPalette.opened && !win.terminalFocused
         onActivated: win.helpVisible = true
     }
     Shortcut {
         sequence: "Q"
         context: Qt.ApplicationShortcut
-        enabled: !win.typing && !win.helpVisible && !commandPalette.opened
+        enabled: !win.typing && !win.helpVisible && !commandPalette.opened && !win.terminalFocused
         onActivated: win.requestQuit()
     }
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
+        enabled: win.helpVisible || sessionsPanel.opened || win.quitConfirm
+                 || commandPalette.opened || backend.permission.requestId !== undefined
         onActivated: {
             if (commandPalette.opened)
                 commandPalette.close()
@@ -392,7 +413,7 @@ ApplicationWindow {
                         onClicked: backend.setView("home")
                     }
                     RailButton {
-                        icon: "icons/terminal.svg"
+                        icon: "icons/harness.svg"
                         label: qsTr("Harness")
                         hint: qsTr("DeepSeek Harness (Ctrl+1)")
                         active: backend.view === "harness"
@@ -404,6 +425,13 @@ ApplicationWindow {
                         hint: qsTr("OpenCode chat (Ctrl+2)")
                         active: backend.view === "opencode"
                         onClicked: backend.setView("opencode")
+                    }
+                    RailButton {
+                        icon: "icons/terminal.svg"
+                        label: qsTr("Terminal")
+                        hint: qsTr("Terminal (Ctrl+5)")
+                        active: backend.view === "terminal"
+                        onClicked: backend.setView("terminal")
                     }
                     RailButton {
                         icon: "icons/split.svg"
@@ -438,7 +466,7 @@ ApplicationWindow {
                 RowLayout {
                     anchors.fill: parent
                     spacing: 0
-                    visible: backend.view !== "settings" && backend.view !== "home"
+                    visible: backend.view !== "settings" && backend.view !== "home" && backend.view !== "terminal"
 
                     HarnessPane {
                         id: harnessPane
@@ -463,6 +491,11 @@ ApplicationWindow {
                         Layout.preferredWidth: backend.view === "split" ? win.width * (1 - backend.splitRatio) : win.width
                         onOpenSessions: sessionsPanel.open()
                     }
+                }
+
+                TerminalPage {
+                    anchors.fill: parent
+                    visible: backend.view === "terminal"
                 }
 
                 HomePane {

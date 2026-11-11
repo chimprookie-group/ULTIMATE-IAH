@@ -235,7 +235,8 @@ Item {
                             { "id": "home", "label": qsTr("Home") },
                             { "id": "opencode", "label": qsTr("Chat") },
                             { "id": "harness", "label": qsTr("Harness") },
-                            { "id": "split", "label": qsTr("Split") }
+                            { "id": "split", "label": qsTr("Split") },
+                            { "id": "terminal", "label": qsTr("Terminal") }
                         ]
 
                         Rectangle {

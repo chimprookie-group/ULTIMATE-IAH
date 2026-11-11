@@ -79,6 +79,16 @@ palette passent tous par le même catalogue.
 - **Fournisseurs OpenCode** détectés depuis les modèles disponibles, et
   redémarrage des deux moteurs.
 
+## Terminal
+
+`Ctrl+5` ouvre un vrai terminal dans le dossier de travail. C'est un **PTY**
+(`forkpty`), pas un faux champ de commande : le shell de l'utilisateur, sa
+complétion, ses couleurs et ses programmes plein écran. Il reste vivant quand
+on change de vue, suit le thème actif, se redimensionne avec la fenêtre, et
+`Ctrl+Shift+C` / `Ctrl+Shift+V` copient et collent. Le rendu est xterm.js (MIT).
+
+![Terminal](assets/screenshot-terminal.png)
+
 ## En bref
 
 - **Un seul espace de travail.** Le dossier choisi est partagé : le harness y
@@ -90,6 +100,8 @@ palette passent tous par le même catalogue.
   streaming sont rendus par l'application.
 - **Vue partagée** harness + chat (à partir de 1180 px de large), avec bascule
   instantanée et transcript conservé.
+- **Terminal intégré** (`Ctrl+5`) : PTY réel, shell de l'utilisateur, thème,
+  copier/coller, redémarrage.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -146,6 +158,7 @@ règlent dans **Réglages** (`Ctrl+4`).
 | `Ctrl+2` | Chat OpenCode |
 | `Ctrl+3` | Vue partagée (les deux panneaux) |
 | `Ctrl+4` | Réglages |
+| `Ctrl+5` | Terminal intégré |
 | `Ctrl+K` | Palette de commandes |
 | `Ctrl+L` | Aller à la saisie |
 | `Entrée` | Envoyer le message |
@@ -197,6 +210,9 @@ Le chat et le sélecteur de modèle :
 - `src/backend.*` est la façade QML : un espace de travail, deux moteurs, un
   seul état. Il porte aussi le diagnostic, Git, le test de connexion et les
   notifications.
+- `src/terminalsession.*` ouvre un PTY avec `forkpty`, décode l'UTF-8 au fil de
+  l'eau et expose l'entrée/sortie à xterm.js via QWebChannel. `src/terminal/`
+  contient xterm.js et son addon de redimensionnement.
 - `src/gitstatus.*` lit `git status --porcelain=v1 -b` sans toucher au dépôt ;
   `src/theme.*` lit les palettes Omarchy et en dérive toute l'interface ;
   `src/iconprovider.*` teinte les SVG avec la bonne couleur.
@@ -233,8 +249,9 @@ peut cohabiter.
 
 Les tests couvrent l'extraction de l'URL tokenisée, la persistance et la
 validation de la configuration (options comprises), la lecture Git, le thème,
-les catalogues de langue, et un **vrai** `opencode acp` : démarrage, session,
-prompt, réponse streamée. Pour sauter ce dernier (pas de réseau) :
+les catalogues de langue, un **vrai** PTY (commande envoyée au shell et sortie
+relue), et un **vrai** `opencode acp` : démarrage, session, prompt, réponse
+streamée. Pour sauter ce dernier (pas de réseau) :
 
 ```sh
 DEEPCRASY_SKIP_INTEGRATION=1 ./bin/test
@@ -281,6 +298,7 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
 
 ## Licence
 
-MIT — voir [LICENSE](LICENSE). Le logo appartient à Crasy.
+MIT — voir [LICENSE](LICENSE). Le logo appartient à Crasy. Le terminal embarque
+xterm.js (MIT) — voir [THIRD_PARTY.md](THIRD_PARTY.md).
 
 Dépôt : <https://github.com/iatexplique-debug/DeepCrasy-H>

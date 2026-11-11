@@ -291,7 +291,8 @@ void Backend::boot() {
 
 void Backend::applyStartupView() {
     const QString start = m_config->startupView();
-    if (start != "home" && start != "harness" && start != "opencode" && start != "split")
+    if (start != "home" && start != "harness" && start != "opencode"
+        && start != "split" && start != "terminal")
         return;
     if (start == m_view)
         return;
@@ -646,7 +647,8 @@ bool Backend::loadingSessions() const {
 }
 
 void Backend::setView(const QString &view) {
-    if (view != "home" && view != "harness" && view != "opencode" && view != "split" && view != "settings")
+    if (view != "home" && view != "harness" && view != "opencode" && view != "split"
+        && view != "terminal" && view != "settings")
         return;
     if (view == m_view)
         return;

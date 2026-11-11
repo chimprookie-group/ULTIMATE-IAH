@@ -1,12 +1,12 @@
 # Maintainer: Crasy
 pkgname=deepcrasy-h
-pkgver=0.5.0
+pkgver=0.6.0
 pkgrel=1
 pkgdesc='DeepSeek Harness and OpenCode in one Omarchy window'
 arch=('x86_64' 'aarch64')
 url='https://github.com/iatexplique-debug/DeepCrasy-H'
 license=('MIT')
-depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme')
+depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-webchannel' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme')
 optdepends=(
   'dsh: DeepSeek Harness web server (dsh web)'
   'opencode: OpenCode agent (opencode acp)'
@@ -25,6 +25,7 @@ package() {
   cd "$startdir/.."
   install -Dm755 build/deepcrasy-h "$pkgdir/usr/bin/deepcrasy-h"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 src/terminal/LICENSE-xterm "$pkgdir/usr/share/licenses/$pkgname/LICENSE-xterm"
   install -Dm644 pkgbuild/deepcrasy-h.desktop "$pkgdir/usr/share/applications/deepcrasy-h.desktop"
   install -Dm644 pkgbuild/deepcrasy-h.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/deepcrasy-h.svg"
   install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/deepcrasy-h.png"

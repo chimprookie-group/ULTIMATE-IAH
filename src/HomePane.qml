@@ -249,6 +249,11 @@ Item {
                     onClicked: backend.setView("split")
                 }
                 Button {
+                    text: qsTr("Terminal")
+                    flat: true
+                    onClicked: backend.setView("terminal")
+                }
+                Button {
                     text: qsTr("Change workspace")
                     flat: true
                     onClicked: backend.pickWorkspace()

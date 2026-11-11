@@ -8,6 +8,7 @@
 #include "acpclient.h"
 #include "config.h"
 #include "gitstatus.h"
+#include "terminalsession.h"
 #include "harnessserver.h"
 #include "theme.h"
 #include "translator.h"
@@ -105,6 +106,28 @@ private slots:
         const QVariantMap init = GitStatus::parse("## No commits yet on main\n");
         QCOMPARE(init.value("branch").toString(), QString("main"));
         QCOMPARE(init.value("dirty").toInt(), 0);
+    }
+
+    void terminalRunsACommand()
+    {
+        TerminalSession session;
+        QSignalSpy output(&session, &TerminalSession::output);
+        session.start(QDir::tempPath());
+        QTRY_VERIFY_WITH_TIMEOUT(session.running(), 5000);
+
+        session.input(QStringLiteral("echo deepcrasy-terminal\n"));
+        QString transcript;
+        const auto hasOutput = [&] {
+            while (output.size() > 0) {
+                const QList<QVariant> args = output.takeFirst();
+                transcript += args.value(0).toString();
+            }
+            return transcript.contains("deepcrasy-terminal");
+        };
+        QTRY_VERIFY_WITH_TIMEOUT(hasOutput(), 10000);
+
+        session.stop();
+        QVERIFY(!session.running());
     }
 
     void themeFallsBack()

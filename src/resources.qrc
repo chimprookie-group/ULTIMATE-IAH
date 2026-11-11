@@ -47,8 +47,15 @@
         <file>icons/plug.svg</file>
         <file>icons/branch.svg</file>
         <file>icons/bell.svg</file>
+        <file>icons/harness.svg</file>
+        <file>icons/trash.svg</file>
         <file>icons/globe.svg</file>
         <file>icons/alert.svg</file>
+        <file>TerminalPage.qml</file>
+        <file>terminal/index.html</file>
+        <file>terminal/xterm.js</file>
+        <file>terminal/xterm.css</file>
+        <file>terminal/addon-fit.js</file>
         <file>icons/search.svg</file>
         <file>i18n/en.json</file>
         <file>i18n/fr.json</file>

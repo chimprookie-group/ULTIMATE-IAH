@@ -209,5 +209,10 @@
   "%1 is not writable": "%1 n'est pas accessible en écriture",
   "notification service is not running": "le service de notifications n'est pas lancé",
   "main · 3 changes": "main · 3 modifications",
-  "Session of %1": "Session du %1"
+  "Session of %1": "Session du %1",
+  "Terminal": "Terminal",
+  "Clear the terminal": "Effacer le terminal",
+  "Restart the shell": "Relancer le shell",
+  "The terminal page could not load.": "La page du terminal n'a pas pu se charger.",
+  "The terminal renderer stopped.": "Le moteur de rendu du terminal s'est arrêté."
 }
