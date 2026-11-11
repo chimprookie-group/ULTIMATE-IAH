@@ -29,7 +29,13 @@ Item {
             return
         backend.sendPrompt(text)
         pinned = true
-        Qt.callLater(list.positionViewAtEnd)
+        list.positionViewAtEnd()
+        followEnd()
+    }
+
+    function followEnd() {
+        if (pinned && !autoScroll.running)
+            autoScroll.start()
     }
 
     function planColor(status) {
@@ -125,15 +131,20 @@ Item {
                 anchors.leftMargin: Math.max(18, (parent.width - 880) / 2)
                 anchors.rightMargin: Math.max(16, (parent.width - 880) / 2)
                 anchors.topMargin: 12
-                anchors.bottomMargin: 4
+                anchors.bottomMargin: 8
                 clip: true
                 spacing: 14
-                model: backend.messages
+                model: backend.messageModel
                 boundsBehavior: Flickable.StopAtBounds
-                onMovementEnded: pane.pinned = atYEnd
-                Component.onCompleted: Qt.callLater(positionViewAtEnd)
-                onCountChanged: if (pane.pinned) Qt.callLater(positionViewAtEnd)
-                onContentHeightChanged: if (pane.pinned && backend.busy) Qt.callLater(positionViewAtEnd)
+                footer: Item { width: 1; height: 12 }
+                onMovementStarted: if (dragging || flicking) pane.pinned = false
+                onMovementEnded: {
+                    if (!backend.busy || dragging || flicking || atYEnd)
+                        pane.pinned = atYEnd
+                }
+                Component.onCompleted: pane.followEnd()
+                onCountChanged: pane.followEnd()
+                onContentHeightChanged: pane.followEnd()
 
                 ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
@@ -150,7 +161,7 @@ Item {
                         Item {
                             width: parent.width
                             height: userCard.height
-                            visible: modelData.role === "user"
+                            visible: model.role === "user"
 
                             Rectangle {
                                 id: userCard
@@ -174,7 +185,7 @@ Item {
                                     anchors.fill: parent
                                     anchors.margins: 9
                                     anchors.leftMargin: 12
-                                    text: modelData.text !== undefined ? modelData.text : ""
+                                    text: model.text !== undefined ? model.text : ""
                                     wrapMode: Text.Wrap
                                     color: theme.text
                                     font.pixelSize: 13
@@ -183,9 +194,9 @@ Item {
                         }
 
                         Text {
-                            visible: modelData.role === "assistant"
+                            visible: model.role === "assistant"
                             width: parent.width
-                            text: modelData.text !== undefined ? modelData.text : ""
+                            text: model.text !== undefined ? model.text : ""
                             textFormat: Text.MarkdownText
                             wrapMode: Text.Wrap
                             color: theme.text
@@ -196,7 +207,7 @@ Item {
 
                         Rectangle {
                             id: caret
-                            visible: modelData.role === "assistant" && modelData.streaming
+                            visible: model.role === "assistant" && model.streaming
                             width: 34
                             height: 2
                             radius: 1
@@ -210,9 +221,9 @@ Item {
                         }
 
                         Text {
-                            visible: modelData.role === "thought"
+                            visible: model.role === "thought"
                             width: parent.width
-                            text: "thinking · " + modelData.text
+                            text: "thinking · " + model.text
                             wrapMode: Text.Wrap
                             maximumLineCount: 3
                             elide: Text.ElideRight
@@ -222,17 +233,19 @@ Item {
                         }
 
                         ToolCard {
-                            visible: modelData.role === "tool"
-                            title: modelData.title !== undefined ? modelData.title : ""
-                            kind: modelData.kind !== undefined ? modelData.kind : ""
-                            status: modelData.status !== undefined ? modelData.status : "pending"
-                            output: modelData.output !== undefined ? modelData.output : ""
-                            command: (modelData.input !== undefined && modelData.input !== null && modelData.input.command !== undefined) ? modelData.input.command : ""
-                            locations: modelData.locations !== undefined ? modelData.locations : []
+                            visible: model.role === "tool"
+                            title: model.title !== undefined ? model.title : ""
+                            kind: model.kind !== undefined ? model.kind : ""
+                            status: model.status !== undefined ? model.status : "pending"
+                            output: model.output !== undefined ? model.output : ""
+                            command: (model.input !== undefined && model.input !== null && model.input.command !== undefined) ? model.input.command : ""
+                            locations: model.locations !== undefined ? model.locations : []
                         }
 
                         Rectangle {
-                            visible: modelData.role === "plan"
+                            id: planCard
+                            visible: model.role === "plan"
+                            property var planEntries: model.entries !== undefined ? model.entries : []
                             width: parent.width
                             height: planColumn.implicitHeight + 20
                             radius: Math.min(9, theme.radius)
@@ -254,7 +267,7 @@ Item {
                                     color: theme.dimText
                                 }
                                 Repeater {
-                                    model: modelData.entries !== undefined ? modelData.entries : []
+                                    model: planCard.planEntries
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 7
@@ -279,9 +292,9 @@ Item {
                         }
 
                         Text {
-                            visible: modelData.role === "notice"
+                            visible: model.role === "notice"
                             width: parent.width
-                            text: modelData.text !== undefined ? modelData.text : ""
+                            text: model.text !== undefined ? model.text : ""
                             horizontalAlignment: Text.AlignHCenter
                             wrapMode: Text.Wrap
                             color: theme.dimText
@@ -294,7 +307,7 @@ Item {
             // ── empty / not ready ─────────────────────────────────────────
             Item {
                 anchors.fill: parent
-                visible: backend.messages.length === 0
+                visible: backend.messageCount === 0
 
                 Column {
                     anchors.centerIn: parent
@@ -496,8 +509,20 @@ Item {
     Connections {
         target: backend
         function onMessagesChanged() {
-            if (pane.pinned)
-                Qt.callLater(list.positionViewAtEnd)
+            pane.followEnd()
+        }
+    }
+
+    Timer {
+        id: autoScroll
+        interval: 40
+        repeat: false
+        onTriggered: {
+            if (!pane.pinned)
+                return
+            if (list.dragging || list.flicking)
+                return
+            list.positionViewAtEnd()
         }
     }
 }

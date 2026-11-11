@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QAbstractListModel>
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QVariantList>
@@ -60,6 +61,8 @@ class Backend : public QObject {
     Q_PROPERTY(bool opencodeAvailable READ opencodeAvailable NOTIFY opencodeBinaryChanged)
 
     Q_PROPERTY(QVariantList messages READ messages NOTIFY messagesChanged)
+    Q_PROPERTY(QAbstractListModel *messageModel READ messageModel CONSTANT)
+    Q_PROPERTY(int messageCount READ messageCount NOTIFY messagesChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString sessionId READ sessionId NOTIFY sessionChanged)
     Q_PROPERTY(QString sessionTitle READ sessionTitle NOTIFY sessionChanged)
@@ -122,6 +125,8 @@ public:
     bool opencodeAvailable() const;
 
     QVariantList messages() const;
+    QAbstractListModel *messageModel() const;
+    int messageCount() const;
     bool busy() const;
     QString sessionId() const;
     QString sessionTitle() const;

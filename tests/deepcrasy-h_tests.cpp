@@ -9,6 +9,7 @@
 #include "config.h"
 #include "gitstatus.h"
 #include "mcpmanager.h"
+#include "messagemodel.h"
 #include "terminalsession.h"
 #include "harnessserver.h"
 #include "theme.h"
@@ -179,6 +180,25 @@ private slots:
         QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("http://127.0.0.1:9000/callback")),
                  QString());
         QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("no url here")), QString());
+    }
+
+    void messageModelUpdatesOneRowAtATime()
+    {
+        MessageListModel model;
+        QSignalSpy inserted(&model, &QAbstractItemModel::rowsInserted);
+        QSignalSpy changed(&model, &QAbstractItemModel::dataChanged);
+
+        model.append(QVariantMap{{"id", "1"}, {"role", "assistant"}, {"text", "a"}});
+        model.append(QVariantMap{{"id", "2"}, {"role", "tool"}, {"text", ""}});
+        QCOMPARE(model.rowCount(), 2);
+        QCOMPARE(inserted.count(), 2);
+        QCOMPARE(changed.count(), 0);
+
+        model.setAt(0, QVariantMap{{"id", "1"}, {"role", "assistant"}, {"text", "ab"}});
+        QCOMPARE(changed.count(), 1);
+        QCOMPARE(model.rowCount(), 2);
+        QCOMPARE(model.data(model.index(0), MessageListModel::TextRole).toString(), QString("ab"));
+        QCOMPARE(model.data(model.index(0), MessageListModel::RoleRole).toString(), QString("assistant"));
     }
 
     void terminalRunsACommand()

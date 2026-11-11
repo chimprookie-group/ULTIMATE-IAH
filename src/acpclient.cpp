@@ -227,11 +227,11 @@ void AcpClient::handleResponse(const QJsonObject &object) {
         emit sessionsChanged();
     } else if (method == "session/prompt") {
         setBusy(false);
-        for (int i = 0; i < m_messages.size(); ++i) {
-            QVariantMap message = m_messages.at(i).toMap();
+        for (int i = 0; i < m_messages.count(); ++i) {
+            QVariantMap message = m_messages.at(i);
             if (message.value("streaming").toBool()) {
                 message["streaming"] = false;
-                m_messages[i] = message;
+                m_messages.setAt(i, message);
             }
         }
         emit messagesChanged();
@@ -282,9 +282,9 @@ void AcpClient::handleUpdate(const QJsonObject &params) {
         }
         plan["entries"] = entries;
         bool replaced = false;
-        for (int i = 0; i < m_messages.size(); ++i) {
-            if (m_messages.at(i).toMap().value("role").toString() == "plan") {
-                m_messages[i] = plan;
+        for (int i = 0; i < m_messages.count(); ++i) {
+            if (m_messages.at(i).value("role").toString() == "plan") {
+                m_messages.setAt(i, plan);
                 replaced = true;
                 break;
             }
@@ -390,6 +390,14 @@ void AcpClient::clearTranscript() {
     emit messagesChanged();
 }
 
+void AcpClient::setConversation(const QVariantList &messages) {
+    m_messages.clear();
+    m_streamingIndex = -1;
+    for (const QVariant &value : messages)
+        m_messages.append(value.toMap());
+    emit messagesChanged();
+}
+
 void AcpClient::setBusy(bool busy) {
     if (busy == m_busy)
         return;
@@ -407,8 +415,8 @@ void AcpClient::addNotice(const QString &text) {
 }
 
 int AcpClient::findMessage(const QString &role, const QString &messageId) const {
-    for (int i = m_messages.size() - 1; i >= 0; --i) {
-        const QVariantMap message = m_messages.at(i).toMap();
+    for (int i = m_messages.count() - 1; i >= 0; --i) {
+        const QVariantMap message = m_messages.at(i);
         if (message.value("role").toString() == role && message.value("messageId").toString() == messageId)
             return i;
     }
@@ -421,10 +429,10 @@ void AcpClient::appendChunk(const QString &role, const QString &messageId, const
     const QString id = messageId.isEmpty() ? QStringLiteral("anonymous") : messageId;
     const int index = findMessage(role, id);
     if (index >= 0) {
-        QVariantMap message = m_messages.at(index).toMap();
+        QVariantMap message = m_messages.at(index);
         message["text"] = message.value("text").toString() + text;
         message["streaming"] = true;
-        m_messages[index] = message;
+        m_messages.setAt(index, message);
     } else {
         QVariantMap message;
         message["id"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -443,15 +451,15 @@ void AcpClient::upsertTool(const QJsonObject &update) {
         return;
 
     int index = -1;
-    for (int i = 0; i < m_messages.size(); ++i) {
-        const QVariantMap message = m_messages.at(i).toMap();
+    for (int i = 0; i < m_messages.count(); ++i) {
+        const QVariantMap message = m_messages.at(i);
         if (message.value("role").toString() == "tool" && message.value("toolId").toString() == toolId) {
             index = i;
             break;
         }
     }
 
-    QVariantMap message = index >= 0 ? m_messages.at(index).toMap() : QVariantMap{};
+    QVariantMap message = index >= 0 ? m_messages.at(index) : QVariantMap{};
     if (index < 0) {
         message["id"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
         message["role"] = QStringLiteral("tool");
@@ -487,7 +495,7 @@ void AcpClient::upsertTool(const QJsonObject &update) {
         message["exitCode"] = metadata.value("exit").toInt();
 
     if (index >= 0)
-        m_messages[index] = message;
+        m_messages.setAt(index, message);
     else
         m_messages.append(message);
     emit messagesChanged();

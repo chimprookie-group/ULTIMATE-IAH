@@ -95,6 +95,21 @@ qui laissaient des icônes blanches ou des boîtes noires selon la palette.
 `src/ThemeCard.qml` affiche un aperçu réel de chaque palette dans Réglages :
 la carte est peinte avec les couleurs du thème qu'elle représente.
 
+### Le transcript
+
+`AcpClient` possède un `MessageListModel` (QAbstractListModel) plutôt qu'une
+`QVariantList` : les rôles `role`, `text`, `streaming`, `title`, `status`,
+`output`, `entries`, etc. sont exposés directement au délégué. Un chunk de
+streaming appelle `setAt()`, qui émet `dataChanged` sur une seule ligne ; les
+autres lignes et les délégués restent en place. Les ajouts passent par
+`beginInsertRows`/`endInsertRows`.
+
+Côté QML, l'auto-scroll ne s'exécute plus à chaque chunk : un timer de 40 ms
+rappelle `positionViewAtEnd()` au plus toutes les 40 ms, seulement si le bas
+est suivi. Un footer de 12 px et une marge basse empêchent la dernière ligne
+de disparaître sous le composer. Un glissement utilisateur désactive le suivi,
+et le prochain retour en bas le réactive.
+
 ### Le cockpit et la palette
 
 La vue **Accueil** n'est pas un tableau de bord décoratif : `Backend` expose

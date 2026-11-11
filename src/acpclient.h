@@ -7,6 +7,8 @@
 #include <QVariantList>
 #include <QVariantMap>
 
+#include "messagemodel.h"
+
 // Speaks the Agent Client Protocol to `opencode acp` over stdio, so OpenCode
 // runs as a native chat pane in DeepCrasy H instead of a terminal. The client
 // owns the process, the session, and the transcript; QML only renders it.
@@ -15,6 +17,8 @@ class AcpClient : public QObject {
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QString detail READ detail NOTIFY detailChanged)
     Q_PROPERTY(QVariantList messages READ messages NOTIFY messagesChanged)
+    Q_PROPERTY(QAbstractListModel *messageModel READ messageModel CONSTANT)
+    Q_PROPERTY(int messageCount READ messageCount NOTIFY messagesChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString sessionId READ sessionId NOTIFY sessionIdChanged)
     Q_PROPERTY(QString sessionTitle READ sessionTitle NOTIFY sessionTitleChanged)
@@ -34,7 +38,9 @@ public:
 
     State state() const { return m_state; }
     QString detail() const { return m_detail; }
-    QVariantList messages() const { return m_messages; }
+    QVariantList messages() const { return m_messages.items(); }
+    QAbstractListModel *messageModel() { return &m_messages; }
+    int messageCount() const { return m_messages.count(); }
     bool busy() const { return m_busy; }
     QString sessionId() const { return m_sessionId; }
     QString sessionTitle() const { return m_sessionTitle; }
@@ -55,6 +61,7 @@ public:
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void setConfigOption(const QString &id, const QString &value);
     Q_INVOKABLE void respondPermission(const QString &optionId);
+    void setConversation(const QVariantList &messages);
 
 signals:
     void stateChanged();
@@ -110,7 +117,7 @@ private:
     QString m_sessionId;
     QString m_sessionTitle;
     QString m_stderr;
-    QVariantList m_messages;
+    MessageListModel m_messages;
     QVariantList m_configOptions;
     QVariantList m_commands;
     QVariantMap m_usage;

@@ -10,6 +10,7 @@ HEADERS += \
     ../src/config.h \
     ../src/harnessserver.h \
     ../src/mcpmanager.h \
+    ../src/messagemodel.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/translator.h
@@ -24,5 +25,6 @@ SOURCES += \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
     ../src/mcpmanager.cpp \
+    ../src/messagemodel.cpp \
     ../src/theme.cpp \
     ../src/translator.cpp

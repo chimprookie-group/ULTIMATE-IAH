@@ -391,6 +391,14 @@ QVariantList Backend::messages() const {
     return m_demo ? m_demoMessages : m_acp->messages();
 }
 
+QAbstractListModel *Backend::messageModel() const {
+    return m_acp->messageModel();
+}
+
+int Backend::messageCount() const {
+    return m_demo ? m_demoMessages.size() : m_acp->messageCount();
+}
+
 bool Backend::busy() const {
     return m_demo ? false : m_acp->busy();
 }
@@ -814,4 +822,6 @@ void Backend::buildDemo() {
         {"size", 200000},
         {"cost", QVariantMap{{"amount", 0.0}, {"currency", "USD"}}},
     };
+
+    m_acp->setConversation(m_demoMessages);
 }

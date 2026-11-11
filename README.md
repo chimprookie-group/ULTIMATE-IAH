@@ -243,6 +243,10 @@ Le chat et le sélecteur de modèle :
 - `src/mcpmanager.*` lit et écrit la section `mcp.servers` des configurations
   OpenCode globale et de projet, et interroge `opencode mcp list` en
   arrière-plan pour les statuts.
+- `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
+  un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
+  sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde
+  une marge au-dessus du composer.
 - `src/gitstatus.*` lit `git status --porcelain=v1 -b` sans toucher au dépôt ;
   `src/theme.*` lit les palettes Omarchy et en dérive toute l'interface ;
   `src/iconprovider.*` teinte les SVG avec la bonne couleur.
