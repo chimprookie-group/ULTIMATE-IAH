@@ -24,6 +24,7 @@ class McpManager : public QObject {
     Q_PROPERTY(QString authDetail READ authDetail NOTIFY authChanged)
     Q_PROPERTY(QString authMessage READ authMessage NOTIFY authChanged)
     Q_PROPERTY(bool authOk READ authOk NOTIFY authChanged)
+    Q_PROPERTY(QString authAction READ authAction NOTIFY authChanged)
 
 public:
     explicit McpManager(const QString &configPath = {}, bool watchStatus = true, QObject *parent = nullptr);
@@ -41,6 +42,7 @@ public:
     QString authDetail() const { return m_authDetail; }
     QString authMessage() const { return m_authMessage; }
     bool authOk() const { return m_authOk; }
+    QString authAction() const { return m_authAction; }
 
     Q_INVOKABLE void setWorkspace(const QString &workspace);
     Q_INVOKABLE void refresh();
@@ -48,6 +50,7 @@ public:
                                const QString &scope);
     Q_INVOKABLE void removeServer(const QString &name, const QString &scope);
     Q_INVOKABLE void authenticate(const QString &name, const QString &scope);
+    Q_INVOKABLE void logoutServer(const QString &name, const QString &scope);
     Q_INVOKABLE void cancelAuth();
     Q_INVOKABLE void clearAuth();
     Q_INVOKABLE void clearError();
@@ -95,6 +98,7 @@ private:
     bool m_authUrlOpened = false;
     bool m_authCancelled = false;
     bool m_authTimedOut = false;
+    QString m_authAction = QStringLiteral("auth");
     QString m_authName;
     QString m_authUrl;
     QString m_authOutput;

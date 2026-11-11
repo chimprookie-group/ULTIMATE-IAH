@@ -666,7 +666,9 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: mcp.authRunning
-                                      ? qsTr("Authenticating %1…").arg(mcp.authName)
+                                      ? (mcp.authAction === "logout"
+                                         ? qsTr("Logging out of %1…").arg(mcp.authName)
+                                         : qsTr("Authenticating %1…").arg(mcp.authName))
                                       : mcp.authMessage
                                 color: theme.text
                                 font.pixelSize: 10
@@ -689,7 +691,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            visible: mcp.authRunning
+                            visible: mcp.authRunning && mcp.authAction !== "logout"
                             text: qsTr("Finish the flow in your browser, then come back here.")
                             color: theme.mutedText
                             font.pixelSize: 9
@@ -698,7 +700,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            visible: mcp.authUrl !== ""
+                            visible: mcp.authAction !== "logout" && mcp.authUrl !== ""
                             spacing: 8
 
                             Text {
@@ -832,6 +834,13 @@ Item {
                                 icon: "icons/key.svg"
                                 hint: qsTr("Authenticate with OAuth")
                                 onClicked: mcp.authenticate(modelData.name, modelData.scope)
+                            }
+
+                            IconButton {
+                                visible: modelData.type === "remote"
+                                icon: "icons/logout.svg"
+                                hint: qsTr("Log out of this MCP server")
+                                onClicked: mcp.logoutServer(modelData.name, modelData.scope)
                             }
 
                             IconButton {

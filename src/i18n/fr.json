@@ -259,5 +259,11 @@
   "Authentication cancelled.": "Authentification annulée.",
   "Authentication timed out.": "L'authentification a expiré.",
   "MCP server not found.": "Serveur MCP introuvable.",
-  "This MCP server is not remote.": "Ce serveur MCP n'est pas distant."
+  "This MCP server is not remote.": "Ce serveur MCP n'est pas distant.",
+  "Log out of this MCP server": "Se déconnecter de ce serveur MCP",
+  "Logging out of %1…": "Déconnexion de %1…",
+  "Logout completed.": "Déconnexion effectuée.",
+  "Logout failed.": "La déconnexion a échoué.",
+  "Logout cancelled.": "Déconnexion annulée.",
+  "Logout timed out.": "La déconnexion a expiré."
 }

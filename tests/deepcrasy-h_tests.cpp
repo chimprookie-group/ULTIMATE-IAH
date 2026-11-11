@@ -161,6 +161,9 @@ private slots:
         mcp.authenticate("local-only", "global");
         QVERIFY(!mcp.authRunning());
         QVERIFY(!mcp.authMessage().isEmpty());
+        mcp.logoutServer("local-only", "global");
+        QVERIFY(!mcp.authRunning());
+        QVERIFY(!mcp.authMessage().isEmpty());
 
         mcp.addServer("bad name", "local", "echo", "global");
         QVERIFY(!mcp.error().isEmpty());

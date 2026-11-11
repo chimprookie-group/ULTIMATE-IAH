@@ -453,6 +453,7 @@ void McpManager::authenticate(const QString &name, const QString &scope) {
     if (m_authRunning)
         return;
 
+    m_authAction = QStringLiteral("auth");
     m_authName = name;
     m_authUrl.clear();
     m_authOutput.clear();
@@ -511,12 +512,71 @@ void McpManager::authenticate(const QString &name, const QString &scope) {
     m_authTimeout.start();
 }
 
+void McpManager::logoutServer(const QString &name, const QString &scope) {
+    if (m_authRunning)
+        return;
+
+    m_authAction = QStringLiteral("logout");
+    m_authName = name;
+    m_authUrl.clear();
+    m_authOutput.clear();
+    m_authDetail.clear();
+    m_authMessage.clear();
+    m_authOk = false;
+    m_authUrlOpened = false;
+    m_authCancelled = false;
+    m_authTimedOut = false;
+
+    const auto fail = [this](const QString &message) {
+        m_authRunning = false;
+        m_authOk = false;
+        m_authMessage = message;
+        m_authDetail.clear();
+        emit authChanged();
+    };
+
+    QJsonObject server;
+    QString path;
+    if (!findServer(name, scope, server, path)) {
+        fail(tr("MCP server not found."));
+        return;
+    }
+    const QString type = server.value("type").toString(
+        server.contains("url") ? QStringLiteral("remote") : QStringLiteral("local"));
+    if (type != QStringLiteral("remote")) {
+        fail(tr("This MCP server is not remote."));
+        return;
+    }
+
+    const QString opencode = QStandardPaths::findExecutable(QStringLiteral("opencode"));
+    if (opencode.isEmpty()) {
+        fail(tr("OpenCode was not found."));
+        return;
+    }
+
+    m_authRunning = true;
+    emit authChanged();
+
+    const QString directory = (scope == QStringLiteral("project") && QFileInfo(m_workspace).isDir())
+        ? m_workspace
+        : QDir::tempPath();
+    m_authProcess->setWorkingDirectory(directory);
+    m_authProcess->start(opencode, {QStringLiteral("mcp"), QStringLiteral("logout"), name,
+                                    QStringLiteral("--standalone")});
+    m_authTimeout.start();
+}
+
 void McpManager::readAuthOutput() {
     if (!m_authProcess)
         return;
     m_authOutput += QString::fromUtf8(m_authProcess->readAll());
     if (m_authOutput.size() > 8000)
         m_authOutput = m_authOutput.right(8000);
+
+    if (m_authAction != QStringLiteral("auth")) {
+        emit authChanged();
+        return;
+    }
 
     const QString url = extractAuthUrl(m_authOutput);
     if (!url.isEmpty() && url != m_authUrl) {
@@ -547,21 +607,22 @@ void McpManager::finishAuth(int exitCode, QProcess::ExitStatus status) {
         || lower.contains(QStringLiteral("not found"))
         || lower.contains(QStringLiteral("error"));
 
+    const bool logout = m_authAction == QStringLiteral("logout");
     if (m_authCancelled) {
         m_authOk = false;
-        m_authMessage = tr("Authentication cancelled.");
+        m_authMessage = logout ? tr("Logout cancelled.") : tr("Authentication cancelled.");
         m_authDetail.clear();
     } else if (m_authTimedOut) {
         m_authOk = false;
-        m_authMessage = tr("Authentication timed out.");
+        m_authMessage = logout ? tr("Logout timed out.") : tr("Authentication timed out.");
         m_authDetail.clear();
     } else if (failed) {
         m_authOk = false;
-        m_authMessage = tr("Authentication failed.");
+        m_authMessage = logout ? tr("Logout failed.") : tr("Authentication failed.");
         m_authDetail = lastMeaningfulLine(clean);
     } else {
         m_authOk = true;
-        m_authMessage = tr("Authentication completed.");
+        m_authMessage = logout ? tr("Logout completed.") : tr("Authentication completed.");
         m_authDetail.clear();
     }
 
@@ -590,6 +651,7 @@ void McpManager::clearAuth() {
 }
 
 void McpManager::resetAuth() {
+    m_authAction = QStringLiteral("auth");
     m_authName.clear();
     m_authUrl.clear();
     m_authOutput.clear();
