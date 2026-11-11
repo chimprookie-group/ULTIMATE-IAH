@@ -37,8 +37,11 @@ void Config::load() {
     // profile stays editable in Settings for anyone who wants it.
     m_workspace = defaultWorkspace();
     m_harnessProfile = QStringLiteral("web");
-    m_dshBinary = detectBinary("dsh");
-    m_opencodeBinary = detectBinary("opencode");
+    // Keep the command name, not its resolved path: mise and npm upgrades move
+    // the real binary, and QProcess already searches PATH at launch. An
+    // absolute path set in Settings is honored as-is.
+    m_dshBinary = QStringLiteral("dsh");
+    m_opencodeBinary = QStringLiteral("opencode");
     m_view = (!QStandardPaths::findExecutable("dsh").isEmpty()
               && !QStandardPaths::findExecutable("opencode").isEmpty()) ? "split" : "opencode";
 
@@ -63,6 +66,13 @@ void Config::load() {
     const QString opencode = object.value("opencodeBinary").toString();
     if (!opencode.isEmpty())
         m_opencodeBinary = opencode;
+
+    // Older builds stored versioned absolute paths; if that version is gone,
+    // fall back to the name so an upgrade does not leave the app broken.
+    if (QFileInfo(m_dshBinary).isAbsolute() && !QFileInfo::exists(m_dshBinary))
+        m_dshBinary = QStringLiteral("dsh");
+    if (QFileInfo(m_opencodeBinary).isAbsolute() && !QFileInfo::exists(m_opencodeBinary))
+        m_opencodeBinary = QStringLiteral("opencode");
 
     const QString view = object.value("view").toString();
     if (view == "harness" || view == "opencode" || view == "split" || view == "settings")

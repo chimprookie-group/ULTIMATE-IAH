@@ -7,6 +7,6 @@ Comment[fr]=DeepSeek Harness et OpenCode dans une seule fenêtre
 Exec=deepcrasy-h %f
 Icon=deepcrasy-h
 Terminal=false
-Categories=Development;Utility;
+Categories=Development;
 Keywords=ai;agent;harness;opencode;code;deepseek;
 StartupWMClass=deepcrasy-h
