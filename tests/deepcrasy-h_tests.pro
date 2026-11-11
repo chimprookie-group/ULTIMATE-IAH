@@ -12,6 +12,7 @@ HEADERS += \
     ../src/harnessserver.h \
     ../src/mcpmanager.h \
     ../src/providermanager.h \
+    ../src/nineroutermanager.h \
     ../src/messagemodel.h \
     ../src/terminalsession.h \
     ../src/theme.h \
@@ -30,6 +31,7 @@ SOURCES += \
     ../src/harnessserver.cpp \
     ../src/mcpmanager.cpp \
     ../src/providermanager.cpp \
+    ../src/nineroutermanager.cpp \
     ../src/messagemodel.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \

@@ -1,6 +1,6 @@
 # Maintainer: Crasy
 pkgname=deepcrasy-h
-pkgver=0.16.0
+pkgver=0.17.0
 pkgrel=1
 pkgdesc='DeepSeek Harness and OpenCode in one Omarchy window'
 arch=('x86_64' 'aarch64')
@@ -11,6 +11,9 @@ optdepends=(
   'dsh: DeepSeek Harness web server (dsh web)'
   'opencode: OpenCode agent (opencode acp)'
   'git: branch and changes in the cockpit'
+  'nodejs: run the integrated 9Router service'
+  'npm: install 9Router from the 9Router view'
+  'python-yaml: write the harness provider patch'
 )
 makedepends=('gcc' 'make' 'qt6-base' 'qt6-svg')
 source=()

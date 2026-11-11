@@ -16,6 +16,7 @@ HEADERS += \
     src/iconprovider.h \
     src/portalfolderpicker.h \
     src/providermanager.h \
+    src/nineroutermanager.h \
     src/terminalsession.h \
     src/theme.h \
     src/workspacemodel.h \
@@ -34,6 +35,7 @@ SOURCES += \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
     src/providermanager.cpp \
+    src/nineroutermanager.cpp \
     src/terminalsession.cpp \
     src/theme.cpp \
     src/workspacemodel.cpp \

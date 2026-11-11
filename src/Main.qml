@@ -77,6 +77,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Ecosystem"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Workspace"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), qsTr("Providers"), "Ctrl+8", "view:providers", "icons/providers.svg")
+        add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
         add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
         add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
@@ -164,6 +165,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
     Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("providers") }
+    Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
     Shortcut {
         sequence: "Ctrl+N"
         context: Qt.ApplicationShortcut
@@ -453,6 +455,14 @@ ApplicationWindow {
                     }
 
                     RailButton {
+                        icon: "icons/router.svg"
+                        label: "9Router"
+                        hint: qsTr("9Router (Ctrl+9)")
+                        active: backend.view === "ninerouter"
+                        onClicked: backend.setView("ninerouter")
+                    }
+
+                    RailButton {
                         icon: "icons/harness.svg"
                         label: qsTr("Harness")
                         hint: qsTr("DeepSeek Harness (Ctrl+1)")
@@ -509,6 +519,7 @@ ApplicationWindow {
                     visible: backend.view !== "settings" && backend.view !== "home"
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
                              && backend.view !== "workspace" && backend.view !== "providers"
+                             && backend.view !== "ninerouter"
 
                     HarnessPane {
                         id: harnessPane
@@ -560,6 +571,11 @@ ApplicationWindow {
                 ProvidersPane {
                     anchors.fill: parent
                     visible: backend.view === "providers"
+                }
+
+                NineRouterPane {
+                    anchors.fill: parent
+                    visible: backend.view === "ninerouter"
                 }
 
                 WorkspacePane {

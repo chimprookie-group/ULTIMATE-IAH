@@ -165,6 +165,29 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### 9Router
+
+`NineRouterManager` traite 9Router comme un service local : détection de
+`9router` (global ou installé dans les données de l'app), installation npm
+locale, démarrage sur `127.0.0.1:20128`, login dashboard (mot de passe initial
+`123456`), clé API locale, catalogue `/v1/models`, logs et arrêt propre.
+
+Le dashboard officiel est embarqué dans un `WebEngineView` avec un profil
+persistant. Le panneau d'intégration choisit les modèles à exposer :
+
+- OpenCode : `POST /api/cli-tools/opencode-settings`, qui écrit le provider
+  OpenAI-compatible et le modèle actif, puis redémarrage ACP.
+- Harness : génération d'un overlay `llm-pi-ai` avec les providers existants
+  du profil fusionnés, d'un provider `nine-router`, et d'un fichier
+  `nine-router.env` (mode 600). `HarnessServer` ajoute
+  `--profile <profil> --patch <overlay>` et injecte `NINE_ROUTER_API_KEY`
+  dans l'environnement de `dsh`. Le patch peut aussi définir
+  `agent-default-model`.
+
+Un marqueur `nine-router.enabled` et la présence du patch permettent de
+redémarrer 9Router avec l'application. Le port reste local et le dashboard
+9Router n'est jamais exposé au réseau.
+
 ### Gestionnaire de providers
 
 `ProviderManager` lit et écrit `~/.config/opencode/opencode.json`. Chaque

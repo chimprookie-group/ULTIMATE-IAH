@@ -18,6 +18,7 @@ Item {
         { keys: "Ctrl+6", what: qsTr("Ecosystem") },
         { keys: "Ctrl+7", what: qsTr("Workspace files and diffs") },
         { keys: "Ctrl+8", what: qsTr("Providers and API keys") },
+        { keys: "Ctrl+9", what: qsTr("9Router, OpenCode and harness") },
         { keys: "Ctrl+3", what: qsTr("Split view") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
         { keys: "Ctrl+Enter", what: qsTr("Send the message") },

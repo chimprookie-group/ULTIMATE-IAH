@@ -10,6 +10,7 @@
         <file>ChatPane.qml</file>
         <file>EcosystemPane.qml</file>
         <file>ProvidersPane.qml</file>
+        <file>NineRouterPane.qml</file>
         <file>WorkspacePane.qml</file>
         <file>Composer.qml</file>
         <file>HomePane.qml</file>
@@ -53,6 +54,7 @@
         <file>icons/bell.svg</file>
         <file>icons/ecosystem.svg</file>
         <file>icons/providers.svg</file>
+        <file>icons/router.svg</file>
         <file>icons/files.svg</file>
         <file>icons/harness.svg</file>
         <file>icons/key.svg</file>

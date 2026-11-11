@@ -1,7 +1,10 @@
 #include "harnessserver.h"
 
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QRegularExpression>
+#include <QStandardPaths>
 #include <QUrl>
 
 namespace {
@@ -148,16 +151,33 @@ void HarnessServer::start() {
         m_process.setWorkingDirectory(m_directory);
 
     QStringList arguments;
-    if (m_profile != "web" && !m_profile.isEmpty())
+    // `--patch` is a launcher option. DSH only accepts it with an explicit
+    // --profile, before the app arguments; `dsh web --patch p` rejects it.
+    const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    const QString patchPath = configDir + "/nine-router.patch.yml";
+    if (QFileInfo::exists(patchPath)) {
+        const QString profile = (m_profile.isEmpty() ? QStringLiteral("web") : m_profile);
+        arguments << "--profile" << profile << "--patch" << patchPath;
+    } else if (m_profile != "web" && !m_profile.isEmpty()) {
         arguments << "--profile" << m_profile;
-    else
+    } else {
         arguments << "web";
+    }
     arguments << "--no-open" << "--port" << "0";
 
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     // The desktop session exports the address of its own harness; a child
     // harness must not inherit it or it may advertise the wrong URL.
     environment.remove("DSH_WEB_URL");
+
+    // 9Router integration: an app-owned overlay adds the nine-router provider,
+    // and the key rides in the child environment instead of DSH settings.
+    QFile envFile(configDir + "/nine-router.env");
+    if (envFile.open(QIODevice::ReadOnly)) {
+        const QString key = QString::fromUtf8(envFile.readAll()).trimmed();
+        if (key.startsWith("NINE_ROUTER_API_KEY="))
+            environment.insert("NINE_ROUTER_API_KEY", key.mid(QStringLiteral("NINE_ROUTER_API_KEY=").size()));
+    }
     m_process.setProcessEnvironment(environment);
 
     setState(Starting, tr("Starting DeepSeek Harness…"));

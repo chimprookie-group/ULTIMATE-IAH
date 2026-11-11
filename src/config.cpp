@@ -97,7 +97,7 @@ void Config::load() {
         m_opencodeBinary = QStringLiteral("opencode");
 
     const QString view = object.value("view").toString();
-    if (view == "home" || view == "ecosystem" || view == "workspace" || view == "providers"
+    if (view == "home" || view == "ecosystem" || view == "workspace" || view == "providers" || view == "ninerouter"
         || view == "harness" || view == "opencode" || view == "split" || view == "terminal"
         || view == "settings")
         m_view = view;
@@ -308,7 +308,7 @@ void Config::setTheme(const QString &theme) {
 }
 
 void Config::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers"
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers" && view != "ninerouter"
         && view != "harness" && view != "opencode" && view != "split" && view != "terminal"
         && view != "settings")
         return;

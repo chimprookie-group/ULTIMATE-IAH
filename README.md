@@ -50,6 +50,30 @@ environnement, pas seulement les deux moteurs.
 
 ![Écosystème](assets/screenshot-ecosystem.png)
 
+## 9Router : le routeur local dans l'écosystème
+
+![9Router dans DeepCrasy H](assets/screenshot-9router.png)
+
+`Ctrl+9` ouvre **9Router** comme un service local géré par DeepCrasy H. Son
+dashboard complet est embarqué : connexion des 40+ providers, comptes, quotas,
+fallback et modèles. L'app démarre/arrête le service, détecte le port 20128,
+crée ou réutilise une clé locale et affiche les **864 modèles** du catalogue.
+
+Le panneau **Intégration** permet de choisir les modèles à exposer :
+
+- **OpenCode** : 9Router écrit son provider OpenAI-compatible dans
+  `opencode.json`, puis DeepCrasy H redémarre OpenCode.
+- **Harness** : un patch `llm-pi-ai` est généré pour le profil DSH courant,
+  avec `NINE_ROUTER_API_KEY` dans l'environnement du processus harness. Le
+  modèle choisi peut devenir le modèle par défaut du harness.
+
+![Harness avec un modèle 9Router](assets/screenshot-harness-9router.png)
+
+9Router est installé localement dans les données de l'application
+(`npm install --prefix …`), sans root ni npm global. Le dashboard utilise le
+mot de passe initial `123456` ; changez-le dans ses réglages. Le service écoute
+uniquement sur `127.0.0.1`.
+
 ## Providers : n'importe quelle API
 
 ![Gestion des providers](assets/screenshot-providers.png)
@@ -218,6 +242,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
 - **Erreurs actionnables** : limite d'usage, provider manquant, retry et
   connexion provider depuis la carte d'erreur.
+- **9Router intégré** : service local, dashboard embarqué, 864 modèles,
+  connexion OpenCode et harness, choix des modèles exposés.
 - **Gestionnaire de providers** : n'importe quelle API compatible OpenAI,
   clé masquée, test `/models`, modèles, comptes OpenCode.
 - **Catalogue de modèles complet**, pièces jointes, historique de prompts et
@@ -352,6 +378,10 @@ Le chat et le sélecteur de modèle :
 - `Ecosystem::refreshModels()` charge `opencode models` et `opencode auth list`
   pour le catalogue et le provider. Le composer assemble les pièces jointes en
   blocs `<file>` et garde 50 prompts d'historique.
+- `NineRouterManager` lance le service local, s'authentifie, récupère la clé et
+  les modèles, puis appelle l'endpoint OpenCode natif de 9Router. Pour le
+  harness, il génère un patch `llm-pi-ai` et un fichier d'environnement ;
+  `HarnessServer` passe `--patch` et `NINE_ROUTER_API_KEY` à `dsh`.
 - `ProviderManager` écrit les entrées `providers` d'OpenCode
   (`package: @opencode/ai/providers/openai-compatible`, `settings.baseURL`,
   `settings.apiKey`, `models`) et teste `/models` en HTTP. Les clés sont en
