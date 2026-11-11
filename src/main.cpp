@@ -13,6 +13,8 @@
 #include <QJsonObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSGGeometryNode>
@@ -21,6 +23,8 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtWebEngineQuick/QtWebEngineQuick>
+
+#include <unistd.h>
 
 #include "backend.h"
 #include "ecosystem.h"
@@ -154,7 +158,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.15.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.15.1"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -221,6 +225,41 @@ int main(int argc, char *argv[]) {
     app.setDesktopFileName(QStringLiteral("deepcrasy-h"));
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("deepcrasy-h")));
 
+    // One window per user: a second launch must raise the existing one, not
+    // spawn another QtWebEngine profile and fight over the same portal id.
+    QQuickWindow *mainWindow = nullptr;
+    const QString instanceName = QStringLiteral("deepcrasy-h-%1").arg(QString::number(getuid()));
+    QLocalServer instanceServer;
+    if (screenshot.isEmpty() && !demo) {
+        QLocalSocket probe;
+        probe.connectToServer(instanceName);
+        if (probe.waitForConnected(250)) {
+            probe.write("raise\n");
+            probe.flush();
+            probe.waitForBytesWritten(250);
+            if (probe.waitForReadyRead(500)) {
+                probe.readAll();
+                return 0;
+            }
+        }
+        QLocalServer::removeServer(instanceName);
+        instanceServer.listen(instanceName);
+        QObject::connect(&instanceServer, &QLocalServer::newConnection, &app, [&] {
+            while (QLocalSocket *client = instanceServer.nextPendingConnection()) {
+                client->readAll();
+                client->write("ok\n");
+                client->flush();
+                client->disconnectFromServer();
+                client->deleteLater();
+            }
+            if (mainWindow) {
+                mainWindow->show();
+                mainWindow->raise();
+                mainWindow->requestActivate();
+            }
+        });
+    }
+
     QQuickStyle::setStyle(QStringLiteral("Material"));
 
     // Installed before anything is translated, and every qsTr() binding is
@@ -277,6 +316,7 @@ int main(int argc, char *argv[]) {
         return 1;
 
     if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0))) {
+        mainWindow = window;
         QObject::connect(window, &QQuickWindow::beforeRendering, window, [window] {
             setMissingMatrices(QQuickItemPrivate::get(window->contentItem())->itemNode());
         }, Qt::DirectConnection);

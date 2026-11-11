@@ -19,6 +19,7 @@ Item {
     property color dotColor: theme.cyan
 
     signal selected(string value)
+    signal opened()
 
     readonly property var hostWindow: Window.window
 
@@ -110,6 +111,7 @@ Item {
         currentValue: root.currentValue
         searchable: root.searchable
         hostWindow: root.hostWindow
+        onOpened: root.opened()
         onSelected: root.selected(value)
     }
 }

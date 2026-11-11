@@ -95,6 +95,15 @@ qui laissaient des icônes blanches ou des boîtes noires selon la palette.
 `src/ThemeCard.qml` affiche un aperçu réel de chaque palette dans Réglages :
 la carte est peinte avec les couleurs du thème qu'elle représente.
 
+### Instance unique et démarrage
+
+`main.cpp` ouvre un `QLocalServer` par utilisateur (`deepcrasy-h-<uid>`). Une
+deuxième instance envoie `raise`, attend un accusé, puis quitte ; la première
+remonte sa fenêtre. Si le serveur ne répond pas (instance bloquée), le socket
+est considéré comme périmé et une nouvelle instance démarre. Le catalogue
+`opencode models` est chargé à l'ouverture du sélecteur, pas pendant
+`engine.load`, pour que la fenêtre apparaisse immédiatement.
+
 ### Le rendu et le crash du render thread
 
 Sous Qt 6.12, un nœud de glyphe (`QSGDistanceFieldGlyphNode` ou

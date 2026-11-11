@@ -176,7 +176,6 @@ Rectangle {
         // menu, not the stock Material popup, is what gets captured.
         if (Qt.application.arguments.indexOf("--picker") !== -1)
             Qt.callLater(modelPicker.open)
-        Qt.callLater(function () { ecosystem.refreshModels() })
     }
 
     ColumnLayout {
@@ -323,6 +322,7 @@ Rectangle {
                 searchable: true
                 emptyText: qsTr("Model")
                 dotColor: theme.cyan
+                onOpened: ecosystem.refreshModels()
                 onSelected: function (value) {
                     backend.setConfigOption("model", value)
                     input.forceActiveFocus()

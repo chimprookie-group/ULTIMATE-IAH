@@ -408,6 +408,11 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
 
 ## Stabilité
 
+DeepCrasy H n'accepte qu'une instance par utilisateur : relancer l'application
+ramène la fenêtre existante au premier plan au lieu de créer un second profil
+QtWebEngine et un conflit de portail. Le catalogue de modèles est chargé à
+l'ouverture du sélecteur, pas avant l'affichage de la fenêtre.
+
 Qt 6.12 peut livrer un nœud de glyphe sans matrice au batch renderer ;
 `Element::computeBounds()` déréférence alors `node->matrix()` et crashe dans
 `prepareAlphaBatches()`. Avant chaque rendu, DeepCrasy H parcourt le scene graph
