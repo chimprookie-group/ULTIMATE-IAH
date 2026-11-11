@@ -65,6 +65,36 @@ Le client (`src/acpclient.*`) implémente :
 Les notifications de session enfant (sous-agents) sont ignorées : mélanger
 leur transcript à celui du parent serait trompeur.
 
+### Les thèmes
+
+Omarchy décrit chaque thème dans un `colors.toml` sémantique : `background`,
+`foreground`, `accent`, `selection`, et une série de couleurs nommées
+(`red`, `green`, `cyan`, `orange`, variantes `bright_*`). `src/theme.*` lit ce
+fichier et en dérive tout ce dont l'interface a besoin : surfaces, bordures,
+texte secondaire, halos, ombre, couleurs de statut.
+
+Deux modes :
+
+- **Suivre Omarchy** (défaut) : la palette est relue quand le bureau change de
+  thème. Le veilleur réarme ses chemins à chaque rechargement, parce qu'un
+  changement de thème remplace le dossier d'état.
+- **Thème choisi** : n'importe quel thème installé peut être utilisé pour
+  l'application seule. Le choix est enregistré dans `config.json` et ne touche
+  jamais à la configuration du bureau.
+
+Les surfaces sont calculées en mélangeant `background` et `foreground` plutôt
+qu'en codant des gris : un thème clair obtient des cartes légèrement grises et
+un texte secondaire assez sombre, un thème sombre l'inverse. `Theme::dark()`
+pilote aussi `Material.theme`.
+
+Les icônes sont des SVG blancs. `src/iconprovider.*` les rend avec
+`QSvgRenderer`, puis applique la couleur avec `CompositionMode_SourceIn` ; QML
+demande `image://themeicon/terminal.svg?color=%23…`. Cela évite les effets QML
+qui laissaient des icônes blanches ou des boîtes noires selon la palette.
+
+`src/ThemeCard.qml` affiche un aperçu réel de chaque palette dans Réglages :
+la carte est peinte avec les couleurs du thème qu'elle représente.
+
 ### Un seul propriétaire d'état
 
 `Backend` est la seule façade exposée à QML. Il possède `Config`,

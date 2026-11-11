@@ -20,6 +20,21 @@ tronquée qui débordait de la fenêtre.
 
 ![Sélecteur de modèle](assets/screenshot-picker.png)
 
+## Thèmes
+
+DeepCrasy H lit les `colors.toml` d'Omarchy et suit le thème du bureau par
+défaut. **Réglages → Apparence** liste tous les thèmes installés avec un aperçu
+réel de leur palette ; le choix s'applique instantanément, reste propre à
+l'application et ne touche pas à la configuration du bureau.
+
+Tout est dérivé de la palette : fonds, bordures, texte secondaire, icônes
+teintées, accents, couleurs de statut. Les thèmes clairs restent lisibles, les
+sombres gardent leur caractère.
+
+![Thèmes installés](assets/screenshot-themes.png)
+
+![Thème clair](assets/screenshot-light.png)
+
 ## En bref
 
 - **Un seul espace de travail.** Le dossier choisi est partagé : le harness y
@@ -32,8 +47,11 @@ tronquée qui débordait de la fenêtre.
   streaming sont rendus par l'application, pas par un terminal.
 - **Vue partagée.** Les deux panneaux côte à côte (à partir de 1180 px de
   large), avec bascule instantanée et transcript conservé.
-- **Clavier d'abord**, thème Omarchy suivi en direct (accent, arrondis,
-  langue), interface française et anglaise.
+- **Thèmes complets.** Les palettes des thèmes Omarchy sont lues en direct :
+  surfaces, bordures, accents, icônes, statuts et mode clair/sombre sont
+  dérivés de la palette active, ou d'un thème choisi dans l'application.
+- **Clavier d'abord**, arrondis Hyprland suivis, interface française et
+  anglaise.
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
 
 ## Installer
@@ -132,6 +150,9 @@ d'écran reste ainsi lisible.
 - `src/backend.*` est la façade QML : un espace de travail, deux moteurs, un
   seul état. `src/config.*` persiste tout dans
   `~/.config/Crasy/deepcrasy-h/config.json` (écriture atomique).
+- `src/theme.*` lit la palette Omarchy (`background`, `foreground`, `accent`,
+  couleurs terminales), en dérive les surfaces et suit le thème actif en
+  direct ; `src/iconprovider.*` teinte les SVG avec la bonne couleur.
 - Le cookie du harness persiste dans
   `~/.local/share/Crasy/deepcrasy-h/QtWebEngine/deepcrasy-h`, mais l'URL
   tokenisée est rechargée à chaque démarrage : aucun secret n'est écrit dans
@@ -145,7 +166,7 @@ d'écran reste ainsi lisible.
 
 | Chemin | Contenu |
 | --- | --- |
-| `~/.config/Crasy/deepcrasy-h/config.json` | espace de travail, profil harness, binaires, dernière vue |
+| `~/.config/Crasy/deepcrasy-h/config.json` | espace de travail, profil harness, binaires, dernière vue, thème |
 | `~/.local/share/Crasy/deepcrasy-h/QtWebEngine/` | cookies et stockage local du harness |
 | `~/.cache/Crasy/deepcrasy-h/` | cache WebEngine |
 
@@ -190,6 +211,10 @@ Pour une capture reproductible sans données personnelles :
 ```sh
 QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
   --demo --screenshot /tmp/deepcrasy.png
+
+# Avec un thème précis, sans le persister
+QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
+  --theme catppuccin-latte --demo --screenshot /tmp/light.png
 ```
 
 ## Limites connues
@@ -202,6 +227,8 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
   utilisation ; c'est son interface, pas celle de DeepCrasy H.
 - ACP est jeune : les mises à jour de session inconnues sont ignorées plutôt
   que devinées.
+- Le thème choisi ne s'applique qu'à DeepCrasy H. L'interface web du harness
+  garde son propre thème, et `omarchy theme set` continue de piloter le bureau.
 
 ## Licence
 

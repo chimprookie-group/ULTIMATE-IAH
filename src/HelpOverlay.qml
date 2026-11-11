@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -43,9 +42,9 @@ Item {
         height: card.implicitHeight + 44
         anchors.centerIn: parent
         radius: Math.min(14, theme.radius)
-        color: Pal.panel
+        color: theme.surface
         border.width: 1
-        border.color: Pal.borderStrong
+        border.color: theme.borderStrong
 
         ColumnLayout {
             id: card
@@ -62,7 +61,7 @@ Item {
                     text: qsTr("Keyboard")
                     font.pixelSize: 16
                     font.weight: Font.DemiBold
-                    color: Pal.text
+                    color: theme.text
                 }
                 IconButton {
                     icon: "icons/close.svg"
@@ -75,14 +74,14 @@ Item {
                 Layout.fillWidth: true
                 text: qsTr("Everything works from the keyboard. The harness keeps its page when you switch views; OpenCode keeps its transcript.")
                 wrapMode: Text.Wrap
-                color: Pal.muted
+                color: theme.mutedText
                 font.pixelSize: 11
             }
 
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             Repeater {
@@ -95,21 +94,21 @@ Item {
                         Layout.preferredWidth: 104
                         height: 21
                         radius: Math.min(5, theme.radius)
-                        color: Pal.raised
+                        color: theme.raised
                         border.width: 1
-                        border.color: Pal.border
+                        border.color: theme.border
                         Text {
                             anchors.centerIn: parent
                             text: modelData.keys
                             font.family: backend.monoFont
                             font.pixelSize: 10
-                            color: Pal.text
+                            color: theme.text
                         }
                     }
                     Text {
                         Layout.fillWidth: true
                         text: modelData.what
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 12
                     }
                 }

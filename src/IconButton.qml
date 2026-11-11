@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -17,17 +16,17 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Math.min(7, theme.radius)
-        color: root.active ? Pal.raisedHover : (mouse.containsMouse ? Pal.raised : "transparent")
+        color: root.active ? theme.chip : (mouse.containsMouse ? theme.raised : "transparent")
         border.width: root.active ? 1 : 0
-        border.color: Pal.borderStrong
+        border.color: theme.borderStrong
     }
 
-    Image {
+    ThemedIcon {
         anchors.centerIn: parent
         source: root.icon
-        sourceSize.width: 15
-        sourceSize.height: 15
-        opacity: root.active ? 1 : (mouse.containsMouse ? 0.8 : 0.55)
+        width: 15
+        height: 15
+        color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
     }
 
     MouseArea {

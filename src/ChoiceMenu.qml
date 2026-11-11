@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 // A floating picker for model and mode choices. The stock Material ComboBox
 // popup was too narrow for names like "opencode/DeepSeek V4.1 Flash Free" and
@@ -55,14 +54,14 @@ Popup {
     function providerColor(value) {
         const provider = providerOf(value)
         if (provider === "opencode")
-            return Pal.teal
+            return theme.cyan
         if (provider === "anthropic")
             return "#E5A97A"
         if (provider === "openai")
             return "#6FD3AE"
         if (provider === "google")
             return "#7FA8F0"
-        return Pal.orange
+        return theme.orange
     }
 
     function indexOf(value) {
@@ -148,10 +147,10 @@ Popup {
     }
 
     background: Rectangle {
-        color: Pal.raised
+        color: theme.raised
         radius: Math.min(13, theme.radius)
         border.width: 1
-        border.color: Pal.borderStrong
+        border.color: theme.borderStrong
     }
 
     contentItem: Item {
@@ -171,7 +170,7 @@ Popup {
 
                 Text {
                     text: popup.title.toUpperCase()
-                    color: Pal.muted
+                    color: theme.mutedText
                     font.pixelSize: 9
                     font.letterSpacing: 1.3
                     font.weight: Font.DemiBold
@@ -181,14 +180,14 @@ Popup {
                     width: countLabel.implicitWidth + 14
                     height: 18
                     radius: 9
-                    color: Pal.raised
+                    color: theme.raised
                     border.width: 1
-                    border.color: Pal.border
+                    border.color: theme.border
                     Text {
                         id: countLabel
                         anchors.centerIn: parent
                         text: popup.filtered.length
-                        color: Pal.dim
+                        color: theme.dimText
                         font.pixelSize: 9
                     }
                 }
@@ -199,9 +198,9 @@ Popup {
                 Layout.fillWidth: true
                 height: 34
                 radius: Math.min(8, theme.radius)
-                color: Pal.bg
+                color: theme.background
                 border.width: 1
-                border.color: search.activeFocus ? theme.accent : Pal.border
+                border.color: search.activeFocus ? theme.accent : theme.border
 
                 RowLayout {
                     anchors.fill: parent
@@ -209,11 +208,11 @@ Popup {
                     anchors.rightMargin: 10
                     spacing: 8
 
-                    Image {
+                    ThemedIcon {
                         source: "icons/search.svg"
-                        sourceSize.width: 13
-                        sourceSize.height: 13
-                        opacity: 0.5
+                        width: 13
+                        height: 13
+                        color: theme.mutedText
                     }
 
                     Item {
@@ -223,7 +222,7 @@ Popup {
                         TextInput {
                             id: search
                             anchors.fill: parent
-                            color: Pal.text
+                            color: theme.text
                             font.pixelSize: 12
                             selectionColor: theme.accent
                             selectedTextColor: theme.accentForeground
@@ -254,7 +253,7 @@ Popup {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: search.text.length === 0
                             text: qsTr("Search models…")
-                            color: Pal.dim
+                            color: theme.dimText
                             font.pixelSize: 12
                         }
                     }
@@ -293,9 +292,9 @@ Popup {
                     width: ListView.view.width
                     height: 46
                     radius: Math.min(8, theme.radius)
-                    color: ListView.isCurrentItem ? Pal.menuSelected : (rowMouse.containsMouse ? Pal.menuHover : "transparent")
+                    color: ListView.isCurrentItem ? theme.menuSelected : (rowMouse.containsMouse ? theme.menuHover : "transparent")
                     border.width: ListView.isCurrentItem ? 1 : 0
-                    border.color: Pal.borderStrong
+                    border.color: theme.borderStrong
 
                     Rectangle {
                         visible: ListView.isCurrentItem
@@ -304,7 +303,7 @@ Popup {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         radius: 1
-                        color: Pal.teal
+                        color: theme.cyan
                     }
 
                     RowLayout {
@@ -327,26 +326,26 @@ Popup {
                             Text {
                                 Layout.fillWidth: true
                                 text: popup.displayName(modelData)
-                                color: Pal.text
+                                color: theme.text
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
                             Text {
                                 Layout.fillWidth: true
                                 text: popup.secondary(modelData)
-                                color: Pal.dim
+                                color: theme.dimText
                                 font.family: backend.monoFont
                                 font.pixelSize: 9
                                 elide: Text.ElideRight
                             }
                         }
 
-                        Image {
+                        ThemedIcon {
                             source: "icons/check.svg"
-                            sourceSize.width: 13
-                            sourceSize.height: 13
+                            width: 13
+                            height: 13
                             visible: modelData.value === popup.currentValue
-                            opacity: 0.85
+                            color: theme.accent
                         }
                     }
 
@@ -365,7 +364,7 @@ Popup {
                 Layout.fillWidth: true
                 visible: popup.filtered.length === 0
                 text: qsTr("No match. Try another name.")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -373,7 +372,7 @@ Popup {
             Text {
                 Layout.fillWidth: true
                 text: qsTr("↑↓ navigate · Enter select · Esc close")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 9
                 horizontalAlignment: Text.AlignRight
             }

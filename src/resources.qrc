@@ -1,9 +1,11 @@
 <RCC>
     <qresource prefix="/">
         <file>Main.qml</file>
-        <file>Palette.js</file>
         <file>RailButton.qml</file>
+        <file>ThemedIcon.qml</file>
+        <file>ActionButton.qml</file>
         <file>IconButton.qml</file>
+        <file>StatusDot.qml</file>
         <file>HarnessPane.qml</file>
         <file>ChatPane.qml</file>
         <file>Composer.qml</file>
@@ -12,6 +14,7 @@
         <file>ToolCard.qml</file>
         <file>SettingsPane.qml</file>
         <file>SettingsSection.qml</file>
+        <file>ThemeCard.qml</file>
         <file>HelpOverlay.qml</file>
         <file>SessionsPanel.qml</file>
         <file>PermissionDialog.qml</file>

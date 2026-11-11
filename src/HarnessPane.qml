@@ -4,7 +4,6 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtWebEngine
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -16,13 +15,13 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 34
-            color: Pal.bg
+            color: theme.background
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             RowLayout {
@@ -31,32 +30,29 @@ Item {
                 anchors.rightMargin: 8
                 spacing: 8
 
-                Rectangle {
-                    width: 5
-                    height: 5
-                    radius: 2.5
+                StatusDot {
                     color: win.stateColor(backend.harnessState)
                 }
                 Text {
                     text: qsTr("DeepSeek Harness")
                     font.pixelSize: 12
                     font.weight: Font.DemiBold
-                    color: Pal.text
+                    color: theme.text
                 }
                 Rectangle {
                     implicitWidth: profileLabel.implicitWidth + 12
                     height: 18
                     radius: 9
-                    color: Pal.raised
+                    color: theme.raised
                     border.width: 1
-                    border.color: Pal.border
+                    border.color: theme.border
                     Text {
                         id: profileLabel
                         anchors.centerIn: parent
                         text: backend.harnessProfile
                         font.family: backend.monoFont
                         font.pixelSize: 9
-                        color: Pal.muted
+                        color: theme.mutedText
                     }
                 }
 
@@ -93,7 +89,7 @@ Item {
                 id: web
                 anchors.fill: parent
                 visible: backend.harnessState === "running"
-                backgroundColor: Pal.panel
+                backgroundColor: theme.surface
                 profile: harnessProfile
                 settings.javascriptEnabled: true
                 settings.localStorageEnabled: true
@@ -128,13 +124,13 @@ Item {
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("Starting DeepSeek Harness…")
-                    color: Pal.text
+                    color: theme.text
                     font.pixelSize: 13
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: backend.harnessDetail
-                    color: Pal.dim
+                    color: theme.dimText
                     font.pixelSize: 11
                 }
             }
@@ -146,9 +142,9 @@ Item {
                 height: failedColumn.implicitHeight + 40
                 anchors.centerIn: parent
                 radius: Math.min(12, theme.radius)
-                color: Pal.raised
+                color: theme.raised
                 border.width: 1
-                border.color: Pal.borderStrong
+                border.color: theme.borderStrong
 
                 ColumnLayout {
                     id: failedColumn
@@ -158,23 +154,24 @@ Item {
 
                     RowLayout {
                         spacing: 8
-                        Image {
+                        ThemedIcon {
                             source: "icons/alert.svg"
-                            sourceSize.width: 16
-                            sourceSize.height: 16
+                            width: 16
+                            height: 16
+                            color: theme.yellow
                         }
                         Text {
                             text: qsTr("The harness is not running")
                             font.pixelSize: 14
                             font.weight: Font.DemiBold
-                            color: Pal.text
+                            color: theme.text
                         }
                     }
                     Text {
                         Layout.fillWidth: true
                         text: backend.harnessDetail
                         wrapMode: Text.Wrap
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 12
                     }
                     Text {
@@ -183,7 +180,7 @@ Item {
                         text: backend.harnessLog.split("\n").slice(-6).join("\n")
                         font.family: backend.monoFont
                         font.pixelSize: 10
-                        color: Pal.dim
+                        color: theme.dimText
                         wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                         maximumLineCount: 8
                         elide: Text.ElideRight
@@ -197,9 +194,8 @@ Item {
                             flat: true
                             onClicked: backend.setView("settings")
                         }
-                        Button {
+                        ActionButton {
                             text: qsTr("Restart")
-                            highlighted: true
                             onClicked: backend.restartHarness()
                         }
                     }

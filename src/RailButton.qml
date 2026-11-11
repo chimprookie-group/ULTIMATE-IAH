@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -30,7 +29,7 @@ Item {
         anchors.fill: parent
         anchors.margins: 3
         radius: Math.min(8, theme.radius)
-        color: root.active ? Pal.raised : (mouse.containsMouse ? "#0F191E" : "transparent")
+        color: root.active ? theme.accentSoft : (mouse.containsMouse ? theme.chip : "transparent")
         Behavior on color { ColorAnimation { duration: 100 } }
     }
 
@@ -38,20 +37,19 @@ Item {
         anchors.centerIn: parent
         spacing: 3
 
-        Image {
+        ThemedIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             source: root.icon
-            sourceSize.width: 19
-            sourceSize.height: 19
-            opacity: root.active ? 1 : (mouse.containsMouse ? 0.85 : 0.58)
-            Behavior on opacity { NumberAnimation { duration: 100 } }
+            width: 19
+            height: 19
+            color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.dimText)
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.label
             font.pixelSize: 8
             font.letterSpacing: 0.3
-            color: root.active ? Pal.text : Pal.dim
+            color: root.active ? theme.brightText : theme.mutedText
         }
     }
 

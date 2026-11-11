@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -29,14 +28,24 @@ Item {
         return "icons/spark.svg"
     }
 
+    function kindColor(kind) {
+        if (kind === "execute")
+            return theme.green
+        if (kind === "edit")
+            return theme.orange
+        if (kind === "read")
+            return theme.blue
+        return theme.accent
+    }
+
     function statusColor(state) {
         if (state === "completed")
-            return Pal.green
+            return theme.green
         if (state === "failed")
-            return Pal.red
+            return theme.red
         if (state === "in_progress")
-            return Pal.teal
-        return Pal.dim
+            return theme.cyan
+        return theme.dimText
     }
 
     function statusLabel(state) {
@@ -52,10 +61,20 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Math.min(9, theme.radius)
-        color: Pal.raised
+        color: theme.raised
         border.width: 1
-        border.color: cardMouse.containsMouse ? Pal.borderStrong : Pal.border
+        border.color: cardMouse.containsMouse ? theme.borderStrong : theme.border
         Behavior on border.color { ColorAnimation { duration: 100 } }
+
+        Rectangle {
+            width: 2
+            height: parent.height - 16
+            radius: 1
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            color: root.kindColor(root.kind)
+            opacity: 0.8
+        }
     }
 
     ColumnLayout {
@@ -73,15 +92,15 @@ Item {
                 width: 22
                 height: 22
                 radius: 5
-                color: Pal.bg
+                color: theme.background
                 border.width: 1
-                border.color: Pal.border
-                Image {
+                border.color: theme.border
+                ThemedIcon {
                     anchors.centerIn: parent
                     source: root.kindIcon(root.kind)
-                    sourceSize.width: 12
-                    sourceSize.height: 12
-                    opacity: 0.75
+                    width: 12
+                    height: 12
+                    color: root.kindColor(root.kind)
                 }
             }
 
@@ -90,7 +109,7 @@ Item {
                 text: root.title !== "" ? root.title : qsTr("Tool call")
                 font.family: backend.monoFont
                 font.pixelSize: 12
-                color: Pal.text
+                color: theme.text
                 elide: Text.ElideMiddle
             }
 
@@ -98,7 +117,7 @@ Item {
                 height: 18
                 implicitWidth: pill.implicitWidth + 14
                 radius: 9
-                color: Pal.bg
+                color: theme.background
                 border.width: 1
                 border.color: root.statusColor(root.status)
 
@@ -122,12 +141,12 @@ Item {
                 }
             }
 
-            Image {
+            ThemedIcon {
                 source: "icons/chevron.svg"
-                sourceSize.width: 11
-                sourceSize.height: 11
+                width: 11
+                height: 11
                 rotation: root.expanded ? 180 : 0
-                opacity: 0.45
+                color: theme.dimText
                 Behavior on rotation { NumberAnimation { duration: 120 } }
             }
         }
@@ -138,7 +157,7 @@ Item {
             text: "$ " + root.command
             font.family: backend.monoFont
             font.pixelSize: 10
-            color: Pal.dim
+            color: theme.dimText
             elide: Text.ElideRight
             wrapMode: Text.NoWrap
         }
@@ -150,7 +169,7 @@ Item {
             font.family: backend.monoFont
             font.pixelSize: 11
             lineHeight: 1.35
-            color: Pal.muted
+            color: theme.mutedText
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             maximumLineCount: root.expanded ? 1000 : 2
             elide: Text.ElideRight
@@ -165,7 +184,7 @@ Item {
             }
             font.family: backend.monoFont
             font.pixelSize: 10
-            color: Pal.dim
+            color: theme.dimText
             elide: Text.ElideMiddle
         }
 
@@ -175,7 +194,7 @@ Item {
             text: qsTr("exit code %1").arg(root.exitCode)
             font.family: backend.monoFont
             font.pixelSize: 10
-            color: Pal.dim
+            color: theme.dimText
         }
     }
 

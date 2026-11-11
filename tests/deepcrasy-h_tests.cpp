@@ -52,11 +52,13 @@ private slots:
             config.setWorkspace(dir.path());
             config.setHarnessProfile("custom");
             config.setView("split");
+            config.setTheme("tokyo-night");
         }
         Config reloaded(path);
         QCOMPARE(reloaded.workspace(), QFileInfo(dir.path()).absoluteFilePath());
         QCOMPARE(reloaded.harnessProfile(), QString("custom"));
         QCOMPARE(reloaded.view(), QString("split"));
+        QCOMPARE(reloaded.theme(), QString("tokyo-night"));
     }
 
     void configRejectsMissingWorkspace()
@@ -81,8 +83,9 @@ private slots:
     {
         QTemporaryDir dir;
         Theme theme(dir.path());
-        QCOMPARE(theme.accent(), QString("#FFD60A"));
+        QCOMPARE(theme.accent(), QString("#ffd60a"));
         QCOMPARE(theme.accentForeground(), QString("black"));
+        QVERIFY(theme.dark());
     }
 
     void themeReadsAccent()
@@ -97,6 +100,53 @@ private slots:
         Theme theme(dir.path());
         QCOMPARE(theme.accent(), QString("#112233"));
         QCOMPARE(theme.accentForeground(), QString("white"));
+    }
+
+    void themeParsesALightPalette()
+    {
+        QTemporaryDir dir;
+        QDir(dir.path()).mkpath("theme");
+        QFile colors(dir.path() + "/theme/colors.toml");
+        QVERIFY(colors.open(QIODevice::WriteOnly));
+        colors.write("mode = \"light\"\n"
+                     "accent = \"#1e66f5\"\n"
+                     "background = \"#eff1f5\"\n"
+                     "foreground = \"#4c4f69\"\n"
+                     "cyan = \"#179299\"\n"
+                     "green = \"#40a02b\"\n");
+        colors.close();
+
+        Theme theme(dir.path());
+        QVERIFY(!theme.dark());
+        QCOMPARE(theme.background(), QString("#eff1f5"));
+        QCOMPARE(theme.text(), QString("#4c4f69"));
+        QCOMPARE(theme.accent(), QString("#1e66f5"));
+        QCOMPARE(theme.accentForeground(), QString("white"));
+        QCOMPARE(theme.cyan(), QString("#179299"));
+        QCOMPARE(theme.green(), QString("#40a02b"));
+        // Surfaces have to separate themselves from the background.
+        QVERIFY(theme.raised() != theme.background());
+        QVERIFY(theme.border() != theme.background());
+    }
+
+    void themeScansInstalledPalettes()
+    {
+        QTemporaryDir dir;
+        const auto writeTheme = [&dir](const QString &id, const QByteArray &palette) {
+            QVERIFY(QDir(dir.path()).mkpath(id));
+            QFile file(dir.path() + "/" + id + "/colors.toml");
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(palette);
+        };
+        writeTheme("acme-dark", "mode = \"dark\"\naccent = \"#112233\"\nbackground = \"#101010\"\nforeground = \"#eeeeee\"\n");
+        writeTheme("acme-light", "mode = \"light\"\naccent = \"#334455\"\nbackground = \"#fafafa\"\nforeground = \"#111111\"\n");
+
+        const QVariantList themes = Theme::scanThemes({dir.path()});
+        QCOMPARE(themes.size(), 2);
+        QCOMPARE(themes.at(0).toMap().value("label").toString(), QString("Acme Dark"));
+        QCOMPARE(themes.at(1).toMap().value("label").toString(), QString("Acme Light"));
+        QCOMPARE(themes.at(0).toMap().value("accent").toString(), QString("#112233"));
+        QCOMPARE(themes.at(1).toMap().value("mode").toString(), QString("light"));
     }
 
     void translatorFallsBackToEnglish()

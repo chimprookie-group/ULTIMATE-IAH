@@ -12,6 +12,7 @@ class Config : public QObject {
     Q_PROPERTY(QString dshBinary READ dshBinary WRITE setDshBinary NOTIFY dshBinaryChanged)
     Q_PROPERTY(QString opencodeBinary READ opencodeBinary WRITE setOpencodeBinary NOTIFY opencodeBinaryChanged)
     Q_PROPERTY(QString view READ view WRITE setView NOTIFY viewChanged)
+    Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY themeChanged)
 
 public:
     explicit Config(const QString &path = {}, QObject *parent = nullptr);
@@ -31,6 +32,9 @@ public:
     QString view() const { return m_view; }
     void setView(const QString &view);
 
+    QString theme() const { return m_theme; }
+    void setTheme(const QString &theme);
+
     QString path() const { return m_path; }
 
     static QString defaultPath();
@@ -43,6 +47,7 @@ signals:
     void dshBinaryChanged();
     void opencodeBinaryChanged();
     void viewChanged();
+    void themeChanged();
 
 private:
     void load();
@@ -54,4 +59,5 @@ private:
     QString m_dshBinary;
     QString m_opencodeBinary;
     QString m_view;
+    QString m_theme;
 };

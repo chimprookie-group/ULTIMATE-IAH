@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Rectangle {
     id: root
@@ -12,10 +11,10 @@ Rectangle {
 
     Layout.fillWidth: true
     implicitHeight: column.implicitHeight + 36
-    color: Pal.raised
+    color: theme.raised
     radius: Math.min(10, theme.radius)
     border.width: 1
-    border.color: Pal.border
+    border.color: theme.border
 
     ColumnLayout {
         id: column
@@ -29,13 +28,13 @@ Rectangle {
             font.pixelSize: 9
             font.letterSpacing: 1.3
             font.weight: Font.DemiBold
-            color: Pal.muted
+            color: theme.mutedText
         }
         Rectangle {
             Layout.fillWidth: true
             Layout.bottomMargin: 2
             height: 1
-            color: Pal.border
+            color: theme.border
         }
     }
 }

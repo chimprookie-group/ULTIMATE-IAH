@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -36,7 +35,7 @@ Item {
         width: Math.min(430, parent.width * 0.92)
         height: parent.height
         x: root.opened ? parent.width - width : parent.width
-        color: Pal.panel
+        color: theme.surface
 
         Behavior on x { NumberAnimation { duration: 170; easing.type: Easing.OutCubic } }
 
@@ -44,7 +43,7 @@ Item {
             anchors.left: parent.left
             width: 1
             height: parent.height
-            color: Pal.border
+            color: theme.border
         }
 
         ColumnLayout {
@@ -62,12 +61,12 @@ Item {
                         text: qsTr("Sessions")
                         font.pixelSize: 15
                         font.weight: Font.DemiBold
-                        color: Pal.text
+                        color: theme.text
                     }
                     Text {
                         Layout.fillWidth: true
                         text: backend.workspaceName
-                        color: Pal.dim
+                        color: theme.dimText
                         font.pixelSize: 10
                         elide: Text.ElideMiddle
                     }
@@ -88,7 +87,7 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             ListView {
@@ -103,9 +102,9 @@ Item {
                     width: ListView.view.width
                     height: 58
                     radius: Math.min(8, theme.radius)
-                    color: sessionMouse.containsMouse ? Pal.raisedHover : Pal.raised
+                    color: sessionMouse.containsMouse ? theme.raisedHover : theme.raised
                     border.width: 1
-                    border.color: Pal.border
+                    border.color: theme.border
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -115,7 +114,7 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             text: modelData.title !== undefined && modelData.title !== "" ? modelData.title : qsTr("Untitled session")
-                            color: Pal.text
+                            color: theme.text
                             font.pixelSize: 12
                             elide: Text.ElideRight
                         }
@@ -126,13 +125,13 @@ Item {
                                 text: modelData.updatedAt !== undefined
                                       ? Qt.formatDateTime(new Date(modelData.updatedAt), "d MMM · HH:mm")
                                       : ""
-                                color: Pal.dim
+                                color: theme.dimText
                                 font.pixelSize: 10
                             }
                             Text {
                                 Layout.fillWidth: true
                                 text: modelData.sessionId !== undefined ? modelData.sessionId : ""
-                                color: Pal.dim
+                                color: theme.dimText
                                 font.family: backend.monoFont
                                 font.pixelSize: 8
                                 elide: Text.ElideMiddle
@@ -157,7 +156,7 @@ Item {
                 Layout.fillWidth: true
                 visible: backend.loadingSessions
                 text: qsTr("Loading sessions…")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 10
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -166,7 +165,7 @@ Item {
                 Layout.fillWidth: true
                 visible: !backend.loadingSessions && backend.sessions.length === 0
                 text: qsTr("No sessions in this workspace yet. Send a message to start one.")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
                 horizontalAlignment: Text.AlignHCenter

@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
-import "Palette.js" as Pal
 
 ApplicationWindow {
     id: win
@@ -13,11 +12,19 @@ ApplicationWindow {
     minimumHeight: 600
     visible: true
     title: backend.demo ? qsTr("DeepCrasy H") : "DeepCrasy H — " + backend.workspaceName
-    color: Pal.bg
+    color: theme.background
+    background: Rectangle {
+        gradient: Gradient {
+            orientation: Gradient.Vertical
+            GradientStop { position: 0.0; color: theme.ambientTop }
+            GradientStop { position: 0.45; color: theme.background }
+            GradientStop { position: 1.0; color: theme.ambientBottom }
+        }
+    }
     font.family: backend.uiFont
     font.pixelSize: 13
 
-    Material.theme: Material.Dark
+    Material.theme: theme.dark ? Material.Dark : Material.Light
     Material.accent: theme.accent
     Material.roundedScale: theme.radius
 
@@ -48,12 +55,12 @@ ApplicationWindow {
 
     function stateColor(state) {
         if (state === "running" || state === "ready")
-            return Pal.green
+            return theme.green
         if (state === "starting")
-            return Pal.yellow
+            return theme.yellow
         if (state === "failed")
-            return Pal.red
-        return Pal.dim
+            return theme.red
+        return theme.dimText
     }
 
     // One WebEngineView and one ChatPane live for the whole session, so the
@@ -123,13 +130,13 @@ ApplicationWindow {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 56
-            color: Pal.panel
+            color: theme.surface
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             RowLayout {
@@ -138,10 +145,23 @@ ApplicationWindow {
                 anchors.rightMargin: 12
                 spacing: 12
 
-                Image {
-                    source: "assets/icon-128.png"
-                    sourceSize.width: 27
-                    sourceSize.height: 27
+                Item {
+                    width: 30
+                    height: 30
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 44
+                        height: 44
+                        radius: 22
+                        color: theme.accent
+                        opacity: theme.dark ? 0.13 : 0.07
+                    }
+                    Image {
+                        anchors.centerIn: parent
+                        source: "assets/icon-128.png"
+                        sourceSize.width: 27
+                        sourceSize.height: 27
+                    }
                 }
 
                 ColumnLayout {
@@ -152,20 +172,20 @@ ApplicationWindow {
                             text: "DeepCrasy"
                             font.pixelSize: 15
                             font.weight: Font.DemiBold
-                            color: Pal.text
+                            color: theme.text
                         }
                         Text {
                             text: "H"
                             font.pixelSize: 15
                             font.weight: Font.Bold
-                            color: Pal.teal
+                            color: theme.cyan
                         }
                     }
                     Text {
                         text: qsTr("HARNESS × OPENCODE")
                         font.pixelSize: 8
                         font.letterSpacing: 1.5
-                        color: Pal.dim
+                        color: theme.dimText
                     }
                 }
 
@@ -174,43 +194,43 @@ ApplicationWindow {
                     Layout.rightMargin: 4
                     width: 1
                     height: 22
-                    color: Pal.border
+                    color: theme.border
                 }
 
                 Rectangle {
                     id: workspaceChip
                     Layout.preferredHeight: 28
                     implicitWidth: chipRow.implicitWidth + 18
-                    color: chipMouse.containsMouse ? Pal.raisedHover : Pal.raised
+                    color: chipMouse.containsMouse ? theme.raisedHover : theme.raised
                     border.width: 1
-                    border.color: Pal.border
+                    border.color: theme.border
                     radius: Math.min(7, theme.radius)
 
                     Row {
                         id: chipRow
                         anchors.centerIn: parent
                         spacing: 7
-                        Image {
+                        ThemedIcon {
                             source: "icons/folder.svg"
-                            sourceSize.width: 13
-                            sourceSize.height: 13
+                            width: 13
+                            height: 13
                             anchors.verticalCenter: parent.verticalCenter
-                            opacity: 0.7
+                            color: theme.mutedText
                         }
                         Text {
                             text: backend.workspaceName
                             font.pixelSize: 12
-                            color: Pal.text
+                            color: theme.text
                             width: Math.min(implicitWidth, 200)
                             elide: Text.ElideRight
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        Image {
+                        ThemedIcon {
                             source: "icons/chevron.svg"
-                            sourceSize.width: 11
-                            sourceSize.height: 11
+                            width: 11
+                            height: 11
                             anchors.verticalCenter: parent.verticalCenter
-                            opacity: 0.45
+                            color: theme.dimText
                         }
                     }
 
@@ -257,13 +277,13 @@ ApplicationWindow {
             Rectangle {
                 Layout.preferredWidth: 58
                 Layout.fillHeight: true
-                color: Pal.panel
+                color: theme.surface
 
                 Rectangle {
                     anchors.right: parent.right
                     width: 1
                     height: parent.height
-                    color: Pal.border
+                    color: theme.border
                 }
 
                 ColumnLayout {
@@ -332,7 +352,7 @@ ApplicationWindow {
                         visible: backend.view === "split"
                         Layout.preferredWidth: 1
                         Layout.fillHeight: true
-                        color: Pal.border
+                        color: theme.border
                     }
 
                     ChatPane {
@@ -356,13 +376,13 @@ ApplicationWindow {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 27
-            color: Pal.panel
+            color: theme.surface
 
             Rectangle {
                 anchors.top: parent.top
                 width: parent.width
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             RowLayout {
@@ -376,39 +396,33 @@ ApplicationWindow {
                     text: backend.workspace
                     font.family: backend.monoFont
                     font.pixelSize: 10
-                    color: Pal.dim
+                    color: theme.dimText
                     elide: Text.ElideMiddle
                 }
 
                 Row {
                     spacing: 5
-                    Rectangle {
-                        width: 5
-                        height: 5
-                        radius: 2.5
+                    StatusDot {
                         anchors.verticalCenter: parent.verticalCenter
                         color: win.stateColor(backend.harnessState)
                     }
                     Text {
                         text: qsTr("Harness")
                         font.pixelSize: 10
-                        color: Pal.muted
+                        color: theme.mutedText
                     }
                 }
 
                 Row {
                     spacing: 5
-                    Rectangle {
-                        width: 5
-                        height: 5
-                        radius: 2.5
+                    StatusDot {
                         anchors.verticalCenter: parent.verticalCenter
                         color: win.stateColor(backend.opencodeState)
                     }
                     Text {
                         text: qsTr("OpenCode")
                         font.pixelSize: 10
-                        color: Pal.muted
+                        color: theme.mutedText
                     }
                 }
 
@@ -418,7 +432,7 @@ ApplicationWindow {
                     text: backend.currentModel
                     font.family: backend.monoFont
                     font.pixelSize: 10
-                    color: Pal.dim
+                    color: theme.dimText
                     elide: Text.ElideRight
                 }
             }
@@ -473,9 +487,9 @@ ApplicationWindow {
             height: quitColumn.implicitHeight + 40
             anchors.centerIn: parent
             radius: Math.min(12, theme.radius)
-            color: Pal.raised
+            color: theme.raised
             border.width: 1
-            border.color: Pal.borderStrong
+            border.color: theme.borderStrong
 
             ColumnLayout {
                 id: quitColumn
@@ -487,13 +501,13 @@ ApplicationWindow {
                     text: qsTr("A turn is still running")
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
-                    color: Pal.text
+                    color: theme.text
                 }
                 Text {
                     Layout.fillWidth: true
                     text: qsTr("OpenCode is working. Quitting now stops the answer where it is.")
                     wrapMode: Text.Wrap
-                    color: Pal.muted
+                    color: theme.mutedText
                     font.pixelSize: 12
                 }
                 RowLayout {
@@ -505,9 +519,8 @@ ApplicationWindow {
                         flat: true
                         onClicked: win.quitConfirm = false
                     }
-                    Button {
+                    ActionButton {
                         text: qsTr("Quit")
-                        highlighted: true
                         onClicked: {
                             win.forceQuit = true
                             Qt.quit()
@@ -528,15 +541,15 @@ ApplicationWindow {
         width: Math.min(560, toastLabel.implicitWidth + 28)
         height: 34
         radius: 17
-        color: Pal.raised
+        color: theme.raised
         border.width: 1
-        border.color: Pal.borderStrong
+        border.color: theme.borderStrong
 
         Text {
             id: toastLabel
             anchors.centerIn: parent
             text: win.toastText
-            color: Pal.text
+            color: theme.text
             font.pixelSize: 12
             elide: Text.ElideRight
             width: parent.width - 28

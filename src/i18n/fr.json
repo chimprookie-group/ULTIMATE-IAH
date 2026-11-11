@@ -98,5 +98,12 @@
   "Search models…": "Rechercher un modèle…",
   "No match. Try another name.": "Aucun résultat. Essayez un autre nom.",
   "↑↓ navigate · Enter select · Esc close": "↑↓ naviguer · Entrée choisir · Échap fermer",
-  "Choose the model": "Choisir le modèle"
+  "Choose the model": "Choisir le modèle",
+  "Appearance": "Apparence",
+  "The app follows Omarchy's current theme. Pick another installed theme to use it here without changing the desktop.": "L'application suit le thème actuel d'Omarchy. Choisissez un autre thème installé pour l'utiliser ici sans changer le bureau.",
+  "Follow Omarchy": "Suivre Omarchy",
+  "Current · %1": "Actuel · %1",
+  "Light": "Clair",
+  "Dark": "Sombre",
+  "Split view needs a window at least 1180 px wide.": "La vue partagée demande une fenêtre d'au moins 1180 px de large."
 }

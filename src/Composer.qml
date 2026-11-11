@@ -4,7 +4,6 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
 
-import "Palette.js" as Pal
 
 Rectangle {
     id: root
@@ -16,11 +15,22 @@ Rectangle {
     signal submit(string text)
 
     implicitHeight: layout.implicitHeight + 20
-    color: Pal.raised
+    color: theme.raised
     radius: Math.min(12, theme.radius)
     border.width: 1
-    border.color: input.activeFocus ? theme.accent : Pal.border
+    border.color: input.activeFocus ? theme.accent : theme.border
     Behavior on border.color { ColorAnimation { duration: 120 } }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -2
+        radius: root.radius + 2
+        color: "transparent"
+        border.width: 1
+        border.color: theme.accent
+        opacity: input.activeFocus ? 0.35 : 0
+        Behavior on opacity { NumberAnimation { duration: 140 } }
+    }
 
     function focusInput() {
         input.forceActiveFocus()
@@ -67,7 +77,7 @@ Rectangle {
                 id: input
                 anchors.fill: parent
                 anchors.margins: 2
-                color: Pal.text
+                color: theme.text
                 selectionColor: theme.accent
                 selectedTextColor: theme.accentForeground
                 font.pixelSize: 13
@@ -96,7 +106,7 @@ Rectangle {
                 visible: input.text.length === 0
                 text: !root.ready ? qsTr("OpenCode is not ready") :
                       backend.busy ? qsTr("OpenCode is working…") : qsTr("Ask OpenCode…  Enter to send, Shift+Enter for a new line")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 13
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
@@ -117,7 +127,7 @@ Rectangle {
                 currentValue: backend.currentModel
                 searchable: true
                 emptyText: qsTr("Model")
-                dotColor: Pal.teal
+                dotColor: theme.cyan
                 onSelected: function (value) {
                     backend.setConfigOption("model", value)
                     input.forceActiveFocus()
@@ -133,7 +143,7 @@ Rectangle {
                 currentValue: backend.currentMode
                 searchable: false
                 emptyText: qsTr("Mode")
-                dotColor: Pal.orange
+                dotColor: theme.orange
                 onSelected: function (value) {
                     backend.setConfigOption("mode", value)
                     input.forceActiveFocus()
@@ -154,23 +164,24 @@ Rectangle {
                 }
                 font.family: backend.monoFont
                 font.pixelSize: 10
-                color: Pal.dim
+                color: theme.dimText
             }
 
             Rectangle {
                 width: 30
                 height: 30
                 radius: Math.min(8, theme.radius)
-                color: backend.busy ? "#2A1518" : (root.canSend ? Pal.teal : Pal.raised)
+                color: backend.busy ? theme.red : (root.canSend ? theme.accent : theme.raised)
                 border.width: 1
-                border.color: backend.busy ? "#5A2A2E" : (root.canSend ? Pal.teal : Pal.border)
+                border.color: backend.busy ? theme.red : (root.canSend ? theme.accent : theme.border)
 
-                Image {
+                ThemedIcon {
                     anchors.centerIn: parent
                     source: backend.busy ? "icons/stop.svg" : "icons/send.svg"
-                    sourceSize.width: 13
-                    sourceSize.height: 13
-                    opacity: root.canSend || backend.busy ? 1 : 0.3
+                    width: 13
+                    height: 13
+                    color: backend.busy ? "#ffffff" : (root.canSend ? theme.accentForeground : theme.dimText)
+                    iconOpacity: root.canSend || backend.busy ? 1 : 0.7
                 }
 
                 MouseArea {

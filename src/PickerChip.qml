@@ -4,7 +4,6 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
 
-import "Palette.js" as Pal
 
 // The visible half of the model/mode picker: a quiet pill that opens a bigger
 // ChoiceMenu above it. Long provider prefixes stay in the menu; the pill shows
@@ -17,7 +16,7 @@ Item {
     property string currentValue: ""
     property bool searchable: true
     property string emptyText: ""
-    property color dotColor: Pal.teal
+    property color dotColor: theme.cyan
 
     signal selected(string value)
 
@@ -56,9 +55,9 @@ Item {
         width: Math.min(230, pillRow.implicitWidth + 26)
         height: 26
         radius: 13
-        color: mouse.containsMouse || menu.visible ? Pal.chipHover : Pal.chip
+        color: mouse.containsMouse || menu.visible ? theme.chipHover : theme.chip
         border.width: 1
-        border.color: mouse.containsMouse || menu.visible ? Pal.borderStrong : Pal.border
+        border.color: mouse.containsMouse || menu.visible ? theme.borderStrong : theme.border
 
         RowLayout {
             id: pillRow
@@ -78,16 +77,16 @@ Item {
                 id: label
                 Layout.maximumWidth: 170
                 text: root.labelText
-                color: Pal.text
+                color: theme.text
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
 
-            Image {
+            ThemedIcon {
                 source: "icons/chevron.svg"
-                sourceSize.width: 9
-                sourceSize.height: 9
-                opacity: 0.4
+                width: 9
+                height: 9
+                color: theme.mutedText
             }
         }
 

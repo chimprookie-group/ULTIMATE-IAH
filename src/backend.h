@@ -8,6 +8,7 @@ class AcpClient;
 class Config;
 class HarnessServer;
 class PortalFolderPicker;
+class Theme;
 
 // The single object QML talks to. It owns the configuration, the two engines
 // (DeepSeek Harness over HTTP, OpenCode over ACP), and the one workspace they
@@ -15,6 +16,12 @@ class PortalFolderPicker;
 class Backend : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString view READ view NOTIFY viewChanged)
+    Q_PROPERTY(QString themePreference READ themePreference NOTIFY themeChanged)
+    Q_PROPERTY(QString activeTheme READ activeTheme NOTIFY themeChanged)
+    Q_PROPERTY(QString systemTheme READ systemTheme NOTIFY themeChanged)
+    Q_PROPERTY(QString systemThemeId READ systemThemeId NOTIFY themeChanged)
+    Q_PROPERTY(bool darkTheme READ darkTheme NOTIFY themeChanged)
+    Q_PROPERTY(QVariantList themeOptions READ themeOptions NOTIFY themeOptionsChanged)
     Q_PROPERTY(QString workspace READ workspace NOTIFY workspaceChanged)
     Q_PROPERTY(QString workspaceName READ workspaceName NOTIFY workspaceChanged)
     Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
@@ -54,8 +61,15 @@ public:
 
     void boot();
     void loadDemo();
+    void attachTheme(Theme *theme);
 
     QString view() const { return m_view; }
+    QString themePreference() const;
+    QString activeTheme() const;
+    QString systemTheme() const;
+    QString systemThemeId() const;
+    bool darkTheme() const;
+    QVariantList themeOptions() const;
     QString workspace() const;
     QString workspaceName() const;
     QString appVersion() const;
@@ -91,6 +105,8 @@ public:
     bool loadingSessions() const;
 
     Q_INVOKABLE void setView(const QString &view);
+    Q_INVOKABLE void setTheme(const QString &id);
+    Q_INVOKABLE void refreshThemes();
     Q_INVOKABLE void setWorkspace(const QString &workspace);
     Q_INVOKABLE void pickWorkspace();
     Q_INVOKABLE void restartHarness();
@@ -109,6 +125,8 @@ public:
 
 signals:
     void viewChanged();
+    void themeChanged();
+    void themeOptionsChanged();
     void workspaceChanged();
     void harnessChanged();
     void harnessProfileChanged();
@@ -133,6 +151,7 @@ private:
     HarnessServer *m_harness = nullptr;
     AcpClient *m_acp = nullptr;
     PortalFolderPicker *m_portal = nullptr;
+    Theme *m_theme = nullptr;
 
     QString m_view;
     bool m_booted = false;

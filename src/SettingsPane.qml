@@ -3,19 +3,39 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: root
 
+    readonly property var systemPalette: {
+        const themes = backend.themeOptions
+        for (let i = 0; i < themes.length; ++i) {
+            if (themes[i].id === backend.systemThemeId)
+                return themes[i]
+        }
+        return {
+            "background": theme.background,
+            "foreground": theme.text,
+            "accent": theme.accent,
+            "cyan": theme.cyan,
+            "red": theme.red,
+            "green": theme.green
+        }
+    }
+
+    onVisibleChanged: {
+        if (visible)
+            backend.refreshThemes()
+    }
+
     function stateColor(state) {
         if (state === "running" || state === "ready")
-            return Pal.green
+            return theme.green
         if (state === "starting")
-            return Pal.yellow
+            return theme.yellow
         if (state === "failed")
-            return Pal.red
-        return Pal.dim
+            return theme.red
+        return theme.dimText
     }
 
     ScrollView {
@@ -44,19 +64,59 @@ Item {
                         text: qsTr("Settings")
                         font.pixelSize: 19
                         font.weight: Font.DemiBold
-                        color: Pal.text
+                        color: theme.text
                     }
                     Text {
                         text: qsTr("One workspace, two engines, nothing hidden.")
                         font.pixelSize: 12
-                        color: Pal.muted
+                        color: theme.mutedText
                     }
                 }
 
-                Button {
+                ActionButton {
                     text: qsTr("Back to chat")
-                    highlighted: true
                     onClicked: backend.setView("opencode")
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Appearance")
+                width: content.width
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("The app follows Omarchy's current theme. Pick another installed theme to use it here without changing the desktop.")
+                    wrapMode: Text.Wrap
+                    color: theme.mutedText
+                    font.pixelSize: 11
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    ThemeCard {
+                        themeId: ""
+                        label: qsTr("Follow Omarchy")
+                        mode: theme.dark ? "dark" : "light"
+                        palette: root.systemPalette
+                        active: backend.themePreference === ""
+                        autoTheme: true
+                        subtitle: qsTr("Current · %1").arg(backend.systemTheme)
+                        onChosen: backend.setTheme("")
+                    }
+
+                    Repeater {
+                        model: backend.themeOptions
+                        ThemeCard {
+                            themeId: modelData.id
+                            label: modelData.label
+                            mode: modelData.mode
+                            palette: modelData
+                            active: backend.themePreference === modelData.id
+                            onChosen: backend.setTheme(modelData.id)
+                        }
+                    }
                 }
             }
 
@@ -73,7 +133,7 @@ Item {
                         text: backend.workspace
                         font.family: backend.monoFont
                         font.pixelSize: 11
-                        color: Pal.text
+                        color: theme.text
                         elide: Text.ElideMiddle
                     }
                     Button {
@@ -86,7 +146,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Both engines start in this folder. Changing it restarts the harness and opens a new OpenCode session there.")
                     wrapMode: Text.Wrap
-                    color: Pal.dim
+                    color: theme.dimText
                     font.pixelSize: 10
                 }
             }
@@ -102,7 +162,7 @@ Item {
                     Text {
                         Layout.preferredWidth: 86
                         text: qsTr("Profile")
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 11
                     }
                     TextField {
@@ -111,22 +171,22 @@ Item {
                         text: backend.harnessProfile
                         font.family: backend.monoFont
                         font.pixelSize: 11
-                        color: Pal.text
+                        color: theme.text
                         selectionColor: theme.accent
                         leftPadding: 9
                         rightPadding: 9
                         background: Rectangle {
                             implicitHeight: 32
                             radius: Math.min(6, theme.radius)
-                            color: Pal.bg
+                            color: theme.background
                             border.width: 1
-                            border.color: profileField.activeFocus ? theme.accent : Pal.border
+                            border.color: profileField.activeFocus ? theme.accent : theme.border
                         }
                         onEditingFinished: backend.setHarnessProfile(text)
                     }
                     Text {
                         text: qsTr("dsh profile booted, web by default")
-                        color: Pal.dim
+                        color: theme.dimText
                         font.pixelSize: 10
                         Layout.fillWidth: true
                         elide: Text.ElideRight
@@ -140,7 +200,7 @@ Item {
                     Text {
                         Layout.preferredWidth: 86
                         text: qsTr("Binary")
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 11
                     }
                     TextField {
@@ -149,16 +209,16 @@ Item {
                         text: backend.dshBinary
                         font.family: backend.monoFont
                         font.pixelSize: 11
-                        color: Pal.text
+                        color: theme.text
                         selectionColor: theme.accent
                         leftPadding: 9
                         rightPadding: 9
                         background: Rectangle {
                             implicitHeight: 32
                             radius: Math.min(6, theme.radius)
-                            color: Pal.bg
+                            color: theme.background
                             border.width: 1
-                            border.color: dshField.activeFocus ? theme.accent : Pal.border
+                            border.color: dshField.activeFocus ? theme.accent : theme.border
                         }
                         onEditingFinished: backend.setDshBinary(text)
                     }
@@ -166,14 +226,14 @@ Item {
                         implicitWidth: dshBadge.implicitWidth + 14
                         height: 18
                         radius: 9
-                        color: Pal.bg
+                        color: theme.background
                         border.width: 1
-                        border.color: backend.dshAvailable ? Pal.green : Pal.red
+                        border.color: backend.dshAvailable ? theme.green : theme.red
                         Text {
                             id: dshBadge
                             anchors.centerIn: parent
                             text: backend.dshAvailable ? qsTr("found") : qsTr("missing")
-                            color: backend.dshAvailable ? Pal.green : Pal.red
+                            color: backend.dshAvailable ? theme.green : theme.red
                             font.pixelSize: 9
                         }
                     }
@@ -192,7 +252,7 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: backend.harnessState + " · " + backend.harnessDetail
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 10
                         elide: Text.ElideRight
                     }
@@ -208,7 +268,7 @@ Item {
                     text: backend.harnessLog.split("\n").slice(-10).join("\n")
                     font.family: backend.monoFont
                     font.pixelSize: 10
-                    color: Pal.dim
+                    color: theme.dimText
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     maximumLineCount: 12
                     elide: Text.ElideRight
@@ -226,7 +286,7 @@ Item {
                     Text {
                         Layout.preferredWidth: 86
                         text: qsTr("Binary")
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 11
                     }
                     TextField {
@@ -235,16 +295,16 @@ Item {
                         text: backend.opencodeBinary
                         font.family: backend.monoFont
                         font.pixelSize: 11
-                        color: Pal.text
+                        color: theme.text
                         selectionColor: theme.accent
                         leftPadding: 9
                         rightPadding: 9
                         background: Rectangle {
                             implicitHeight: 32
                             radius: Math.min(6, theme.radius)
-                            color: Pal.bg
+                            color: theme.background
                             border.width: 1
-                            border.color: opencodeField.activeFocus ? theme.accent : Pal.border
+                            border.color: opencodeField.activeFocus ? theme.accent : theme.border
                         }
                         onEditingFinished: backend.setOpencodeBinary(text)
                     }
@@ -252,14 +312,14 @@ Item {
                         implicitWidth: opencodeBadge.implicitWidth + 14
                         height: 18
                         radius: 9
-                        color: Pal.bg
+                        color: theme.background
                         border.width: 1
-                        border.color: backend.opencodeAvailable ? Pal.green : Pal.red
+                        border.color: backend.opencodeAvailable ? theme.green : theme.red
                         Text {
                             id: opencodeBadge
                             anchors.centerIn: parent
                             text: backend.opencodeAvailable ? qsTr("found") : qsTr("missing")
-                            color: backend.opencodeAvailable ? Pal.green : Pal.red
+                            color: backend.opencodeAvailable ? theme.green : theme.red
                             font.pixelSize: 9
                         }
                     }
@@ -278,7 +338,7 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: backend.opencodeState + " · " + backend.opencodeDetail
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 10
                         elide: Text.ElideRight
                     }
@@ -292,7 +352,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Talked to over the Agent Client Protocol (opencode acp). Sessions, models, modes, tool calls, and permissions are native.")
                     wrapMode: Text.Wrap
-                    color: Pal.dim
+                    color: theme.dimText
                     font.pixelSize: 10
                 }
             }
@@ -307,12 +367,12 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: "DeepCrasy H " + backend.appVersion
-                        color: Pal.text
+                        color: theme.text
                         font.pixelSize: 12
                     }
                     Text {
                         text: qsTr("Built for Omarchy · MIT")
-                        color: Pal.dim
+                        color: theme.dimText
                         font.pixelSize: 10
                     }
                 }
@@ -321,7 +381,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Harness and OpenCode stay separate processes. DeepCrasy H only owns their lifecycle and the window around them.")
                     wrapMode: Text.Wrap
-                    color: Pal.dim
+                    color: theme.dimText
                     font.pixelSize: 10
                 }
 
@@ -329,7 +389,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Shortcuts: Ctrl+1 harness · Ctrl+2 chat · Ctrl+3 split · Ctrl+4 settings · Ctrl+L composer · ? help")
                     wrapMode: Text.Wrap
-                    color: Pal.dim
+                    color: theme.dimText
                     font.pixelSize: 10
                 }
             }

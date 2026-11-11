@@ -77,6 +77,8 @@ void Config::load() {
     const QString view = object.value("view").toString();
     if (view == "harness" || view == "opencode" || view == "split" || view == "settings")
         m_view = view;
+
+    m_theme = object.value("theme").toString();
 }
 
 void Config::save() {
@@ -87,6 +89,7 @@ void Config::save() {
     object.insert("dshBinary", m_dshBinary);
     object.insert("opencodeBinary", m_opencodeBinary);
     object.insert("view", m_view);
+    object.insert("theme", m_theme);
 
     QSaveFile file(m_path);
     if (!file.open(QIODevice::WriteOnly))
@@ -130,6 +133,14 @@ void Config::setOpencodeBinary(const QString &binary) {
     m_opencodeBinary = binary;
     save();
     emit opencodeBinaryChanged();
+}
+
+void Config::setTheme(const QString &theme) {
+    if (theme == m_theme)
+        return;
+    m_theme = theme;
+    save();
+    emit themeChanged();
 }
 
 void Config::setView(const QString &view) {

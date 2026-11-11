@@ -4,6 +4,7 @@
 #include "config.h"
 #include "harnessserver.h"
 #include "portalfolderpicker.h"
+#include "theme.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -151,6 +152,56 @@ Backend::Backend(QObject *parent)
         if (!reason.isEmpty())
             emit toast(reason);
     });
+}
+
+void Backend::attachTheme(Theme *theme) {
+    m_theme = theme;
+    if (!m_theme)
+        return;
+    connect(m_theme, &Theme::changed, this, &Backend::themeChanged);
+    connect(m_theme, &Theme::themesChanged, this, &Backend::themeOptionsChanged);
+
+    const QString saved = m_config->theme();
+    if (!m_theme->setSelectedTheme(saved) && !saved.isEmpty())
+        m_config->setTheme(QString());
+}
+
+QString Backend::themePreference() const {
+    return m_config->theme();
+}
+
+QString Backend::activeTheme() const {
+    return m_theme ? m_theme->label() : QStringLiteral("Omarchy");
+}
+
+QString Backend::systemTheme() const {
+    return m_theme ? m_theme->systemTheme() : QStringLiteral("Omarchy");
+}
+
+QString Backend::systemThemeId() const {
+    return m_theme ? m_theme->systemThemeId() : QStringLiteral("omarchy");
+}
+
+bool Backend::darkTheme() const {
+    return m_theme ? m_theme->dark() : true;
+}
+
+QVariantList Backend::themeOptions() const {
+    return m_theme ? m_theme->themes() : QVariantList{};
+}
+
+void Backend::setTheme(const QString &id) {
+    if (!m_theme)
+        return;
+    if (!m_theme->setSelectedTheme(id))
+        return;
+    m_config->setTheme(m_theme->selectedTheme());
+    emit themeChanged();
+}
+
+void Backend::refreshThemes() {
+    if (m_theme)
+        m_theme->refreshThemes();
 }
 
 void Backend::boot() {

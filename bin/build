@@ -5,6 +5,10 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 mkdir -p "$ROOT/build"
 cd "$ROOT/build"
 
+# qmake only tracks the .qrc file, not the QML files it lists. Touching it makes
+# every build pick up QML edits instead of silently reusing stale resources.
+touch "$ROOT/src/resources.qrc"
+
 qmake6 "$ROOT/deepcrasy-h.pro"
 make -j"$(nproc)"
 

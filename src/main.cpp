@@ -21,6 +21,7 @@
 #include <QtWebEngineQuick/QtWebEngineQuick>
 
 #include "backend.h"
+#include "iconprovider.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -130,7 +131,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.2.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.3.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -152,6 +153,7 @@ int main(int argc, char *argv[]) {
     QString screenshot;
     QString view;
     QString workspace;
+    QString themeId;
     int delay = 1800;
     for (int i = 0; i < arguments.size(); ++i) {
         const QString &argument = arguments.at(i);
@@ -163,6 +165,8 @@ int main(int argc, char *argv[]) {
             view = arguments.at(++i);
         } else if (argument == "--workspace" && i + 1 < arguments.size()) {
             workspace = arguments.at(++i);
+        } else if (argument == "--theme" && i + 1 < arguments.size()) {
+            themeId = arguments.at(++i);
         } else if (argument == "--screenshot-delay" && i + 1 < arguments.size()) {
             delay = arguments.at(++i).toInt();
         } else if (!argument.startsWith("--") && QFileInfo(argument).isDir()) {
@@ -194,12 +198,17 @@ int main(int argc, char *argv[]) {
 
     Theme theme;
     Backend backend;
+    backend.attachTheme(&theme);
 
     QQmlApplicationEngine engine;
     QObject::connect(&translator, &Translator::changed, &engine, &QQmlEngine::retranslate);
     engine.rootContext()->setContextProperty("translator", &translator);
     engine.rootContext()->setContextProperty("theme", &theme);
     engine.rootContext()->setContextProperty("backend", &backend);
+    engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);
+
+    if (!themeId.isEmpty())
+        theme.setSelectedTheme(themeId);
 
     if (demo)
         backend.loadDemo();

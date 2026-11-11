@@ -1,4 +1,4 @@
-QT += core gui qml quick quickcontrols2 dbus network webenginequick
+QT += core gui qml quick quickcontrols2 dbus network svg webenginequick
 
 CONFIG += c++17 release
 TARGET = deepcrasy-h
@@ -9,6 +9,7 @@ HEADERS += \
     src/backend.h \
     src/config.h \
     src/harnessserver.h \
+    src/iconprovider.h \
     src/portalfolderpicker.h \
     src/theme.h \
     src/translator.h
@@ -19,6 +20,7 @@ SOURCES += \
     src/backend.cpp \
     src/config.cpp \
     src/harnessserver.cpp \
+    src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
     src/theme.cpp \
     src/translator.cpp

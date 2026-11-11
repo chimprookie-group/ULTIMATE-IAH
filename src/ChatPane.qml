@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: pane
@@ -35,10 +34,10 @@ Item {
 
     function planColor(status) {
         if (status === "completed")
-            return Pal.green
+            return theme.green
         if (status === "in_progress")
-            return Pal.teal
-        return Pal.dim
+            return theme.cyan
+        return theme.dimText
     }
 
     ColumnLayout {
@@ -49,13 +48,13 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 44
-            color: Pal.bg
+            color: theme.background
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: Pal.border
+                color: theme.border
             }
 
             RowLayout {
@@ -75,7 +74,7 @@ Item {
                             text: backend.sessionTitle !== "" ? backend.sessionTitle : qsTr("New session")
                             font.pixelSize: 12
                             font.weight: Font.DemiBold
-                            color: Pal.text
+                            color: theme.text
                             elide: Text.ElideRight
                         }
                         Rectangle {
@@ -83,7 +82,7 @@ Item {
                             width: 5
                             height: 5
                             radius: 2.5
-                            color: Pal.teal
+                            color: theme.cyan
                             SequentialAnimation on opacity {
                                 running: visible
                                 loops: Animation.Infinite
@@ -96,7 +95,7 @@ Item {
                         text: backend.sessionId !== "" ? backend.sessionId : qsTr("no session yet")
                         font.family: backend.monoFont
                         font.pixelSize: 9
-                        color: Pal.dim
+                        color: theme.dimText
                         elide: Text.ElideRight
                         Layout.fillWidth: true
                     }
@@ -158,16 +157,16 @@ Item {
                                 width: parent.width
                                 height: userLabel.implicitHeight + 18
                                 radius: Math.min(9, theme.radius)
-                                color: Pal.raised
+                                color: theme.raised
                                 border.width: 1
-                                border.color: Pal.border
+                                border.color: theme.border
 
                                 Rectangle {
                                     width: 2
                                     height: parent.height - 12
                                     y: 6
                                     radius: 1
-                                    color: Pal.teal
+                                    color: theme.accent
                                 }
 
                                 Text {
@@ -177,7 +176,7 @@ Item {
                                     anchors.leftMargin: 12
                                     text: modelData.text !== undefined ? modelData.text : ""
                                     wrapMode: Text.Wrap
-                                    color: Pal.text
+                                    color: theme.text
                                     font.pixelSize: 13
                                 }
                             }
@@ -189,7 +188,7 @@ Item {
                             text: modelData.text !== undefined ? modelData.text : ""
                             textFormat: Text.MarkdownText
                             wrapMode: Text.Wrap
-                            color: Pal.text
+                            color: theme.text
                             font.pixelSize: 13
                             lineHeight: 1.4
                             onLinkActivated: function (link) { Qt.openUrlExternally(link) }
@@ -217,7 +216,7 @@ Item {
                             wrapMode: Text.Wrap
                             maximumLineCount: 3
                             elide: Text.ElideRight
-                            color: Pal.dim
+                            color: theme.dimText
                             font.pixelSize: 11
                             font.italic: true
                         }
@@ -237,9 +236,9 @@ Item {
                             width: parent.width
                             height: planColumn.implicitHeight + 20
                             radius: Math.min(9, theme.radius)
-                            color: Pal.raised
+                            color: theme.raised
                             border.width: 1
-                            border.color: Pal.border
+                            border.color: theme.border
 
                             ColumnLayout {
                                 id: planColumn
@@ -252,7 +251,7 @@ Item {
                                     text: qsTr("PLAN")
                                     font.pixelSize: 8
                                     font.letterSpacing: 1.2
-                                    color: Pal.dim
+                                    color: theme.dimText
                                 }
                                 Repeater {
                                     model: modelData.entries !== undefined ? modelData.entries : []
@@ -271,7 +270,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: modelData.content
                                             wrapMode: Text.Wrap
-                                            color: Pal.muted
+                                            color: theme.mutedText
                                             font.pixelSize: 12
                                         }
                                     }
@@ -285,7 +284,7 @@ Item {
                             text: modelData.text !== undefined ? modelData.text : ""
                             horizontalAlignment: Text.AlignHCenter
                             wrapMode: Text.Wrap
-                            color: Pal.dim
+                            color: theme.dimText
                             font.pixelSize: 10
                         }
                     }
@@ -303,19 +302,40 @@ Item {
                     spacing: 13
                     visible: backend.opencodeState === "ready"
 
-                    Image {
-                        source: "assets/icon-256.png"
-                        sourceSize.width: 88
-                        sourceSize.height: 88
+                    Item {
+                        width: 150
+                        height: 150
                         anchors.horizontalCenter: parent.horizontalCenter
-                        opacity: 0.95
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 138
+                            height: 138
+                            radius: 69
+                            color: theme.accent
+                            opacity: theme.dark ? 0.10 : 0.06
+                        }
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 104
+                            height: 104
+                            radius: 52
+                            color: theme.cyan
+                            opacity: theme.dark ? 0.06 : 0.04
+                        }
+                        Image {
+                            anchors.centerIn: parent
+                            source: "assets/icon-256.png"
+                            sourceSize.width: 88
+                            sourceSize.height: 88
+                        }
                     }
                     Text {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.Wrap
                         text: qsTr("One workspace. Two engines.")
-                        color: Pal.text
+                        color: theme.brightText
                         font.pixelSize: 18
                         font.weight: Font.DemiBold
                     }
@@ -324,7 +344,7 @@ Item {
                         text: qsTr("The harness runs beside this chat. Ask OpenCode to read, edit, or run anything in the shared workspace — tool calls and permissions stay visible.")
                         wrapMode: Text.Wrap
                         horizontalAlignment: Text.AlignHCenter
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 12
                         lineHeight: 1.35
                     }
@@ -341,34 +361,34 @@ Item {
                                 width: parent.width
                                 height: 38
                                 radius: Math.min(8, theme.radius)
-                                color: suggestionMouse.containsMouse ? Pal.raisedHover : Pal.raised
+                                color: suggestionMouse.containsMouse ? theme.raisedHover : theme.raised
                                 border.width: 1
-                                border.color: Pal.border
+                                border.color: suggestionMouse.containsMouse ? theme.accent : theme.border
 
                                 RowLayout {
                                     anchors.fill: parent
                                     anchors.leftMargin: 11
                                     anchors.rightMargin: 11
                                     spacing: 8
-                                    Image {
+                                    ThemedIcon {
                                         source: "icons/spark.svg"
-                                        sourceSize.width: 12
-                                        sourceSize.height: 12
-                                        opacity: 0.55
+                                        width: 12
+                                        height: 12
+                                        color: theme.cyan
                                     }
                                     Text {
                                         Layout.fillWidth: true
                                         text: modelData
-                                        color: Pal.muted
+                                        color: theme.mutedText
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
-                                    Image {
+                                    ThemedIcon {
                                         source: "icons/chevron.svg"
-                                        sourceSize.width: 10
-                                        sourceSize.height: 10
+                                        width: 10
+                                        height: 10
                                         rotation: -90
-                                        opacity: 0.35
+                                        color: theme.dimText
                                     }
                                 }
 
@@ -398,20 +418,19 @@ Item {
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: backend.opencodeState === "stopped" ? qsTr("OpenCode is stopped") : qsTr("Starting OpenCode…")
-                        color: Pal.text
+                        color: theme.text
                         font.pixelSize: 13
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: backend.opencodeDetail
-                        color: Pal.dim
+                        color: theme.dimText
                         font.pixelSize: 11
                     }
-                    Button {
+                    ActionButton {
                         anchors.horizontalCenter: parent.horizontalCenter
                         visible: backend.opencodeState === "stopped"
                         text: qsTr("Start")
-                        highlighted: true
                         onClicked: backend.restartOpencode()
                     }
                 }
@@ -422,16 +441,17 @@ Item {
                     spacing: 10
                     visible: backend.opencodeState === "failed"
 
-                    Image {
+                    ThemedIcon {
                         source: "icons/alert.svg"
-                        sourceSize.width: 20
-                        sourceSize.height: 20
+                        width: 20
+                        height: 20
                         anchors.horizontalCenter: parent.horizontalCenter
+                        color: theme.yellow
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: qsTr("OpenCode is not available")
-                        color: Pal.text
+                        color: theme.text
                         font.pixelSize: 14
                         font.weight: Font.DemiBold
                     }
@@ -440,7 +460,7 @@ Item {
                         text: backend.opencodeDetail
                         wrapMode: Text.Wrap
                         horizontalAlignment: Text.AlignHCenter
-                        color: Pal.muted
+                        color: theme.mutedText
                         font.pixelSize: 12
                     }
                     RowLayout {
@@ -452,9 +472,8 @@ Item {
                             flat: true
                             onClicked: backend.setView("settings")
                         }
-                        Button {
+                        ActionButton {
                             text: qsTr("Retry")
-                            highlighted: true
                             onClicked: backend.restartOpencode()
                         }
                     }

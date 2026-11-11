@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import "Palette.js" as Pal
 
 Item {
     id: root
@@ -33,9 +32,9 @@ Item {
         height: card.implicitHeight + 40
         anchors.centerIn: parent
         radius: Math.min(12, theme.radius)
-        color: Pal.panel
+        color: theme.surface
         border.width: 1
-        border.color: Pal.borderStrong
+        border.color: theme.borderStrong
 
         ColumnLayout {
             id: card
@@ -47,17 +46,18 @@ Item {
             RowLayout {
                 spacing: 9
 
-                Image {
+                ThemedIcon {
                     source: "icons/alert.svg"
-                    sourceSize.width: 16
-                    sourceSize.height: 16
+                    width: 16
+                    height: 16
+                    color: theme.yellow
                 }
                 Text {
                     Layout.fillWidth: true
                     text: qsTr("OpenCode asks for permission")
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
-                    color: Pal.text
+                    color: theme.text
                 }
             }
 
@@ -67,7 +67,7 @@ Item {
                 text: root.opened ? request.title : ""
                 font.family: backend.monoFont
                 font.pixelSize: 11
-                color: Pal.muted
+                color: theme.mutedText
                 wrapMode: Text.Wrap
             }
 
@@ -76,9 +76,9 @@ Item {
                 visible: root.opened && request.input !== undefined && request.input !== null && request.input.command !== undefined
                 height: commandText.implicitHeight + 16
                 radius: Math.min(7, theme.radius)
-                color: Pal.bg
+                color: theme.background
                 border.width: 1
-                border.color: Pal.border
+                border.color: theme.border
 
                 Text {
                     id: commandText
@@ -87,7 +87,7 @@ Item {
                     text: root.opened && request.input !== undefined && request.input !== null ? "$ " + request.input.command : ""
                     font.family: backend.monoFont
                     font.pixelSize: 10
-                    color: Pal.muted
+                    color: theme.mutedText
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 }
             }
@@ -95,17 +95,18 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: qsTr("Nothing runs until you choose. Escape refuses.")
-                color: Pal.dim
+                color: theme.dimText
                 font.pixelSize: 10
             }
 
             Repeater {
                 model: root.opened && request.options !== undefined ? request.options : []
 
-                Button {
+                ActionButton {
                     Layout.fillWidth: true
                     text: modelData.name
-                    highlighted: modelData.kind !== undefined && modelData.kind.indexOf("reject") !== 0
+                    filled: modelData.kind === undefined || modelData.kind.indexOf("reject") !== 0
+                    danger: modelData.kind !== undefined && modelData.kind.indexOf("reject") === 0
                     onClicked: backend.respondPermission(modelData.optionId)
                 }
             }
