@@ -41,13 +41,25 @@ environnement, pas seulement les deux moteurs.
 - **Outils** : 15 binaires du poste, présents ou non, avec leur version.
 - **Skills** : les skills Omarchy/agents installées, avec leur description et
   un bouton pour les confier à OpenCode avec leur chemin.
-- **Modèles** : les modèles OpenCode disponibles, cliquables.
+- **Modèles** : le catalogue complet `opencode models` (12 modèles libres
+  ici), le provider connecté, et un accès direct à la connexion provider.
 - **MCP et sessions** : serveurs configurés, reprise d'une session récente.
 - **Recettes** : Expliquer, Relire, Tester, Corriger, Sécurité, Performance.
 - **Contexte** : injecte un brief du projet (stack, commandes, Git, modèle,
   MCP, outils, skills) directement dans le composer.
 
 ![Écosystème](assets/screenshot-ecosystem.png)
+
+## Contexte et pièces jointes
+
+Depuis **Fichiers**, un fichier s'ajoute au prochain message avec **Joindre au
+chat**. Le composer affiche une puce par fichier (5 maximum) ; à l'envoi, le
+contenu est intégré dans des blocs `<file path="…">` avec le prompt. Une puce
+se retire d'un clic.
+
+Le composer garde aussi un **historique de prompts** (`↑` / `↓` quand le champ
+est sur une ligne) et le bouton d'envoi devient **Stop** pendant une génération.
+Le panneau **Sessions** a une recherche par titre ou identifiant.
 
 ## Fichiers et diff
 
@@ -188,6 +200,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
 - **Erreurs actionnables** : limite d'usage, provider manquant, retry et
   connexion provider depuis la carte d'erreur.
+- **Catalogue de modèles complet**, providers connectés, pièces jointes,
+  historique de prompts et recherche de sessions.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -315,6 +329,9 @@ Le chat et le sélecteur de modèle :
   de provider manquant en messages `error` ; le dernier prompt est conservé
   pour `retryLastPrompt()`. La carte d'erreur ouvre le modèle, le terminal
   d'authentification ou relance le prompt.
+- `Ecosystem::refreshModels()` charge `opencode models` et `opencode auth list`
+  pour le catalogue et le provider. Le composer assemble les pièces jointes en
+  blocs `<file>` et garde 50 prompts d'historique.
 - `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
   un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
   sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde

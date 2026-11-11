@@ -174,7 +174,7 @@ Item {
                         { "label": ecosystem.project.label !== undefined ? ecosystem.project.label : qsTr("workspace") },
                         { "label": qsTr("%n tool(s) ready", "", root.availableTools()) },
                         { "label": qsTr("%n skill(s)", "", ecosystem.skills.length) },
-                        { "label": qsTr("%n model(s)", "", backend.modelOptions.length) },
+                        { "label": qsTr("%n model(s)", "", ecosystem.models.length > 0 ? ecosystem.models.length : backend.modelOptions.length) },
                         { "label": qsTr("%n MCP server(s)", "", mcp.servers.length) }
                     ]
 
@@ -408,11 +408,26 @@ Item {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("%n available · mode %1", "", backend.modelOptions.length).arg(backend.currentMode)
+                        text: qsTr("%n available · mode %1", "", ecosystem.models.length > 0 ? ecosystem.models.length : backend.modelOptions.length).arg(backend.currentMode)
                         color: theme.dimText
                         font.pixelSize: 9
                     }
-
+                    Text {
+                        Layout.fillWidth: true
+                        text: ecosystem.providerSummary
+                        color: ecosystem.authProviders.length > 0 ? theme.green : theme.yellow
+                        font.pixelSize: 9
+                    }
+                    Repeater {
+                        model: ecosystem.authProviders.slice(0, 3)
+                        Text {
+                            Layout.fillWidth: true
+                            text: "• " + modelData.name
+                            color: theme.mutedText
+                            font.pixelSize: 8
+                            elide: Text.ElideRight
+                        }
+                    }
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("Connect a provider or subscribe to OpenCode Go to unlock paid models.")
@@ -432,10 +447,10 @@ Item {
                         spacing: 5
 
                         Repeater {
-                            model: backend.modelOptions.slice(0, 8)
+                            model: (ecosystem.models.length > 0 ? ecosystem.models : backend.modelOptions).slice(0, 14)
 
                             Button {
-                                text: modelData.name
+                                text: modelData.free ? modelData.name + " · " + qsTr("free") : modelData.name
                                 flat: true
                                 font.pixelSize: 9
                                 enabled: backend.opencodeState === "ready"

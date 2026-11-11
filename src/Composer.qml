@@ -10,7 +10,34 @@ Rectangle {
 
     property bool ready: backend.opencodeState === "ready"
     property bool active: true
-    readonly property bool canSend: ready && !backend.busy && input.text.trim() !== ""
+    property var attachments: []
+    property var history: []
+    property int historyIndex: -1
+    readonly property var modelChoices: {
+        const list = ecosystem.models.slice()
+        const current = backend.currentModel
+        if (current !== "") {
+            let found = false
+            for (let i = 0; i < list.length; ++i) {
+                if (list[i].value === current) {
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                const slash = current.indexOf("/")
+                list.unshift({
+                    "value": current,
+                    "name": slash > 0 ? current.slice(slash + 1) : current,
+                    "provider": slash > 0 ? current.slice(0, slash) : "",
+                    "free": current.indexOf("free") >= 0
+                })
+            }
+        }
+        return list.length > 0 ? list : backend.modelOptions
+    }
+    readonly property bool canSend: ready && !backend.busy
+                                   && (input.text.trim() !== "" || attachments.length > 0)
 
     signal submit(string text)
 
@@ -46,6 +73,91 @@ Rectangle {
         focusInput()
     }
 
+    function attachFile(path, content) {
+        if (path === "")
+            return
+        for (let i = 0; i < attachments.length; ++i) {
+            if (attachments[i].path === path) {
+                focusInput()
+                return
+            }
+        }
+        if (attachments.length >= 5) {
+            Window.window.showToast(qsTr("Five files maximum per message."))
+            return
+        }
+        const next = attachments.slice()
+        next.push({
+            "path": path,
+            "name": String(path).split("/").pop(),
+            "content": String(content).substring(0, 14000)
+        })
+        attachments = next
+        focusInput()
+    }
+
+    function removeAttachment(index) {
+        const next = attachments.slice()
+        next.splice(index, 1)
+        attachments = next
+    }
+
+    function composeDraft() {
+        let context = ""
+        for (let i = 0; i < attachments.length; ++i) {
+            const file = attachments[i]
+            context += '<file path="' + file.path + '">\n' + file.content + '\n</file>\n\n'
+        }
+        const typed = input.text.trim()
+        if (typed !== "")
+            return context + typed
+        return context + (attachments.length > 0 ? qsTr("Analyze these files.") : "")
+    }
+
+    function submitDraft() {
+        if (!canSend)
+            return
+        const text = composeDraft()
+        if (text.trim() === "")
+            return
+        const typed = input.text.trim()
+        if (typed !== "" && (history.length === 0 || history[history.length - 1] !== typed)) {
+            const next = history.slice()
+            next.push(typed)
+            while (next.length > 50)
+                next.shift()
+            history = next
+        }
+        historyIndex = -1
+        root.submit(text)
+        input.text = ""
+        attachments = []
+    }
+
+    function historyBack() {
+        if (history.length === 0)
+            return
+        if (historyIndex < 0)
+            historyIndex = history.length - 1
+        else if (historyIndex > 0)
+            historyIndex--
+        input.text = history[historyIndex]
+        input.cursorPosition = input.text.length
+    }
+
+    function historyForward() {
+        if (historyIndex < 0)
+            return
+        if (historyIndex < history.length - 1) {
+            historyIndex++
+            input.text = history[historyIndex]
+            input.cursorPosition = input.text.length
+        } else {
+            historyIndex = -1
+            input.text = ""
+        }
+    }
+
     function takeText() {
         const value = input.text
         input.text = ""
@@ -64,6 +176,7 @@ Rectangle {
         // menu, not the stock Material popup, is what gets captured.
         if (Qt.application.arguments.indexOf("--picker") !== -1)
             Qt.callLater(modelPicker.open)
+        Qt.callLater(function () { ecosystem.refreshModels() })
     }
 
     ColumnLayout {
@@ -91,6 +204,16 @@ Rectangle {
                 onActiveFocusChanged: Window.window.typing = activeFocus
 
                 Keys.onPressed: function (event) {
+                    if (event.key === Qt.Key_Up && input.text.indexOf('\n') < 0 && !(event.modifiers & Qt.ShiftModifier)) {
+                        root.historyBack()
+                        event.accepted = true
+                        return
+                    }
+                    if (event.key === Qt.Key_Down && input.text.indexOf('\n') < 0 && !(event.modifiers & Qt.ShiftModifier)) {
+                        root.historyForward()
+                        event.accepted = true
+                        return
+                    }
                     if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter)
                         return
                     if (event.modifiers & Qt.ShiftModifier && !(event.modifiers & Qt.ControlModifier))
@@ -98,8 +221,7 @@ Rectangle {
                     event.accepted = true
                     if (!root.canSend)
                         return
-                    root.submit(input.text.trim())
-                    input.text = ""
+                    root.submitDraft()
                 }
             }
 
@@ -116,6 +238,57 @@ Rectangle {
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
+            }
+        }
+
+        Flow {
+            Layout.fillWidth: true
+            spacing: 4
+            visible: root.attachments.length > 0
+
+            Repeater {
+                model: root.attachments
+
+                Rectangle {
+                    width: Math.min(240, Math.max(110, modelData.name.length * 6 + 38))
+                    height: 22
+                    radius: 11
+                    color: theme.chip
+                    border.width: 1
+                    border.color: theme.border
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 5
+                        spacing: 4
+
+                        ThemedIcon {
+                            source: "icons/file.svg"
+                            width: 9
+                            height: 9
+                            color: theme.cyan
+                        }
+                        Text {
+                            id: attachmentLabel
+                            Layout.fillWidth: true
+                            text: modelData.name
+                            color: theme.mutedText
+                            font.pixelSize: 8
+                            elide: Text.ElideMiddle
+                        }
+                        Text {
+                            text: "×"
+                            color: theme.dimText
+                            font.pixelSize: 12
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.removeAttachment(index)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -145,7 +318,7 @@ Rectangle {
                 enabled: root.ready && !backend.busy
                 opacity: enabled ? 1 : 0.5
                 title: qsTr("Model")
-                options: backend.modelOptions
+                options: root.modelChoices
                 currentValue: backend.currentModel
                 searchable: true
                 emptyText: qsTr("Model")
@@ -213,8 +386,7 @@ Rectangle {
                         if (backend.busy) {
                             backend.cancelPrompt()
                         } else if (root.canSend) {
-                            root.submit(input.text.trim())
-                            input.text = ""
+                            root.submitDraft()
                         }
                     }
                 }

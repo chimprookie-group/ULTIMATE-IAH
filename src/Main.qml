@@ -557,6 +557,9 @@ ApplicationWindow {
                         backend.setView("opencode")
                         Qt.callLater(function () { chatPane.suggest(prompt) })
                     }
+                    onAttachRequested: function (path) {
+                        chatPane.attachFile(path, workspaceModel.preview(path))
+                    }
                 }
 
                 HomePane {

@@ -26,6 +26,12 @@ Item {
         composer.openModelPicker()
     }
 
+    function attachFile(path, content) {
+        composer.attachFile(path, content)
+        backend.setView("opencode")
+        Qt.callLater(function () { composer.focusInput() })
+    }
+
     function suggest(text) {
         composer.setText(text)
     }
@@ -238,7 +244,7 @@ Item {
 
                                 Text {
                                     Layout.fillWidth: true
-                                    text: model.text
+                                    text: model.text !== undefined ? model.text : ""
                                     color: theme.mutedText
                                     font.pixelSize: 10
                                     wrapMode: Text.Wrap

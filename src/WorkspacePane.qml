@@ -7,6 +7,7 @@ Item {
     id: root
 
     signal promptRequested(string prompt)
+    signal attachRequested(string path)
 
     property string selectedPath: ""
     property string selectedStatus: ""
@@ -359,6 +360,12 @@ Item {
                             flat: true
                             font.pixelSize: 9
                             onClicked: root.askAboutFile()
+                        }
+                        Button {
+                            text: qsTr("Attach to chat")
+                            flat: true
+                            font.pixelSize: 9
+                            onClicked: root.attachRequested(root.selectedPath)
                         }
                         Item { Layout.fillWidth: true }
                         Button {

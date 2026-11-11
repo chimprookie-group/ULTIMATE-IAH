@@ -400,5 +400,16 @@
   "OpenCode needs attention": "OpenCode demande une action",
   "Change model": "Changer de modèle",
   "Connect a provider": "Connecter un provider",
-  "Connect a provider or subscribe to OpenCode Go to unlock paid models.": "Connectez un provider ou abonnez-vous à OpenCode Go pour débloquer les modèles payants."
+  "Connect a provider or subscribe to OpenCode Go to unlock paid models.": "Connectez un provider ou abonnez-vous à OpenCode Go pour débloquer les modèles payants.",
+  "Five files maximum per message.": "Cinq fichiers maximum par message.",
+  "Analyze these files.": "Analyse ces fichiers.",
+  "Attach to chat": "Joindre au chat",
+  "No provider connected": "Aucun provider connecté",
+  "%n provider(s) connected": {
+    "one": "%n provider connecté",
+    "other": "%n providers connectés"
+  },
+  "Search sessions…": "Rechercher des sessions…",
+  "No session matches.": "Aucune session ne correspond.",
+  "free": "gratuit"
 }

@@ -8,6 +8,13 @@ Item {
     id: root
 
     property bool opened: false
+    property string query: ""
+    readonly property var filtered: backend.sessions.filter(function (session) {
+        const text = root.query.trim().toLowerCase()
+        if (text === "")
+            return true
+        return (backend.sessionLabel(session) + " " + String(session.sessionId || "")).toLowerCase().indexOf(text) >= 0
+    })
 
     function open() {
         opened = true
@@ -90,13 +97,33 @@ Item {
                 color: theme.border
             }
 
+            TextField {
+                id: sessionSearch
+                Layout.fillWidth: true
+                placeholderText: qsTr("Search sessions…")
+                color: theme.text
+                placeholderTextColor: theme.dimText
+                font.pixelSize: 10
+                leftPadding: 9
+                rightPadding: 9
+                onTextChanged: root.query = text
+
+                background: Rectangle {
+                    implicitHeight: 30
+                    radius: Math.min(6, theme.radius)
+                    color: theme.background
+                    border.width: 1
+                    border.color: sessionSearch.activeFocus ? theme.accent : theme.border
+                }
+            }
+
             ListView {
                 id: list
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
                 spacing: 6
-                model: backend.sessions
+                model: root.filtered
 
                 delegate: Rectangle {
                     width: ListView.view.width
@@ -150,6 +177,14 @@ Item {
                         }
                     }
                 }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: !backend.loadingSessions && root.filtered.length === 0
+                text: qsTr("No session matches.")
+                color: theme.dimText
+                font.pixelSize: 10
             }
 
             Text {

@@ -156,6 +156,18 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### Modèles, providers et pièces jointes
+
+`Ecosystem::refreshModels()` interroge `opencode models` et
+`opencode auth list`, met les résultats en cache et les expose au sélecteur de
+modèle du composer ainsi qu'à la carte Écosystème. Le modèle courant est
+toujours conservé dans la liste, même s'il ne vient pas du catalogue.
+
+Le composer garde jusqu'à cinq fichiers joints ; `WorkspacePane` envoie le
+chemin et `Backend`/QML récupèrent l'aperçu. À l'envoi, chaque fichier devient
+un bloc `<file path="…">` limité à 14 000 caractères, suivi du texte saisi.
+L'historique local garde 50 prompts et se parcourt avec `↑`/`↓`.
+
 ### Les erreurs OpenCode
 
 Un échec de prompt peut arriver en réponse JSON-RPC, mais aussi comme texte
