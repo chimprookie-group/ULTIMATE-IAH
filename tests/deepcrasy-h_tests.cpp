@@ -8,6 +8,7 @@
 #include "acpclient.h"
 #include "config.h"
 #include "gitstatus.h"
+#include "mcpmanager.h"
 #include "terminalsession.h"
 #include "harnessserver.h"
 #include "theme.h"
@@ -106,6 +107,44 @@ private slots:
         const QVariantMap init = GitStatus::parse("## No commits yet on main\n");
         QCOMPARE(init.value("branch").toString(), QString("main"));
         QCOMPARE(init.value("dirty").toInt(), 0);
+    }
+
+    void mcpConfigurationIsEditedSafely()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/opencode.json";
+        QFile seed(path);
+        QVERIFY(seed.open(QIODevice::WriteOnly));
+        seed.write("{\"$schema\": \"https://opencode.ai/config.json\", \"theme\": \"system\"}");
+        seed.close();
+
+        McpManager mcp(path, false);
+        QCOMPARE(mcp.servers().size(), 0);
+
+        mcp.addServer("filesystem", "local", "npx -y @modelcontextprotocol/server-filesystem /tmp");
+        QCOMPARE(mcp.servers().size(), 1);
+        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("filesystem"));
+        QCOMPARE(mcp.error(), QString());
+
+        QFile written(path);
+        QVERIFY(written.open(QIODevice::ReadOnly));
+        const QJsonObject root = QJsonDocument::fromJson(written.readAll()).object();
+        written.close();
+        QCOMPARE(root.value("theme").toString(), QString("system"));
+        const QJsonObject server = root.value("mcp").toObject().value("servers").toObject()
+                                       .value("filesystem").toObject();
+        QCOMPARE(server.value("type").toString(), QString("local"));
+        QCOMPARE(server.value("command").toArray().size(), 4);
+
+        mcp.addServer("remote", "remote", "https://example.com/mcp");
+        QCOMPARE(mcp.servers().size(), 2);
+
+        mcp.removeServer("filesystem");
+        QCOMPARE(mcp.servers().size(), 1);
+        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("remote"));
+
+        mcp.addServer("bad name", "local", "echo");
+        QVERIFY(!mcp.error().isEmpty());
     }
 
     void terminalRunsACommand()

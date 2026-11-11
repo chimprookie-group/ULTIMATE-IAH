@@ -9,6 +9,7 @@ HEADERS += \
     ../src/acpclient.h \
     ../src/config.h \
     ../src/harnessserver.h \
+    ../src/mcpmanager.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/translator.h
@@ -22,5 +23,6 @@ SOURCES += \
     ../src/gitstatus.cpp \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
+    ../src/mcpmanager.cpp \
     ../src/theme.cpp \
     ../src/translator.cpp

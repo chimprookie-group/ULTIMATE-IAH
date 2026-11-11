@@ -10,6 +10,7 @@ HEADERS += \
     src/config.h \
     src/gitstatus.h \
     src/harnessserver.h \
+    src/mcpmanager.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
     src/terminalsession.h \
@@ -23,6 +24,7 @@ SOURCES += \
     src/config.cpp \
     src/gitstatus.cpp \
     src/harnessserver.cpp \
+    src/mcpmanager.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
     src/terminalsession.cpp \

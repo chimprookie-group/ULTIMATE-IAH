@@ -17,6 +17,7 @@
         <file>ToolCard.qml</file>
         <file>SettingsPane.qml</file>
         <file>SettingsSection.qml</file>
+        <file>SettingsField.qml</file>
         <file>ThemeCard.qml</file>
         <file>HelpOverlay.qml</file>
         <file>SessionsPanel.qml</file>

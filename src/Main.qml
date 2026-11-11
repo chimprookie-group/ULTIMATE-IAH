@@ -82,6 +82,7 @@ ApplicationWindow {
         add(qsTr("Actions"), qsTr("Restart OpenCode"), "", "action:restart-opencode", "icons/reload.svg")
         add(qsTr("Actions"), qsTr("Change workspace"), "", "action:workspace", "icons/folder.svg")
         add(qsTr("Actions"), qsTr("Run diagnostics"), "", "action:diagnostics", "icons/plug.svg")
+        add(qsTr("Actions"), qsTr("MCP servers"), "", "action:mcp", "icons/plug.svg")
         add(qsTr("Actions"), qsTr("Open the harness in a browser"), "", "action:browser", "icons/external.svg")
         add(qsTr("Actions"), qsTr("Show shortcuts"), "?", "action:shortcuts", "icons/help.svg")
 
@@ -135,6 +136,8 @@ ApplicationWindow {
         } else if (id === "action:browser") {
             if (backend.harnessUrl !== "")
                 Qt.openUrlExternally(backend.harnessUrl)
+        } else if (id === "action:mcp") {
+            backend.setView("settings")
         } else if (id === "action:shortcuts") {
             win.helpVisible = true
         }

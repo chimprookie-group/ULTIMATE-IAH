@@ -27,10 +27,35 @@ Item {
         backend.refreshThemes()
         backend.runDiagnostics()
         backend.refreshGit()
+        mcp.refresh()
+    }
+
+    function mcpColor(status) {
+        if (status === "connected")
+            return theme.green
+        if (status === "failed")
+            return theme.red
+        if (status === "disabled")
+            return theme.dimText
+        return theme.yellow
+    }
+
+    function mcpLabel(status) {
+        if (status === "connected")
+            return qsTr("Connected")
+        if (status === "failed")
+            return qsTr("Failed")
+        if (status === "pending")
+            return qsTr("Pending")
+        if (status === "disabled")
+            return qsTr("Disabled")
+        return qsTr("Not tested")
     }
 
     Component.onCompleted: if (visible) refresh()
     onVisibleChanged: if (visible) refresh()
+
+    property string mcpType: "local"
 
     readonly property var providers: {
         const options = backend.modelOptions
@@ -524,6 +549,223 @@ Item {
                         onClicked: backend.restartOpencode()
                     }
                     Item { Layout.fillWidth: true }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("MCP servers")
+                width: content.width
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Tool servers exposed to OpenCode. Add a local command or a remote URL, then restart OpenCode to load it.")
+                    wrapMode: Text.Wrap
+                    color: theme.mutedText
+                    font.pixelSize: 11
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: mcp.configPath
+                        color: theme.dimText
+                        font.family: backend.monoFont
+                        font.pixelSize: 8
+                        elide: Text.ElideMiddle
+                    }
+                    Text {
+                        visible: mcp.loading
+                        text: qsTr("Checking…")
+                        color: theme.yellow
+                        font.pixelSize: 9
+                    }
+                    Button {
+                        text: qsTr("Refresh")
+                        flat: true
+                        enabled: !mcp.loading
+                        onClicked: mcp.refresh()
+                    }
+                    Button {
+                        text: qsTr("Restart OpenCode")
+                        flat: true
+                        onClicked: backend.restartOpencode()
+                    }
+                }
+
+                Repeater {
+                    model: mcp.servers
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: serverColumn.implicitHeight + 18
+                        radius: Math.min(8, theme.radius)
+                        color: theme.chip
+                        border.width: 1
+                        border.color: theme.border
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 9
+                            spacing: 8
+
+                            StatusDot {
+                                color: root.mcpColor(modelData.status)
+                            }
+
+                            ColumnLayout {
+                                id: serverColumn
+                                Layout.fillWidth: true
+                                spacing: 2
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 6
+
+                                    Text {
+                                        text: modelData.name
+                                        color: theme.text
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                    }
+                                    Rectangle {
+                                        width: typeLabel.implicitWidth + 12
+                                        height: 16
+                                        radius: 8
+                                        color: theme.background
+                                        border.width: 1
+                                        border.color: theme.border
+                                        Text {
+                                            id: typeLabel
+                                            anchors.centerIn: parent
+                                            text: modelData.type === "remote" ? qsTr("Remote") : qsTr("Local")
+                                            color: theme.mutedText
+                                            font.pixelSize: 8
+                                        }
+                                    }
+                                    Item { Layout.fillWidth: true }
+                                    Text {
+                                        text: root.mcpLabel(modelData.status)
+                                        color: root.mcpColor(modelData.status)
+                                        font.pixelSize: 8
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.target
+                                    color: theme.mutedText
+                                    font.family: backend.monoFont
+                                    font.pixelSize: 8
+                                    elide: Text.ElideMiddle
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: modelData.detail !== undefined && modelData.detail !== ""
+                                    text: modelData.detail !== undefined ? modelData.detail : ""
+                                    color: theme.red
+                                    font.pixelSize: 8
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            IconButton {
+                                icon: "icons/trash.svg"
+                                hint: qsTr("Remove this MCP server")
+                                onClicked: mcp.removeServer(modelData.name)
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: mcp.servers.length === 0
+                    text: qsTr("No MCP server configured yet.")
+                    color: theme.mutedText
+                    font.pixelSize: 10
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: theme.border
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    SettingsField {
+                        id: mcpName
+                        Layout.preferredWidth: 170
+                        placeholderText: qsTr("Server name")
+                    }
+
+                    RowLayout {
+                        spacing: 4
+
+                        Repeater {
+                            model: [
+                                { "id": "local", "label": qsTr("Local") },
+                                { "id": "remote", "label": qsTr("Remote") }
+                            ]
+
+                            Rectangle {
+                                width: mcpTypeLabel.implicitWidth + 20
+                                height: 26
+                                radius: 13
+                                color: root.mcpType === modelData.id ? theme.accent : theme.chip
+                                border.width: 1
+                                border.color: root.mcpType === modelData.id ? theme.accent : theme.border
+
+                                Text {
+                                    id: mcpTypeLabel
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: root.mcpType === modelData.id ? theme.accentForeground : theme.text
+                                    font.pixelSize: 9
+                                    font.weight: Font.DemiBold
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.mcpType = modelData.id
+                                }
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    SettingsField {
+                        id: mcpTarget
+                        Layout.fillWidth: true
+                        placeholderText: root.mcpType === "remote"
+                            ? qsTr("https://example.com/mcp")
+                            : qsTr("npx -y @modelcontextprotocol/server-filesystem /home")
+                    }
+                    ActionButton {
+                        text: qsTr("Add")
+                        onClicked: mcp.addServer(mcpName.text, root.mcpType, mcpTarget.text)
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: mcp.error !== ""
+                    text: mcp.error
+                    color: theme.red
+                    font.pixelSize: 9
+                    wrapMode: Text.Wrap
                 }
             }
 

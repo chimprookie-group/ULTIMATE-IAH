@@ -76,6 +76,7 @@ Item {
     function refresh() {
         backend.refreshGit()
         backend.runDiagnostics()
+        mcp.refresh()
         if (backend.opencodeState === "ready")
             backend.refreshSessions()
     }
@@ -537,6 +538,36 @@ Item {
                         color: theme.mutedText
                         font.pixelSize: 9
                         wrapMode: Text.Wrap
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+
+                        ThemedIcon {
+                            source: "icons/plug.svg"
+                            width: 11
+                            height: 11
+                            color: theme.magenta
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: "MCP"
+                            color: theme.text
+                            font.pixelSize: 10
+                        }
+                        Text {
+                            text: mcp.servers.length === 0
+                                  ? qsTr("none")
+                                  : qsTr("%n server(s)", "", mcp.servers.length)
+                            color: theme.dimText
+                            font.pixelSize: 8
+                        }
+                        Button {
+                            text: qsTr("Manage")
+                            flat: true
+                            onClicked: backend.setView("settings")
+                        }
                     }
 
                     RowLayout {

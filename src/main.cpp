@@ -22,6 +22,7 @@
 
 #include "backend.h"
 #include "iconprovider.h"
+#include "mcpmanager.h"
 #include "terminalsession.h"
 #include "theme.h"
 #include "translator.h"
@@ -132,7 +133,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.6.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.7.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -205,6 +206,7 @@ int main(int argc, char *argv[]) {
     backend.attachTheme(&theme);
 
     TerminalSession terminal;
+    McpManager mcp;
 
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
@@ -219,6 +221,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("theme", &theme);
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("terminal", &terminal);
+    engine.rootContext()->setContextProperty("mcp", &mcp);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);
 
     if (!themeId.isEmpty())

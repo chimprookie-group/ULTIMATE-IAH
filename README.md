@@ -89,6 +89,18 @@ on change de vue, suit le thème actif, se redimensionne avec la fenêtre, et
 
 ![Terminal](assets/screenshot-terminal.png)
 
+## Serveurs MCP
+
+**Réglages → Serveurs MCP** gère les serveurs d'outils exposés à OpenCode :
+liste avec type et cible, ajout d'un serveur local (`npx …`) ou distant
+(`https://…`), retrait, et statut demandé à `opencode mcp list`. Le fichier
+`~/.config/opencode/opencode.json` est modifié de façon atomique, sans toucher
+au thème, à l'autoupdate ni au reste de la configuration. Un bouton relance
+OpenCode pour charger un serveur qui vient d'être ajouté ; le statut reste
+best-effort et peut afficher « Non testé » tant que le service n'a pas rechargé.
+
+![Serveurs MCP](assets/screenshot-mcp.png)
+
 ## En bref
 
 - **Un seul espace de travail.** Le dossier choisi est partagé : le harness y
@@ -102,6 +114,8 @@ on change de vue, suit le thème actif, se redimensionne avec la fenêtre, et
   instantanée et transcript conservé.
 - **Terminal intégré** (`Ctrl+5`) : PTY réel, shell de l'utilisateur, thème,
   copier/coller, redémarrage.
+- **Serveurs MCP** : liste, ajout local ou distant, retrait, statut et
+  redémarrage d'OpenCode depuis Réglages.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -213,6 +227,8 @@ Le chat et le sélecteur de modèle :
 - `src/terminalsession.*` ouvre un PTY avec `forkpty`, décode l'UTF-8 au fil de
   l'eau et expose l'entrée/sortie à xterm.js via QWebChannel. `src/terminal/`
   contient xterm.js et son addon de redimensionnement.
+- `src/mcpmanager.*` lit et écrit la section `mcp.servers` de la configuration
+  OpenCode, et interroge `opencode mcp list` en arrière-plan pour les statuts.
 - `src/gitstatus.*` lit `git status --porcelain=v1 -b` sans toucher au dépôt ;
   `src/theme.*` lit les palettes Omarchy et en dérive toute l'interface ;
   `src/iconprovider.*` teinte les SVG avec la bonne couleur.
@@ -248,10 +264,10 @@ peut cohabiter.
 ```
 
 Les tests couvrent l'extraction de l'URL tokenisée, la persistance et la
-validation de la configuration (options comprises), la lecture Git, le thème,
-les catalogues de langue, un **vrai** PTY (commande envoyée au shell et sortie
-relue), et un **vrai** `opencode acp` : démarrage, session, prompt, réponse
-streamée. Pour sauter ce dernier (pas de réseau) :
+validation de la configuration (options comprises), l'édition sûre de la
+configuration MCP, la lecture Git, le thème, les catalogues de langue, un
+**vrai** PTY (commande envoyée au shell et sortie relue), et un **vrai**
+`opencode acp` : démarrage, session, prompt, réponse streamée. Pour sauter ce dernier (pas de réseau) :
 
 ```sh
 DEEPCRASY_SKIP_INTEGRATION=1 ./bin/test

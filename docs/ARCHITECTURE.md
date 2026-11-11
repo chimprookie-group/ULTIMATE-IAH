@@ -126,6 +126,21 @@ l'application. Quand le terminal a le focus, les raccourcis globaux qui
 entreraient en conflit avec le shell (Ctrl+K, Ctrl+R, Ctrl+L, Ctrl+N, ?, Q,
 Échap) lui sont rendus.
 
+### Les serveurs MCP
+
+`McpManager` possède la section `mcp.servers` de la configuration OpenCode
+globale (`~/.config/opencode/opencode.json`, ou `OPENCODE_CONFIG` si défini).
+Les ajouts et retraits réécrivent le document JSON avec `QSaveFile` en
+préservant toutes les autres clés ; une configuration illisible est signalée
+et jamais écrasée. Les commandes locales sont découpées avec
+`QProcess::splitCommand`, les URL distantes doivent être http(s).
+
+Le statut vient de `opencode mcp list`, lancé en arrière-plan avec un délai de
+20 s. Le format texte (glyphes `✓`, `✗`, `○`, `-`) est parsé et fusionné avec
+la liste issue du fichier ; un serveur non reconnu reste « non testé ». Comme
+OpenCode garde sa configuration en mémoire, l'ajout ne prend effet qu'après un
+redémarrage — le bouton correspondant relance le client ACP.
+
 ### Connexions, diagnostic et notifications
 
 - `runDiagnostics()` vérifie les binaires résolus (y compris un chemin absolu
