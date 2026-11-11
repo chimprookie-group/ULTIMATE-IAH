@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// A compact preview of an installed Omarchy palette. The card paints itself
+// A compact preview of an installed Omarchy themeColors. The card paints itself
 // in the theme it represents, so the grid is a real comparison, not swatches
 // on a neutral card.
 Item {
@@ -11,7 +11,7 @@ Item {
     property string themeId: ""
     property string label: ""
     property string mode: "dark"
-    property var palette: ({})
+    property var themeColors: ({})
     property bool active: false
     property bool autoTheme: false
     property string subtitle: ""
@@ -21,12 +21,12 @@ Item {
     width: 160
     height: 86
 
-    readonly property color cardBackground: palette && palette.background !== undefined ? palette.background : theme.background
-    readonly property color cardForeground: palette && palette.foreground !== undefined ? palette.foreground : theme.text
-    readonly property color cardAccent: palette && palette.accent !== undefined ? palette.accent : theme.accent
-    readonly property color cardCyan: palette && palette.cyan !== undefined ? palette.cyan : theme.cyan
-    readonly property color cardRed: palette && palette.red !== undefined ? palette.red : theme.red
-    readonly property color cardGreen: palette && palette.green !== undefined ? palette.green : theme.green
+    readonly property color cardBackground: themeColors && themeColors.background !== undefined ? themeColors.background : theme.background
+    readonly property color cardForeground: themeColors && themeColors.foreground !== undefined ? themeColors.foreground : theme.text
+    readonly property color cardAccent: themeColors && themeColors.accent !== undefined ? themeColors.accent : theme.accent
+    readonly property color cardCyan: themeColors && themeColors.cyan !== undefined ? themeColors.cyan : theme.cyan
+    readonly property color cardRed: themeColors && themeColors.red !== undefined ? themeColors.red : theme.red
+    readonly property color cardGreen: themeColors && themeColors.green !== undefined ? themeColors.green : theme.green
 
     Rectangle {
         id: card

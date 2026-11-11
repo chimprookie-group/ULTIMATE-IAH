@@ -131,7 +131,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.3.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.4.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -154,6 +154,7 @@ int main(int argc, char *argv[]) {
     QString view;
     QString workspace;
     QString themeId;
+    int windowHeight = 0;
     int delay = 1800;
     for (int i = 0; i < arguments.size(); ++i) {
         const QString &argument = arguments.at(i);
@@ -167,6 +168,8 @@ int main(int argc, char *argv[]) {
             workspace = arguments.at(++i);
         } else if (argument == "--theme" && i + 1 < arguments.size()) {
             themeId = arguments.at(++i);
+        } else if (argument == "--height" && i + 1 < arguments.size()) {
+            windowHeight = arguments.at(++i).toInt();
         } else if (argument == "--screenshot-delay" && i + 1 < arguments.size()) {
             delay = arguments.at(++i).toInt();
         } else if (!argument.startsWith("--") && QFileInfo(argument).isDir()) {
@@ -200,6 +203,13 @@ int main(int argc, char *argv[]) {
     Backend backend;
     backend.attachTheme(&theme);
 
+    // The translator auto-detects (Omarchy, then the browser language), and an
+    // explicit app preference wins over both.
+    translator.setOverride(backend.languagePreference());
+    QObject::connect(&backend, &Backend::languageChanged, &translator, [&backend, &translator] {
+        translator.setOverride(backend.languagePreference());
+    });
+
     QQmlApplicationEngine engine;
     QObject::connect(&translator, &Translator::changed, &engine, &QQmlEngine::retranslate);
     engine.rootContext()->setContextProperty("translator", &translator);
@@ -220,6 +230,11 @@ int main(int argc, char *argv[]) {
     engine.load(QUrl(QStringLiteral("qrc:/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    if (windowHeight > 0) {
+        if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0)))
+            window->resize(window->width(), windowHeight);
+    }
 
     if (!demo)
         backend.boot();

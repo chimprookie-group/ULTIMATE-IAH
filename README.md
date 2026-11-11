@@ -35,6 +35,16 @@ sombres gardent leur caractère.
 
 ![Thème clair](assets/screenshot-light.png)
 
+## Langues
+
+L'interface existe en **français** et en **anglais**. En mode automatique, elle
+suit la langue d'Omarchy, puis celle du navigateur embarqué (celle que le
+harness utilise déjà), puis la locale du système. **Réglages → Langue** permet
+de forcer Français, English ou Auto — pour DeepCrasy H uniquement.
+
+Le chat, les appels d'outils, les permissions, les erreurs et les réglages
+passent tous par le même catalogue.
+
 ## En bref
 
 - **Un seul espace de travail.** Le dossier choisi est partagé : le harness y
@@ -50,8 +60,9 @@ sombres gardent leur caractère.
 - **Thèmes complets.** Les palettes des thèmes Omarchy sont lues en direct :
   surfaces, bordures, accents, icônes, statuts et mode clair/sombre sont
   dérivés de la palette active, ou d'un thème choisi dans l'application.
-- **Clavier d'abord**, arrondis Hyprland suivis, interface française et
-  anglaise.
+- **Français et anglais**, détection automatique (Omarchy, navigateur
+  embarqué, locale) et choix dans **Réglages → Langue**.
+- **Clavier d'abord**, arrondis Hyprland suivis.
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
 
 ## Installer

@@ -99,7 +99,7 @@ Item {
                         themeId: ""
                         label: qsTr("Follow Omarchy")
                         mode: theme.dark ? "dark" : "light"
-                        palette: root.systemPalette
+                        themeColors: root.systemPalette
                         active: backend.themePreference === ""
                         autoTheme: true
                         subtitle: qsTr("Current · %1").arg(backend.systemTheme)
@@ -112,11 +112,63 @@ Item {
                             themeId: modelData.id
                             label: modelData.label
                             mode: modelData.mode
-                            palette: modelData
+                            themeColors: modelData
                             active: backend.themePreference === modelData.id
                             onChosen: backend.setTheme(modelData.id)
                         }
                     }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Language")
+                width: content.width
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Automatic follows Omarchy, then the language the embedded browser is using. A manual choice applies to DeepCrasy H only.")
+                    wrapMode: Text.Wrap
+                    color: theme.mutedText
+                    font.pixelSize: 11
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: [
+                            { "id": "", "label": qsTr("Auto") },
+                            { "id": "fr", "label": "Français" },
+                            { "id": "en", "label": "English" }
+                        ]
+
+                        Rectangle {
+                            width: languageLabel.implicitWidth + 28
+                            height: 30
+                            radius: 15
+                            color: backend.languagePreference === modelData.id ? theme.accent : theme.chip
+                            border.width: 1
+                            border.color: backend.languagePreference === modelData.id ? theme.accent : theme.border
+
+                            Text {
+                                id: languageLabel
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: backend.languagePreference === modelData.id ? theme.accentForeground : theme.text
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: backend.setLanguage(modelData.id)
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
                 }
             }
 

@@ -53,12 +53,14 @@ private slots:
             config.setHarnessProfile("custom");
             config.setView("split");
             config.setTheme("tokyo-night");
+            config.setLanguage("fr");
         }
         Config reloaded(path);
         QCOMPARE(reloaded.workspace(), QFileInfo(dir.path()).absoluteFilePath());
         QCOMPARE(reloaded.harnessProfile(), QString("custom"));
         QCOMPARE(reloaded.view(), QString("split"));
         QCOMPARE(reloaded.theme(), QString("tokyo-night"));
+        QCOMPARE(reloaded.language(), QString("fr"));
     }
 
     void configRejectsMissingWorkspace()
@@ -155,6 +157,37 @@ private slots:
         Translator translator(dir.path() + "/language", dir.path());
         QCOMPARE(translator.language(), QString("en"));
         QVERIFY(translator.translate("Main", "Save").isNull());
+    }
+
+    void translatorAutoDetectsBrowserLanguage()
+    {
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--lang=fr-FR");
+        QTemporaryDir dir;
+        write(dir.path() + "/fr.json", R"({"Settings": "Réglages"})");
+
+        Translator translator(dir.path() + "/missing-language", dir.path());
+        QCOMPARE(translator.language(), QString("fr"));
+        QCOMPARE(translator.translate("Main", "Settings"), QString("Réglages"));
+        qunsetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+    }
+
+    void translatorOverrideWins()
+    {
+        QTemporaryDir dir;
+        write(dir.path() + "/language", "en\n");
+        write(dir.path() + "/fr.json", R"({"Settings": "Réglages"})");
+
+        Translator translator(dir.path() + "/language", dir.path());
+        QCOMPARE(translator.language(), QString("en"));
+        QVERIFY(translator.translate("Main", "Settings").isNull());
+
+        translator.setOverride("fr");
+        QCOMPARE(translator.language(), QString("fr"));
+        QCOMPARE(translator.translate("Main", "Settings"), QString("Réglages"));
+
+        translator.setOverride("en");
+        QCOMPARE(translator.language(), QString("en"));
+        QVERIFY(translator.translate("Main", "Settings").isNull());
     }
 
     void translatorFollowsFrenchCatalog()

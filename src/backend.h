@@ -17,6 +17,7 @@ class Backend : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString view READ view NOTIFY viewChanged)
     Q_PROPERTY(QString themePreference READ themePreference NOTIFY themeChanged)
+    Q_PROPERTY(QString languagePreference READ languagePreference NOTIFY languageChanged)
     Q_PROPERTY(QString activeTheme READ activeTheme NOTIFY themeChanged)
     Q_PROPERTY(QString systemTheme READ systemTheme NOTIFY themeChanged)
     Q_PROPERTY(QString systemThemeId READ systemThemeId NOTIFY themeChanged)
@@ -65,6 +66,7 @@ public:
 
     QString view() const { return m_view; }
     QString themePreference() const;
+    QString languagePreference() const;
     QString activeTheme() const;
     QString systemTheme() const;
     QString systemThemeId() const;
@@ -106,6 +108,7 @@ public:
 
     Q_INVOKABLE void setView(const QString &view);
     Q_INVOKABLE void setTheme(const QString &id);
+    Q_INVOKABLE void setLanguage(const QString &code);
     Q_INVOKABLE void refreshThemes();
     Q_INVOKABLE void setWorkspace(const QString &workspace);
     Q_INVOKABLE void pickWorkspace();
@@ -126,6 +129,7 @@ public:
 signals:
     void viewChanged();
     void themeChanged();
+    void languageChanged();
     void themeOptionsChanged();
     void workspaceChanged();
     void harnessChanged();

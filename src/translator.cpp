@@ -16,11 +16,39 @@ Translator::Translator(const QString &languageFile, const QString &catalogDirect
     m_debounce.setInterval(80);
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, [this] { m_debounce.start(); });
     connect(&m_watcher, &QFileSystemWatcher::fileChanged, this, [this] { m_debounce.start(); });
-    connect(&m_debounce, &QTimer::timeout, this, &Translator::reload);
+    connect(&m_debounce, &QTimer::timeout, this, [this] { reload(); });
     reload();
 }
 
 // One registry code on the first line; anything else, or no file, is English.
+bool Translator::catalogExists(const QString &code) const {
+    return QFile::exists(m_catalogDirectory + "/" + code + ".json");
+}
+
+// Automatic language: Omarchy's explicit choice first, otherwise the language
+// the embedded browser already uses (the harness follows it), otherwise the
+// system locale. Only languages with a shipped catalog can win.
+QString Translator::detectLanguage(const QString &catalogDirectory) {
+    const QString flags = qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS");
+    static const QRegularExpression flag(R"(--lang=([A-Za-z]{2,3}(?:[-_][A-Za-z]{2})?))");
+    const auto match = flag.match(flags);
+
+    QString code = match.hasMatch() ? match.captured(1) : QLocale::system().name();
+    code.replace('_', '-');
+    const QString base = code.section('-', 0, 0);
+    if (QFile::exists(catalogDirectory + "/" + base + ".json"))
+        return base;
+    return QStringLiteral("en");
+}
+
+void Translator::setOverride(const QString &code) {
+    const QString normalized = code.trimmed();
+    if (normalized == m_override)
+        return;
+    m_override = normalized;
+    reload(true);
+}
+
 QString Translator::readLanguage(const QString &path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
@@ -91,7 +119,7 @@ QString Translator::translate(const char *, const char *sourceText, const char *
     return {};
 }
 
-void Translator::reload() {
+void Translator::reload(bool force) {
     const auto paths = m_watcher.files() + m_watcher.directories();
     if (!paths.isEmpty())
         m_watcher.removePaths(paths);
@@ -104,9 +132,16 @@ void Translator::reload() {
     if (QFileInfo::exists(m_languageFile))
         m_watcher.addPath(m_languageFile);
 
+    QString language;
+    if (!m_override.isEmpty())
+        language = m_override;
+    else if (QFileInfo::exists(m_languageFile))
+        language = readLanguage(m_languageFile);
+    else
+        language = detectLanguage(m_catalogDirectory);
+
     // Catalogs are compiled in, so only a different language needs a reload.
-    const QString language = readLanguage(m_languageFile);
-    if (language == m_language)
+    if (language == m_language && !force)
         return;
 
     // English first (it carries the plural forms of counted strings), then

@@ -170,6 +170,19 @@ QString Backend::themePreference() const {
     return m_config->theme();
 }
 
+QString Backend::languagePreference() const {
+    return m_config->language();
+}
+
+void Backend::setLanguage(const QString &code) {
+    if (code != "" && code != "fr" && code != "en")
+        return;
+    if (code == m_config->language())
+        return;
+    m_config->setLanguage(code);
+    emit languageChanged();
+}
+
 QString Backend::activeTheme() const {
     return m_theme ? m_theme->label() : QStringLiteral("Omarchy");
 }
@@ -446,14 +459,14 @@ void Backend::loadDemo() {
 }
 
 void Backend::buildDemo() {
-    m_demoSessionTitle = QStringLiteral("Retry the fetch helper");
+    m_demoSessionTitle = QStringLiteral("Réessayer le helper fetch");
 
     m_demoMessages = {
-        message("user", QStringLiteral("Add a retry with backoff to fetchJson() in src/net/fetch.ts, then run the test suite.")),
+        message("user", QStringLiteral("Ajoute un retry avec backoff à fetchJson() dans src/net/fetch.ts, puis lance la suite de tests.")),
         message("assistant", QStringLiteral(
-            "I'll read the helper and its tests first.\n\n"
-            "`fetchJson()` wraps `fetch` but only retries on HTTP 429. Network errors are thrown "
-            "straight through, which is why a flaky Wi-Fi connection fails the upload path.")),
+            "Je lis d'abord le helper et ses tests.\n\n"
+            "`fetchJson()` entoure `fetch` mais ne réessaie que sur un HTTP 429. Les erreurs "
+            "réseau remontent directement, d'où l'échec du téléversement en Wi-Fi instable.")),
         toolMessage(QStringLiteral("tool-1"), QStringLiteral("src/net/fetch.ts"), QStringLiteral("read"),
                     QStringLiteral("completed"),
                     QStringLiteral(" 1  export async function fetchJson(url: string, init?: RequestInit) {\n"
@@ -463,11 +476,12 @@ void Backend::buildDemo() {
                                    " 5    return response.json()\n"
                                    " 6  }")),
         message("assistant", QStringLiteral(
-            "I'll extract a small `withRetry` helper around the fetch call, retrying twice with "
-            "exponential backoff on network errors and 5xx responses, then rethrowing the last error.")),
+            "J'extrais un petit helper `withRetry` autour de l'appel fetch, avec deux tentatives "
+            "et un backoff exponentiel sur les erreurs réseau et les 5xx, puis je relance la "
+            "dernière erreur.")),
         toolMessage(QStringLiteral("tool-2"), QStringLiteral("src/net/fetch.ts"), QStringLiteral("edit"),
                     QStringLiteral("completed"),
-                    QStringLiteral("Updated src/net/fetch.ts (+18 −3)\n\n"
+                    QStringLiteral("Mis à jour src/net/fetch.ts (+18 −3)\n\n"
                                    "+ async function withRetry<T>(run: () => Promise<T>, attempts = 2) {\n"
                                    "+   for (let i = 0; ; i++) {\n"
                                    "+     try { return await run() }\n"
@@ -479,14 +493,14 @@ void Backend::buildDemo() {
                                    "+ }")),
         toolMessage(QStringLiteral("tool-3"), QStringLiteral("bun test src/net"), QStringLiteral("execute"),
                     QStringLiteral("completed"),
-                    QStringLiteral("12 pass, 0 fail\nRan 12 tests across 3 files. [42ms]"),
+                    QStringLiteral("12 réussis, 0 échec\n12 tests exécutés dans 3 fichiers. [42ms]"),
                     QStringLiteral("bun test src/net")),
         message("assistant", QStringLiteral(
-            "Done. `fetchJson()` now retries twice on network errors and 5xx responses, with 250 ms "
-            "and 750 ms backoff, and the suite still passes.\n\n"
-            "- added `withRetry()` in `src/net/fetch.ts`\n"
-            "- covered 500 → success and exhausted retries\n"
-            "- 12 tests pass, nothing else touched")),
+            "C'est fait. `fetchJson()` réessaie maintenant deux fois sur les erreurs réseau et les "
+            "5xx, avec 250 ms puis 750 ms de backoff, et la suite passe toujours.\n\n"
+            "- ajout de `withRetry()` dans `src/net/fetch.ts`\n"
+            "- couverture du cas 500 → succès et des tentatives épuisées\n"
+            "- 12 tests passent, rien d'autre touché")),
     };
 
     m_demoModelOptions = {

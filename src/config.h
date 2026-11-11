@@ -13,6 +13,7 @@ class Config : public QObject {
     Q_PROPERTY(QString opencodeBinary READ opencodeBinary WRITE setOpencodeBinary NOTIFY opencodeBinaryChanged)
     Q_PROPERTY(QString view READ view WRITE setView NOTIFY viewChanged)
     Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY themeChanged)
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
 
 public:
     explicit Config(const QString &path = {}, QObject *parent = nullptr);
@@ -35,6 +36,9 @@ public:
     QString theme() const { return m_theme; }
     void setTheme(const QString &theme);
 
+    QString language() const { return m_language; }
+    void setLanguage(const QString &language);
+
     QString path() const { return m_path; }
 
     static QString defaultPath();
@@ -48,6 +52,7 @@ signals:
     void opencodeBinaryChanged();
     void viewChanged();
     void themeChanged();
+    void languageChanged();
 
 private:
     void load();
@@ -60,4 +65,5 @@ private:
     QString m_opencodeBinary;
     QString m_view;
     QString m_theme;
+    QString m_language;
 };

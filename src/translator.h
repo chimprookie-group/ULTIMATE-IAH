@@ -20,23 +20,31 @@ public:
                         QObject *parent = nullptr);
 
     QString language() const { return m_language; }
+    QString overrideLanguage() const { return m_override; }
     bool isEmpty() const override { return m_strings.isEmpty(); }
+
+    // Empty means "automatic": Omarchy's language file, then the browser
+    // language DeepCrasy H is already using, then the system locale.
+    void setOverride(const QString &code);
     QString translate(const char *context, const char *sourceText, const char *disambiguation = nullptr,
                       int n = -1) const override;
 
     static QString readLanguage(const QString &path);
     static QString pluralCategory(const QString &language, long long count);
     static QLocale formatLocale(const QString &language);
+    static QString detectLanguage(const QString &catalogDirectory);
 
 signals:
     void changed();
 
 private:
-    void reload();
+    void reload(bool force = false);
+    bool catalogExists(const QString &code) const;
 
     QString m_languageFile;
     QString m_catalogDirectory;
     QString m_language;
+    QString m_override;
     QHash<QString, QJsonValue> m_strings;
     QFileSystemWatcher m_watcher;
     QTimer m_debounce;

@@ -79,6 +79,7 @@ void Config::load() {
         m_view = view;
 
     m_theme = object.value("theme").toString();
+    m_language = object.value("language").toString();
 }
 
 void Config::save() {
@@ -90,6 +91,7 @@ void Config::save() {
     object.insert("opencodeBinary", m_opencodeBinary);
     object.insert("view", m_view);
     object.insert("theme", m_theme);
+    object.insert("language", m_language);
 
     QSaveFile file(m_path);
     if (!file.open(QIODevice::WriteOnly))
@@ -133,6 +135,14 @@ void Config::setOpencodeBinary(const QString &binary) {
     m_opencodeBinary = binary;
     save();
     emit opencodeBinaryChanged();
+}
+
+void Config::setLanguage(const QString &language) {
+    if (language == m_language)
+        return;
+    m_language = language;
+    save();
+    emit languageChanged();
 }
 
 void Config::setTheme(const QString &theme) {
