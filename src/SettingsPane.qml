@@ -128,14 +128,12 @@ Item {
                     Layout.fillWidth: true
                     spacing: 2
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Settings")
                         font.pixelSize: 19
                         font.weight: Font.DemiBold
                         color: theme.text
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("One workspace, two engines, nothing hidden.")
                         font.pixelSize: 12
                         color: theme.mutedText
@@ -153,7 +151,6 @@ Item {
                 width: content.width
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("The app follows Omarchy's current theme. Pick another installed theme to use it here without changing the desktop.")
                     wrapMode: Text.Wrap
@@ -195,7 +192,6 @@ Item {
                 width: content.width
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Automatic follows Omarchy, then the language the embedded browser is using. A manual choice applies to DeepCrasy H only.")
                     wrapMode: Text.Wrap
@@ -223,7 +219,6 @@ Item {
                             border.color: backend.languagePreference === modelData.id ? theme.accent : theme.border
 
                             Text {
-        renderType: Text.NativeRendering
                                 id: languageLabel
                                 anchors.centerIn: parent
                                 text: modelData.label
@@ -249,7 +244,6 @@ Item {
                 width: content.width
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Startup view")
                     color: theme.text
@@ -280,7 +274,6 @@ Item {
                             border.color: backend.startupView === modelData.id ? theme.accent : theme.border
 
                             Text {
-        renderType: Text.NativeRendering
                                 id: startupLabel
                                 anchors.centerIn: parent
                                 text: modelData.label
@@ -299,7 +292,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Last view remembers where you were. The other choices open there every time.")
                     wrapMode: Text.Wrap
@@ -321,13 +313,11 @@ Item {
                         Layout.fillWidth: true
                         spacing: 1
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Launch the harness on startup")
                             color: theme.text
                             font.pixelSize: 11
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Starts dsh web with the window.")
                             color: theme.dimText
                             font.pixelSize: 9
@@ -347,13 +337,11 @@ Item {
                         Layout.fillWidth: true
                         spacing: 1
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Launch OpenCode on startup")
                             color: theme.text
                             font.pixelSize: 11
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Starts opencode acp with the window.")
                             color: theme.dimText
                             font.pixelSize: 9
@@ -374,14 +362,12 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Split ratio")
                         color: theme.text
                         font.pixelSize: 11
                     }
                     Item { Layout.fillWidth: true }
                     Text {
-        renderType: Text.NativeRendering
                         text: Math.round(backend.splitRatio * 100) + " %"
                         color: theme.mutedText
                         font.pixelSize: 10
@@ -404,13 +390,11 @@ Item {
                         Layout.fillWidth: true
                         spacing: 1
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Notify when a turn finishes")
                             color: theme.text
                             font.pixelSize: 11
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("Desktop notification when the window is not focused.")
                             color: theme.dimText
                             font.pixelSize: 9
@@ -437,7 +421,6 @@ Item {
                         onClicked: backend.testHarness()
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: root.healthLabel()
                         color: root.healthColor()
                         font.pixelSize: 10
@@ -463,14 +446,12 @@ Item {
                             color: modelData.ok ? theme.green : theme.red
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: modelData.label
                             color: theme.text
                             font.pixelSize: 10
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.maximumWidth: 340
                             text: modelData.detail
                             color: theme.dimText
@@ -481,7 +462,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: backend.diagnostics.length === 0
                     text: qsTr("No diagnostic yet.")
@@ -501,7 +481,6 @@ Item {
                     }
                     Item { Layout.fillWidth: true }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("%1 checks").arg(backend.diagnostics.length)
                         color: theme.dimText
                         font.pixelSize: 9
@@ -515,7 +494,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("OpenCode providers")
                     color: theme.text
@@ -539,7 +517,6 @@ Item {
                             border.color: theme.border
 
                             Text {
-        renderType: Text.NativeRendering
                                 id: providerLabel
                                 anchors.centerIn: parent
                                 text: modelData.name + " · " + modelData.count
@@ -551,7 +528,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: root.providers.length === 0
                     text: qsTr("No model loaded yet.")
@@ -582,7 +558,6 @@ Item {
                 width: content.width
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Tool servers exposed to OpenCode. Add a local command or a remote URL, then restart OpenCode to load it.")
                     wrapMode: Text.Wrap
@@ -595,7 +570,6 @@ Item {
                     spacing: 6
 
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Scope")
                         color: theme.mutedText
                         font.pixelSize: 9
@@ -616,7 +590,6 @@ Item {
                             border.color: root.mcpScope === modelData.id ? theme.accent : theme.border
 
                             Text {
-        renderType: Text.NativeRendering
                                 id: scopeLabel
                                 anchors.centerIn: parent
                                 text: modelData.label
@@ -640,7 +613,6 @@ Item {
                     spacing: 8
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: root.mcpScope === "project" ? mcp.projectConfigPath : mcp.configPath
                         color: theme.dimText
@@ -649,7 +621,6 @@ Item {
                         elide: Text.ElideMiddle
                     }
                     Text {
-        renderType: Text.NativeRendering
                         visible: mcp.loading
                         text: qsTr("Checking…")
                         color: theme.yellow
@@ -693,7 +664,6 @@ Item {
                                 color: mcp.authRunning ? theme.yellow : (mcp.authOk ? theme.green : theme.red)
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: mcp.authRunning
                                       ? (mcp.authAction === "logout"
@@ -720,7 +690,6 @@ Item {
                         }
 
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             visible: mcp.authRunning && mcp.authAction !== "logout"
                             text: qsTr("Finish the flow in your browser, then come back here.")
@@ -735,7 +704,6 @@ Item {
                             spacing: 8
 
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: mcp.authUrl
                                 color: theme.accent
@@ -756,7 +724,6 @@ Item {
                         }
 
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             visible: !mcp.authRunning && !mcp.authOk && mcp.authDetail !== ""
                             text: mcp.authDetail
@@ -800,7 +767,6 @@ Item {
                                     spacing: 6
 
                                     Text {
-        renderType: Text.NativeRendering
                                         text: modelData.name
                                         color: theme.text
                                         font.pixelSize: 10
@@ -814,7 +780,6 @@ Item {
                                         border.width: 1
                                         border.color: theme.border
                                         Text {
-        renderType: Text.NativeRendering
                                             id: typeLabel
                                             anchors.centerIn: parent
                                             text: modelData.type === "remote" ? qsTr("Remote") : qsTr("Local")
@@ -830,7 +795,6 @@ Item {
                                         border.width: 1
                                         border.color: modelData.scope === "project" ? theme.accent : theme.border
                                         Text {
-        renderType: Text.NativeRendering
                                             id: scopeBadge
                                             anchors.centerIn: parent
                                             text: modelData.scope === "project" ? qsTr("Project") : qsTr("Global")
@@ -840,7 +804,6 @@ Item {
                                     }
                                     Item { Layout.fillWidth: true }
                                     Text {
-        renderType: Text.NativeRendering
                                         text: root.mcpLabel(modelData.status)
                                         color: root.mcpColor(modelData.status)
                                         font.pixelSize: 8
@@ -848,7 +811,6 @@ Item {
                                 }
 
                                 Text {
-        renderType: Text.NativeRendering
                                     Layout.fillWidth: true
                                     text: modelData.target
                                     color: theme.mutedText
@@ -858,7 +820,6 @@ Item {
                                 }
 
                                 Text {
-        renderType: Text.NativeRendering
                                     Layout.fillWidth: true
                                     visible: modelData.detail !== undefined && modelData.detail !== ""
                                     text: modelData.detail !== undefined ? modelData.detail : ""
@@ -892,7 +853,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: mcp.servers.length === 0
                     text: qsTr("No MCP server configured yet.")
@@ -934,7 +894,6 @@ Item {
                                 border.color: root.mcpType === modelData.id ? theme.accent : theme.border
 
                                 Text {
-        renderType: Text.NativeRendering
                                     id: mcpTypeLabel
                                     anchors.centerIn: parent
                                     text: modelData.label
@@ -972,7 +931,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: mcp.error !== ""
                     text: mcp.error
@@ -991,7 +949,6 @@ Item {
                     spacing: 10
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.workspace
                         font.family: backend.monoFont
@@ -1006,7 +963,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Both engines start in this folder. Changing it restarts the harness and opens a new OpenCode session there.")
                     wrapMode: Text.Wrap
@@ -1024,7 +980,6 @@ Item {
                     spacing: 10
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.preferredWidth: 86
                         text: qsTr("Profile")
                         color: theme.mutedText
@@ -1050,7 +1005,6 @@ Item {
                         onEditingFinished: backend.setHarnessProfile(text)
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("dsh profile booted, web by default")
                         color: theme.dimText
                         font.pixelSize: 10
@@ -1064,7 +1018,6 @@ Item {
                     spacing: 10
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.preferredWidth: 86
                         text: qsTr("Binary")
                         color: theme.mutedText
@@ -1097,7 +1050,6 @@ Item {
                         border.width: 1
                         border.color: backend.dshAvailable ? theme.green : theme.red
                         Text {
-        renderType: Text.NativeRendering
                             id: dshBadge
                             anchors.centerIn: parent
                             text: backend.dshAvailable ? qsTr("found") : qsTr("missing")
@@ -1118,7 +1070,6 @@ Item {
                         color: root.stateColor(backend.harnessState)
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.harnessState + " · " + backend.harnessDetail
                         color: theme.mutedText
@@ -1132,7 +1083,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: backend.harnessState === "failed" && backend.harnessLog !== ""
                     text: backend.harnessLog.split("\n").slice(-10).join("\n")
@@ -1154,7 +1104,6 @@ Item {
                     spacing: 10
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.preferredWidth: 86
                         text: qsTr("Binary")
                         color: theme.mutedText
@@ -1187,7 +1136,6 @@ Item {
                         border.width: 1
                         border.color: backend.opencodeAvailable ? theme.green : theme.red
                         Text {
-        renderType: Text.NativeRendering
                             id: opencodeBadge
                             anchors.centerIn: parent
                             text: backend.opencodeAvailable ? qsTr("found") : qsTr("missing")
@@ -1208,7 +1156,6 @@ Item {
                         color: root.stateColor(backend.opencodeState)
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.opencodeState + " · " + backend.opencodeDetail
                         color: theme.mutedText
@@ -1222,7 +1169,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Talked to over the Agent Client Protocol (opencode acp). Sessions, models, modes, tool calls, and permissions are native.")
                     wrapMode: Text.Wrap
@@ -1239,14 +1185,12 @@ Item {
                     Layout.fillWidth: true
                     spacing: 10
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: "DeepCrasy H " + backend.appVersion
                         color: theme.text
                         font.pixelSize: 12
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Built for Omarchy · MIT")
                         color: theme.dimText
                         font.pixelSize: 10
@@ -1254,7 +1198,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Harness and OpenCode stay separate processes. DeepCrasy H only owns their lifecycle and the window around them.")
                     wrapMode: Text.Wrap
@@ -1263,7 +1206,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Shortcuts: Ctrl+1 harness · Ctrl+2 chat · Ctrl+3 split · Ctrl+4 settings · Ctrl+L composer · ? help")
                     wrapMode: Text.Wrap

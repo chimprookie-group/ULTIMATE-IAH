@@ -283,14 +283,12 @@ ApplicationWindow {
                     RowLayout {
                         spacing: 4
                         Text {
-        renderType: Text.NativeRendering
                             text: "DeepCrasy"
                             font.pixelSize: 15
                             font.weight: Font.DemiBold
                             color: theme.text
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: "H"
                             font.pixelSize: 15
                             font.weight: Font.Bold
@@ -298,7 +296,6 @@ ApplicationWindow {
                         }
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("HARNESS × OPENCODE")
                         font.pixelSize: 8
                         font.letterSpacing: 1.5
@@ -335,7 +332,6 @@ ApplicationWindow {
                             color: theme.mutedText
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: backend.workspaceName
                             font.pixelSize: 12
                             color: theme.text
@@ -541,7 +537,6 @@ ApplicationWindow {
                 spacing: 14
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: backend.workspace
                     font.family: backend.monoFont
@@ -557,7 +552,6 @@ ApplicationWindow {
                         color: win.stateColor(backend.harnessState)
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Harness")
                         font.pixelSize: 10
                         color: theme.mutedText
@@ -571,7 +565,6 @@ ApplicationWindow {
                         color: win.stateColor(backend.opencodeState)
                     }
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("OpenCode")
                         font.pixelSize: 10
                         color: theme.mutedText
@@ -579,7 +572,6 @@ ApplicationWindow {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     visible: backend.currentModel !== ""
                     Layout.maximumWidth: 220
                     text: backend.currentModel
@@ -663,14 +655,12 @@ ApplicationWindow {
                 spacing: 12
 
                 Text {
-        renderType: Text.NativeRendering
                     text: qsTr("A turn is still running")
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
                     color: theme.text
                 }
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("OpenCode is working. Quitting now stops the answer where it is.")
                     wrapMode: Text.Wrap
@@ -713,7 +703,6 @@ ApplicationWindow {
         border.color: theme.borderStrong
 
         Text {
-        renderType: Text.NativeRendering
             id: toastLabel
             anchors.centerIn: parent
             text: win.toastText

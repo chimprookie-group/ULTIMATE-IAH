@@ -155,14 +155,12 @@ Item {
                     spacing: 3
 
                     Text {
-        renderType: Text.NativeRendering
                         text: qsTr("Crasy Harness")
                         color: theme.brightText
                         font.pixelSize: 26
                         font.weight: Font.Bold
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: qsTr("DeepSeek Harness × OpenCode") + " · " + backend.workspaceName
                         color: theme.mutedText
@@ -180,7 +178,6 @@ Item {
                                 color: root.stateColor(backend.harnessState)
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 text: qsTr("Harness")
                                 color: theme.mutedText
                                 font.pixelSize: 10
@@ -193,7 +190,6 @@ Item {
                                 color: root.stateColor(backend.opencodeState)
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 text: qsTr("OpenCode")
                                 color: theme.mutedText
                                 font.pixelSize: 10
@@ -208,7 +204,6 @@ Item {
                             border.width: 1
                             border.color: theme.border
                             Text {
-        renderType: Text.NativeRendering
                                 id: modelLabel
                                 anchors.centerIn: parent
                                 text: backend.currentModel
@@ -292,7 +287,6 @@ Item {
                             color: theme.mutedText
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: backend.workspace
                             color: theme.text
@@ -314,7 +308,6 @@ Item {
                                  : (backend.gitDirtyCount > 0 ? theme.orange : theme.green)
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: backend.gitAvailable
                                   ? (backend.gitBranch !== "" ? backend.gitBranch : qsTr("repository"))
@@ -325,7 +318,6 @@ Item {
                             elide: Text.ElideRight
                         }
                         Text {
-        renderType: Text.NativeRendering
                             visible: text !== ""
                             text: root.dirtyLabel()
                             color: backend.gitDirtyCount > 0 ? theme.orange : theme.green
@@ -365,7 +357,6 @@ Item {
                             color: root.stateColor(backend.harnessState)
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: root.stateLabel(backend.harnessState)
                             color: theme.text
                             font.pixelSize: 11
@@ -381,7 +372,6 @@ Item {
                             border.width: 1
                             border.color: root.healthColor()
                             Text {
-        renderType: Text.NativeRendering
                                 id: healthText
                                 anchors.centerIn: parent
                                 text: root.healthLabel()
@@ -392,7 +382,6 @@ Item {
                     }
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.harnessProfile + " · " + backend.harnessDetail
                         color: theme.mutedText
@@ -400,7 +389,6 @@ Item {
                         elide: Text.ElideRight
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.harnessAddress
                         color: theme.dimText
@@ -451,7 +439,6 @@ Item {
                             color: root.stateColor(backend.opencodeState)
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: backend.sessionTitle !== "" ? backend.sessionTitle : root.stateLabel(backend.opencodeState)
                             color: theme.text
@@ -460,7 +447,6 @@ Item {
                             elide: Text.ElideRight
                         }
                         Text {
-        renderType: Text.NativeRendering
                             visible: backend.busy
                             text: qsTr("working…")
                             color: theme.yellow
@@ -469,7 +455,6 @@ Item {
                     }
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: (backend.currentModel !== "" ? backend.currentModel : qsTr("no model"))
                               + " · " + (backend.currentMode !== "" ? backend.currentMode : qsTr("no mode"))
@@ -478,7 +463,6 @@ Item {
                         elide: Text.ElideRight
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: root.usageLabel()
                         visible: text !== ""
@@ -531,7 +515,6 @@ Item {
                                 color: modelData.ok ? theme.green : theme.red
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: modelData.label
                                 color: theme.text
@@ -539,7 +522,6 @@ Item {
                                 elide: Text.ElideRight
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.maximumWidth: 180
                                 text: modelData.detail
                                 color: theme.dimText
@@ -550,7 +532,6 @@ Item {
                     }
 
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         visible: backend.diagnostics.length === 0
                         text: qsTr("Run the diagnostic to check both engines, the portal, and the workspace.")
@@ -570,14 +551,12 @@ Item {
                             color: theme.magenta
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: "MCP"
                             color: theme.text
                             font.pixelSize: 10
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: mcp.servers.length === 0
                                   ? qsTr("none")
                                   : qsTr("%n server(s)", "", mcp.servers.length)
@@ -603,7 +582,6 @@ Item {
                         }
                         Item { Layout.fillWidth: true }
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("%1 checks").arg(backend.diagnostics.length)
                             color: theme.dimText
                             font.pixelSize: 8
@@ -636,7 +614,6 @@ Item {
                             spacing: 8
 
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: backend.sessionLabel(modelData)
                                 color: theme.text
@@ -644,7 +621,6 @@ Item {
                                 elide: Text.ElideRight
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 text: modelData.updatedAt !== undefined
                                       ? Qt.formatDateTime(new Date(modelData.updatedAt), "d MMM · HH:mm")
                                       : ""
@@ -674,7 +650,6 @@ Item {
                 }
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     visible: backend.sessions.length === 0
                     text: backend.loadingSessions ? qsTr("Loading sessions…") : qsTr("No sessions in this workspace yet.")
@@ -701,7 +676,6 @@ Item {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 width: parent.width
                 text: qsTr("Ctrl+K opens the command palette · Ctrl+1/2/3 switch views")
                 color: theme.dimText

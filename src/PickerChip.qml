@@ -74,7 +74,6 @@ Item {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 id: label
                 Layout.maximumWidth: 170
                 text: root.labelText

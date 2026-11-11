@@ -106,7 +106,6 @@ Item {
                 Layout.fillWidth: true
 
                 Text {
-        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Commands")
                     color: theme.brightText
@@ -121,7 +120,6 @@ Item {
                     border.width: 1
                     border.color: theme.border
                     Text {
-        renderType: Text.NativeRendering
                         anchors.centerIn: parent
                         text: "Esc"
                         color: theme.mutedText
@@ -183,7 +181,6 @@ Item {
                         }
 
                         Text {
-        renderType: Text.NativeRendering
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             visible: search.text.length === 0
@@ -228,7 +225,6 @@ Item {
                             color: theme.mutedText
                         }
                         Text {
-        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: modelData.label
                             color: theme.text
@@ -236,7 +232,6 @@ Item {
                             elide: Text.ElideRight
                         }
                         Text {
-        renderType: Text.NativeRendering
                             visible: modelData.hint !== undefined && modelData.hint !== ""
                             text: modelData.hint !== undefined ? modelData.hint : ""
                             color: theme.dimText
@@ -244,7 +239,6 @@ Item {
                             font.pixelSize: 8
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: modelData.group !== undefined ? modelData.group : ""
                             color: theme.dimText
                             font.pixelSize: 8
@@ -263,7 +257,6 @@ Item {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 visible: root.filtered.length === 0
                 text: qsTr("No match.")
@@ -273,7 +266,6 @@ Item {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: qsTr("↑↓ navigate · Enter run · Esc close")
                 color: theme.dimText

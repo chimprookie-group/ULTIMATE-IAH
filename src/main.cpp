@@ -15,7 +15,9 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QSGGeometryNode>
 #include <QStandardPaths>
+#include <QtQuick/private/qquickitem_p.h>
 #include <QTextStream>
 #include <QTimer>
 #include <QtWebEngineQuick/QtWebEngineQuick>
@@ -28,6 +30,23 @@
 #include "translator.h"
 
 namespace {
+
+// Qt 6.12 can hand a glyph node with a null matrix to the batch renderer;
+// Element::computeBounds() then dereferences node->matrix() and segfaults.
+// A null matrix means identity, so make that explicit before each render.
+void setMissingMatrices(QSGNode *node) {
+    if (!node)
+        return;
+    if (node->type() == QSGNode::GeometryNodeType) {
+        auto *geometry = static_cast<QSGGeometryNode *>(node);
+        if (!geometry->matrix()) {
+            static const QMatrix4x4 identity;
+            geometry->setRendererMatrix(&identity);
+        }
+    }
+    for (QSGNode *child = node->firstChild(); child; child = child->nextSibling())
+        setMissingMatrices(child);
+}
 
 QString probe(const QString &binary, const QStringList &arguments) {
     QProcess process;
@@ -133,7 +152,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.3"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -186,11 +205,9 @@ int main(int argc, char *argv[]) {
 
     // Qt 6.12's threaded Quick render loop can segfault inside
     // QSGBatchRenderer::prepareAlphaBatches() while the transcript is
-    // streaming. Render on the GUI thread instead; the app is light enough
-    // and this keeps the scene graph and the model updates in lockstep.
-    // An explicit QSG_RENDER_LOOP from the environment still wins.
-    if (qEnvironmentVariableIsEmpty("QSG_RENDER_LOOP"))
-        qputenv("QSG_RENDER_LOOP", "basic");
+    // streaming. Render on the GUI thread so the scene-graph guard below
+    // runs in lockstep with the UI.
+    qputenv("QSG_RENDER_LOOP", "basic");
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QtWebEngineQuick::initialize();
@@ -201,11 +218,6 @@ int main(int argc, char *argv[]) {
     // app_id) and the launcher pick up the installed icon.
     app.setDesktopFileName(QStringLiteral("deepcrasy-h"));
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("deepcrasy-h")));
-
-    // Qt 6.12's distance-field glyph nodes can reach the batch renderer with a
-    // null matrix while text streams, which crashes prepareAlphaBatches().
-    // Native glyph rendering does not use QSGDistanceFieldGlyphNode.
-    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
     QQuickStyle::setStyle(QStringLiteral("Material"));
 
@@ -255,6 +267,12 @@ int main(int argc, char *argv[]) {
     engine.load(QUrl(QStringLiteral("qrc:/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0))) {
+        QObject::connect(window, &QQuickWindow::beforeRendering, window, [window] {
+            setMissingMatrices(QQuickItemPrivate::get(window->contentItem())->itemNode());
+        }, Qt::DirectConnection);
+    }
 
     if (windowHeight > 0) {
         if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0)))

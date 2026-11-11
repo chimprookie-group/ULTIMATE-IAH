@@ -1,4 +1,4 @@
-QT += core gui qml quick quickcontrols2 dbus network svg webchannel webenginequick
+QT += core gui qml quick quick-private quickcontrols2 dbus network svg webchannel webenginequick
 
 CONFIG += c++17 release
 TARGET = deepcrasy-h

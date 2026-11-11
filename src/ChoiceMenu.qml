@@ -169,7 +169,6 @@ Popup {
                 spacing: 8
 
                 Text {
-        renderType: Text.NativeRendering
                     text: popup.title.toUpperCase()
                     color: theme.mutedText
                     font.pixelSize: 9
@@ -185,7 +184,6 @@ Popup {
                     border.width: 1
                     border.color: theme.border
                     Text {
-        renderType: Text.NativeRendering
                         id: countLabel
                         anchors.centerIn: parent
                         text: popup.filtered.length
@@ -251,7 +249,6 @@ Popup {
                         }
 
                         Text {
-        renderType: Text.NativeRendering
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             visible: search.text.length === 0
@@ -327,7 +324,6 @@ Popup {
                             spacing: 1
 
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: popup.displayName(modelData)
                                 color: theme.text
@@ -335,7 +331,6 @@ Popup {
                                 elide: Text.ElideRight
                             }
                             Text {
-        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: popup.secondary(modelData)
                                 color: theme.dimText
@@ -366,7 +361,6 @@ Popup {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 visible: popup.filtered.length === 0
                 text: qsTr("No match. Try another name.")
@@ -376,7 +370,6 @@ Popup {
             }
 
             Text {
-        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: qsTr("↑↓ navigate · Enter select · Esc close")
                 color: theme.dimText

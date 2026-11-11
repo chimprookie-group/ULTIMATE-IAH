@@ -319,12 +319,12 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
 
 ## Stabilité
 
-Qt 6.12 peut crasher dans `QSGBatchRenderer::prepareAlphaBatches()` sur un
-glyphe de texte en distance field dont la matrice est nulle. DeepCrasy H force
-donc le **rendu natif des glyphes** (`Text.NativeRendering`) et la boucle Quick
-`basic` (même thread que l'interface), sauf si `QSG_RENDER_LOOP` est déjà défini.
-C'est un contournement de deux bugs Qt ; il pourra être retiré quand Qt Quick
-sera corrigé.
+Qt 6.12 peut livrer un nœud de glyphe sans matrice au batch renderer ;
+`Element::computeBounds()` déréférence alors `node->matrix()` et crashe dans
+`prepareAlphaBatches()`. Avant chaque rendu, DeepCrasy H parcourt le scene graph
+et donne une matrice identité aux nœuds de géométrie qui n'en ont pas. La boucle
+Quick `basic` (même thread que l'interface) rend ce garde-fou sûr. C'est un
+contournement d'un bug Qt, à retirer quand Qt Quick sera corrigé.
 
 ## Limites connues
 

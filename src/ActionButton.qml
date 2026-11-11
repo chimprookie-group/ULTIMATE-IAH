@@ -26,7 +26,6 @@ Button {
     }
 
     contentItem: Text {
-        renderType: Text.NativeRendering
         id: label
         text: control.text
         color: control.filled

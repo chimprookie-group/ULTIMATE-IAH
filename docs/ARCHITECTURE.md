@@ -97,18 +97,21 @@ la carte est peinte avec les couleurs du thème qu'elle représente.
 
 ### Le rendu et le crash du render thread
 
-Sous Qt 6.12, un `QSGDistanceFieldGlyphNode` peut arriver dans le batch
+Sous Qt 6.12, un nœud de glyphe (`QSGDistanceFieldGlyphNode` ou
+`QSGDefaultGlyphNode` selon le mode de rendu) peut arriver dans le batch
 renderer avec une matrice nulle ; `Element::computeBounds()` déréférence alors
 `node->matrix()` et segfaulte dans `prepareAlphaBatches()`. Le core identifie
-précisément ce type de nœud, et la pile ne contient que Qt Quick : ce n'est ni
-l'ACP ni un OOM.
+précisément ces nœuds, et la pile ne contient que Qt Quick : ce n'est ni l'ACP
+ni un OOM.
 
-Deux contournements sont appliqués : tous les `Text` et `TextEdit` de
-l'interface forcent `NativeRendering`, qui n'utilise pas les nœuds de distance
-field ; et `main.cpp` force `QSG_RENDER_LOOP=basic` avant `QGuiApplication`
-(une valeur déjà présente dans l'environnement reste prioritaire). Un stream
-de stress de 200 secondes et les vues terminal/harness passent avec ce
-réglage. À retirer quand Qt Quick sera corrigé.
+`main.cpp` installe un garde-fou sur `QQuickWindow::beforeRendering` : il
+parcourt le scene graph depuis le `contentItem` et appelle
+`setRendererMatrix(&identity)` sur tout nœud de géométrie dont la matrice est
+nulle. Une matrice nulle signifie identité, donc le rendu ne change pas. La
+boucle `QSG_RENDER_LOOP=basic` est forcée pour que ce parcours reste sur le
+thread de l'interface. Un stream de stress de 200 secondes et les vues
+terminal/harness passent avec ce réglage. Le garde-fou utilise l'API privée
+`QQuickItemPrivate` ; il est à retirer quand Qt Quick sera corrigé.
 
 ### Le transcript
 

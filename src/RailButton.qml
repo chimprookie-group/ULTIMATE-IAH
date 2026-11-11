@@ -45,7 +45,6 @@ Item {
             color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.dimText)
         }
         Text {
-        renderType: Text.NativeRendering
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.label
             font.pixelSize: 8

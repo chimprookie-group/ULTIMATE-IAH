@@ -34,7 +34,6 @@ Item {
                     color: win.stateColor(backend.harnessState)
                 }
                 Text {
-        renderType: Text.NativeRendering
                     text: qsTr("DeepSeek Harness")
                     font.pixelSize: 12
                     font.weight: Font.DemiBold
@@ -48,7 +47,6 @@ Item {
                     border.width: 1
                     border.color: theme.border
                     Text {
-        renderType: Text.NativeRendering
                         id: profileLabel
                         anchors.centerIn: parent
                         text: backend.harnessProfile
@@ -124,14 +122,12 @@ Item {
                     implicitHeight: 30
                 }
                 Text {
-        renderType: Text.NativeRendering
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("Starting DeepSeek Harness…")
                     color: theme.text
                     font.pixelSize: 13
                 }
                 Text {
-        renderType: Text.NativeRendering
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: backend.harnessDetail
                     color: theme.dimText
@@ -165,7 +161,6 @@ Item {
                             color: theme.yellow
                         }
                         Text {
-        renderType: Text.NativeRendering
                             text: qsTr("The harness is not running")
                             font.pixelSize: 14
                             font.weight: Font.DemiBold
@@ -173,7 +168,6 @@ Item {
                         }
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.harnessDetail
                         wrapMode: Text.Wrap
@@ -181,7 +175,6 @@ Item {
                         font.pixelSize: 12
                     }
                     Text {
-        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         visible: backend.harnessLog !== ""
                         text: backend.harnessLog.split("\n").slice(-6).join("\n")
