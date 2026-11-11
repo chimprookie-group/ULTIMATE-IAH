@@ -138,6 +138,15 @@ toutes les autres clés ; une configuration illisible est signalée et jamais
 écrasée. Les commandes locales sont découpées avec `QProcess::splitCommand`,
 les URL distantes doivent être http(s).
 
+L'authentification d'un serveur distant lance
+`opencode mcp auth <nom> --standalone` (répertoire temporaire pour le global,
+espace de travail pour le projet). La sortie fusionnée est lue au fil de
+l'eau ; la première URL d'autorisation externe est proposée et ouverte via
+`QDesktopServices`, tout en restant cliquable dans l'interface. Le processus
+peut être annulé et expire au bout de trois minutes. Comme le CLI sort avec le
+code 0 même quand l'authentification échoue, les marqueurs de sa sortie sont
+aussi examinés. Un succès relance `mcp list` pour rafraîchir le statut.
+
 Le statut vient de `opencode mcp list`, lancé en arrière-plan dans l'espace de
 travail avec un délai de 20 s. Le format texte (glyphes `✓`, `✗`, `○`, `-`) est parsé et fusionné avec
 la liste issue du fichier ; un serveur non reconnu reste « non testé ». Comme

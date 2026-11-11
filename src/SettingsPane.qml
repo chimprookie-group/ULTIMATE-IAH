@@ -639,6 +639,102 @@ Item {
                     }
                 }
 
+                Rectangle {
+                    Layout.fillWidth: true
+                    visible: mcp.authRunning || mcp.authMessage !== ""
+                    Layout.preferredHeight: authColumn.implicitHeight + 18
+                    radius: Math.min(8, theme.radius)
+                    color: theme.chip
+                    border.width: 1
+                    border.color: mcp.authRunning ? theme.accent : theme.border
+
+                    ColumnLayout {
+                        id: authColumn
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.margins: 9
+                        spacing: 4
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            StatusDot {
+                                color: mcp.authRunning ? theme.yellow : (mcp.authOk ? theme.green : theme.red)
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: mcp.authRunning
+                                      ? qsTr("Authenticating %1…").arg(mcp.authName)
+                                      : mcp.authMessage
+                                color: theme.text
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
+                            Button {
+                                visible: mcp.authRunning
+                                text: qsTr("Cancel")
+                                flat: true
+                                onClicked: mcp.cancelAuth()
+                            }
+                            Button {
+                                visible: !mcp.authRunning
+                                text: qsTr("Close")
+                                flat: true
+                                onClicked: mcp.clearAuth()
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: mcp.authRunning
+                            text: qsTr("Finish the flow in your browser, then come back here.")
+                            color: theme.mutedText
+                            font.pixelSize: 9
+                            wrapMode: Text.Wrap
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: mcp.authUrl !== ""
+                            spacing: 8
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: mcp.authUrl
+                                color: theme.accent
+                                font.family: backend.monoFont
+                                font.pixelSize: 8
+                                elide: Text.ElideMiddle
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: Qt.openUrlExternally(mcp.authUrl)
+                                }
+                            }
+                            Button {
+                                text: qsTr("Open")
+                                flat: true
+                                onClicked: Qt.openUrlExternally(mcp.authUrl)
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: !mcp.authRunning && !mcp.authOk && mcp.authDetail !== ""
+                            text: mcp.authDetail
+                            color: theme.red
+                            font.family: backend.monoFont
+                            font.pixelSize: 8
+                            maximumLineCount: 3
+                            elide: Text.ElideRight
+                            wrapMode: Text.WrapAnywhere
+                        }
+                    }
+                }
+
                 Repeater {
                     model: mcp.servers
 
@@ -729,6 +825,13 @@ Item {
                                     font.pixelSize: 8
                                     elide: Text.ElideRight
                                 }
+                            }
+
+                            IconButton {
+                                visible: modelData.type === "remote"
+                                icon: "icons/key.svg"
+                                hint: qsTr("Authenticate with OAuth")
+                                onClicked: mcp.authenticate(modelData.name, modelData.scope)
                             }
 
                             IconButton {

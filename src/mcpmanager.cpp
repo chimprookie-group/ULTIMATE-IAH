@@ -1,5 +1,6 @@
 #include "mcpmanager.h"
 
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -10,16 +11,34 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QUrl>
+#include <QUrlQuery>
 
 namespace {
 
 constexpr int kStatusTimeoutMs = 20000;
 
 QString strippedAnsi(const QString &text) {
-    static const QRegularExpression ansi(QStringLiteral("\\x1b\\[[0-9;]*m"));
+    static const QRegularExpression ansi(QStringLiteral("\\x1b\\[[0-9;?]*[A-Za-z]"));
     QString clean = text;
     clean.remove(ansi);
+    clean.remove('\r');
     return clean;
+}
+
+bool looksLikeAuthUrl(const QString &url) {
+    const QString lower = url.toLower();
+    return lower.contains("authorize") || lower.contains("oauth") || lower.contains("consent")
+        || lower.contains("/login") || lower.contains("auth?");
+}
+
+QString lastMeaningfulLine(const QString &output) {
+    const QStringList lines = strippedAnsi(output).split('\n', Qt::SkipEmptyParts);
+    for (int i = lines.size() - 1; i >= 0; --i) {
+        const QString line = lines.at(i).trimmed();
+        if (!line.isEmpty())
+            return line.left(220);
+    }
+    return {};
 }
 
 QString commandLine(const QJsonArray &command) {
@@ -59,7 +78,60 @@ McpManager::McpManager(const QString &configPath, bool watchStatus, QObject *par
         setError(tr("MCP status timed out."));
     });
 
+    m_authProcess = new QProcess(this);
+    m_authProcess->setProcessChannelMode(QProcess::MergedChannels);
+    connect(m_authProcess, &QProcess::readyRead, this, &McpManager::readAuthOutput);
+    connect(m_authProcess, &QProcess::finished, this,
+            [this](int code, QProcess::ExitStatus status) { finishAuth(code, status); });
+    connect(m_authProcess, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart && m_authRunning) {
+            m_authTimeout.stop();
+            m_authRunning = false;
+            m_authOk = false;
+            m_authMessage = tr("OpenCode was not found.");
+            m_authDetail.clear();
+            emit authChanged();
+        }
+    });
+
+    m_authTimeout.setSingleShot(true);
+    m_authTimeout.setInterval(180000);
+    connect(&m_authTimeout, &QTimer::timeout, this, [this] {
+        if (!m_authRunning)
+            return;
+        m_authTimedOut = true;
+        if (m_authProcess->state() != QProcess::NotRunning)
+            m_authProcess->kill();
+        else
+            finishAuth(-1, QProcess::CrashExit);
+    });
+
     loadConfig();
+}
+
+QString McpManager::extractAuthUrl(const QString &output) {
+    const QString clean = strippedAnsi(output);
+    static const QRegularExpression pattern(QStringLiteral("https?://[^\\s<>\"']+"));
+    QString firstExternal;
+    auto matches = pattern.globalMatch(clean);
+    while (matches.hasNext()) {
+        QString url = matches.next().captured(0);
+        while (!url.isEmpty() && QStringLiteral(").,;:!?]").contains(url.back()))
+            url.chop(1);
+        url.replace(QStringLiteral("&amp;"), QStringLiteral("&"));
+        const QUrl parsed(url);
+        if (!parsed.isValid() || parsed.host().isEmpty())
+            continue;
+        const QString host = parsed.host().toLower();
+        if (host == QStringLiteral("localhost") || host == QStringLiteral("127.0.0.1")
+            || host == QStringLiteral("::1"))
+            continue;
+        if (looksLikeAuthUrl(url))
+            return url;
+        if (firstExternal.isEmpty())
+            firstExternal = url;
+    }
+    return firstExternal;
 }
 
 QString McpManager::defaultConfigPath() {
@@ -358,6 +430,173 @@ void McpManager::removeServer(const QString &name, const QString &scope) {
     }
     setError({});
     refresh();
+}
+
+bool McpManager::findServer(const QString &name, const QString &scope, QJsonObject &server,
+                            QString &path) const {
+    if (scope != QStringLiteral("global") && scope != QStringLiteral("project"))
+        return false;
+    path = scope == QStringLiteral("project") ? m_projectConfigPath : m_configPath;
+    if (path.isEmpty())
+        return false;
+    QJsonObject root;
+    if (!readConfig(path, root))
+        return false;
+    const QJsonObject servers = root.value("mcp").toObject().value("servers").toObject();
+    if (!servers.contains(name))
+        return false;
+    server = servers.value(name).toObject();
+    return true;
+}
+
+void McpManager::authenticate(const QString &name, const QString &scope) {
+    if (m_authRunning)
+        return;
+
+    m_authName = name;
+    m_authUrl.clear();
+    m_authOutput.clear();
+    m_authDetail.clear();
+    m_authMessage.clear();
+    m_authOk = false;
+    m_authUrlOpened = false;
+    m_authCancelled = false;
+    m_authTimedOut = false;
+
+    const auto fail = [this](const QString &message) {
+        m_authRunning = false;
+        m_authOk = false;
+        m_authMessage = message;
+        m_authDetail.clear();
+        emit authChanged();
+    };
+
+    QJsonObject server;
+    QString path;
+    if (!findServer(name, scope, server, path)) {
+        fail(tr("MCP server not found."));
+        return;
+    }
+    const QString type = server.value("type").toString(
+        server.contains("url") ? QStringLiteral("remote") : QStringLiteral("local"));
+    if (type != QStringLiteral("remote")) {
+        fail(tr("This MCP server is not remote."));
+        return;
+    }
+
+    const QString opencode = QStandardPaths::findExecutable(QStringLiteral("opencode"));
+    if (opencode.isEmpty()) {
+        fail(tr("OpenCode was not found."));
+        return;
+    }
+
+    m_authName = name;
+    m_authUrl.clear();
+    m_authOutput.clear();
+    m_authDetail.clear();
+    m_authMessage.clear();
+    m_authOk = false;
+    m_authRunning = true;
+    m_authUrlOpened = false;
+    m_authCancelled = false;
+    m_authTimedOut = false;
+    emit authChanged();
+
+    const QString directory = (scope == QStringLiteral("project") && QFileInfo(m_workspace).isDir())
+        ? m_workspace
+        : QDir::tempPath();
+    m_authProcess->setWorkingDirectory(directory);
+    m_authProcess->start(opencode, {QStringLiteral("mcp"), QStringLiteral("auth"), name,
+                                    QStringLiteral("--standalone")});
+    m_authTimeout.start();
+}
+
+void McpManager::readAuthOutput() {
+    if (!m_authProcess)
+        return;
+    m_authOutput += QString::fromUtf8(m_authProcess->readAll());
+    if (m_authOutput.size() > 8000)
+        m_authOutput = m_authOutput.right(8000);
+
+    const QString url = extractAuthUrl(m_authOutput);
+    if (!url.isEmpty() && url != m_authUrl) {
+        m_authUrl = url;
+        if (!m_authUrlOpened && looksLikeAuthUrl(url)) {
+            m_authUrlOpened = true;
+            QDesktopServices::openUrl(QUrl(url));
+        }
+    }
+    emit authChanged();
+}
+
+void McpManager::finishAuth(int exitCode, QProcess::ExitStatus status) {
+    if (!m_authRunning && m_authMessage.isEmpty())
+        return;
+    m_authTimeout.stop();
+    if (m_authProcess && m_authProcess->bytesAvailable() > 0) {
+        m_authOutput += QString::fromUtf8(m_authProcess->readAll());
+    }
+    if (m_authOutput.size() > 8000)
+        m_authOutput = m_authOutput.right(8000);
+
+    m_authRunning = false;
+    const QString clean = strippedAnsi(m_authOutput);
+    const QString lower = clean.toLower();
+    const bool failed = status != QProcess::NormalExit || exitCode != 0
+        || lower.contains(QStringLiteral("failed"))
+        || lower.contains(QStringLiteral("not found"))
+        || lower.contains(QStringLiteral("error"));
+
+    if (m_authCancelled) {
+        m_authOk = false;
+        m_authMessage = tr("Authentication cancelled.");
+        m_authDetail.clear();
+    } else if (m_authTimedOut) {
+        m_authOk = false;
+        m_authMessage = tr("Authentication timed out.");
+        m_authDetail.clear();
+    } else if (failed) {
+        m_authOk = false;
+        m_authMessage = tr("Authentication failed.");
+        m_authDetail = lastMeaningfulLine(clean);
+    } else {
+        m_authOk = true;
+        m_authMessage = tr("Authentication completed.");
+        m_authDetail.clear();
+    }
+
+    m_authCancelled = false;
+    m_authTimedOut = false;
+    refresh();
+    emit authChanged();
+}
+
+void McpManager::cancelAuth() {
+    if (!m_authRunning)
+        return;
+    m_authCancelled = true;
+    m_authTimeout.stop();
+    if (m_authProcess && m_authProcess->state() != QProcess::NotRunning)
+        m_authProcess->kill();
+    else
+        finishAuth(-1, QProcess::CrashExit);
+}
+
+void McpManager::clearAuth() {
+    if (m_authRunning)
+        return;
+    resetAuth();
+    emit authChanged();
+}
+
+void McpManager::resetAuth() {
+    m_authName.clear();
+    m_authUrl.clear();
+    m_authOutput.clear();
+    m_authDetail.clear();
+    m_authMessage.clear();
+    m_authOk = false;
+    m_authUrlOpened = false;
 }
 
 void McpManager::clearError() {

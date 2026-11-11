@@ -249,5 +249,15 @@
   "Project": "Projet",
   "Choose a global or project MCP server.": "Choisissez un serveur MCP global ou de projet.",
   "A project MCP server needs a workspace.": "Un serveur MCP de projet a besoin d'un espace de travail.",
-  "The project OpenCode configuration could not be read.": "La configuration OpenCode du projet n'a pas pu être lue."
+  "The project OpenCode configuration could not be read.": "La configuration OpenCode du projet n'a pas pu être lue.",
+  "Authenticate with OAuth": "S'authentifier avec OAuth",
+  "Authenticating %1…": "Authentification de %1…",
+  "Finish the flow in your browser, then come back here.": "Terminez le flux dans votre navigateur, puis revenez ici.",
+  "Cancel": "Annuler",
+  "Authentication completed.": "Authentification terminée.",
+  "Authentication failed.": "L'authentification a échoué.",
+  "Authentication cancelled.": "Authentification annulée.",
+  "Authentication timed out.": "L'authentification a expiré.",
+  "MCP server not found.": "Serveur MCP introuvable.",
+  "This MCP server is not remote.": "Ce serveur MCP n'est pas distant."
 }

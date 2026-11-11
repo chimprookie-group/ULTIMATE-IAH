@@ -218,6 +218,8 @@ ApplicationWindow {
     Component.onCompleted: {
         if (Qt.application.arguments.indexOf("--palette") !== -1)
             Qt.callLater(function () { commandPalette.open() })
+        if (Qt.application.arguments.indexOf("--auth-demo") !== -1)
+            Qt.callLater(function () { mcp.authenticate("crasy-remote", "global") })
     }
 
     onCompactChanged: {

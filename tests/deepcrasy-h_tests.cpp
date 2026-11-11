@@ -157,8 +157,25 @@ private slots:
         mcp.removeServer("project-tools", "project");
         QCOMPARE(mcp.servers().size(), 1);
 
+        mcp.addServer("local-only", "local", "echo", "global");
+        mcp.authenticate("local-only", "global");
+        QVERIFY(!mcp.authRunning());
+        QVERIFY(!mcp.authMessage().isEmpty());
+
         mcp.addServer("bad name", "local", "echo", "global");
         QVERIFY(!mcp.error().isEmpty());
+    }
+
+    void mcpExtractsTheAuthorizationUrl()
+    {
+        const QString output = QStringLiteral(
+            "\x1b[32mStarting\x1b[0m http://127.0.0.1:43123/callback "
+            "then https://auth.example.com/oauth/authorize?client_id=crasy.");
+        QCOMPARE(McpManager::extractAuthUrl(output),
+                 QStringLiteral("https://auth.example.com/oauth/authorize?client_id=crasy"));
+        QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("http://127.0.0.1:9000/callback")),
+                 QString());
+        QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("no url here")), QString());
     }
 
     void terminalRunsACommand()

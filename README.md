@@ -102,6 +102,13 @@ configuration. Un bouton relance OpenCode pour charger un serveur qui vient
 d'être ajouté ; le statut reste best-effort et peut afficher « Non testé » tant
 que le service n'a pas rechargé.
 
+Les serveurs **distants** ont un bouton clé : DeepCrasy H lance
+`opencode mcp auth <nom> --standalone`, reconnaît l'URL d'autorisation,
+l'ouvre dans le navigateur et attend la fin du flux. L'URL reste cliquable
+dans le bandeau, l'authentification peut être annulée, et le statut est
+rafraîchi au retour. Le CLI sortant 0 même en cas d'échec, le résultat est
+aussi lu dans sa sortie.
+
 ![Serveurs MCP](assets/screenshot-mcp.png)
 
 ## En bref
@@ -118,7 +125,8 @@ que le service n'a pas rechargé.
 - **Terminal intégré** (`Ctrl+5`) : PTY réel, shell de l'utilisateur, thème,
   copier/coller, redémarrage.
 - **Serveurs MCP** : liste fusionnée global/projet, ajout local ou distant,
-  retrait, statut et redémarrage d'OpenCode depuis Réglages.
+  retrait, authentification OAuth des serveurs distants, statut et redémarrage
+  d'OpenCode depuis Réglages.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
