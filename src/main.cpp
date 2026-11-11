@@ -133,7 +133,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.1"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -183,6 +183,14 @@ int main(int argc, char *argv[]) {
     // serving an old Composer.qml from ~/.cache. Start fresh every time; the
     // app is small enough that recompiling costs nothing noticeable.
     qputenv("QML_DISABLE_DISK_CACHE", "1");
+
+    // Qt 6.12's threaded Quick render loop can segfault inside
+    // QSGBatchRenderer::prepareAlphaBatches() while the transcript is
+    // streaming. Render on the GUI thread instead; the app is light enough
+    // and this keeps the scene graph and the model updates in lockstep.
+    // An explicit QSG_RENDER_LOOP from the environment still wins.
+    if (qEnvironmentVariableIsEmpty("QSG_RENDER_LOOP"))
+        qputenv("QSG_RENDER_LOOP", "basic");
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QtWebEngineQuick::initialize();

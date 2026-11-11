@@ -95,6 +95,18 @@ qui laissaient des icônes blanches ou des boîtes noires selon la palette.
 `src/ThemeCard.qml` affiche un aperçu réel de chaque palette dans Réglages :
 la carte est peinte avec les couleurs du thème qu'elle représente.
 
+### Le rendu et le crash du render thread
+
+Sous Qt 6.12, le render loop threadé peut segfaulter dans
+`QSGBatchRenderer::prepareAlphaBatches()` quand le transcript streame et que la
+ListView se remet en bas. La pile ne contient que Qt Quick, et le thread
+principal est dans sa boucle d'événements : c'est une course interne au moteur
+de rendu, pas une erreur de données ACP. `main.cpp` force donc
+`QSG_RENDER_LOOP=basic` avant `QGuiApplication` (une valeur déjà présente dans
+l'environnement reste prioritaire). Le rendu, QtWebEngine et le terminal
+fonctionnent avec cette boucle ; elle est plus simple et suffisante pour cette
+application.
+
 ### Le transcript
 
 `AcpClient` possède un `MessageListModel` (QAbstractListModel) plutôt qu'une

@@ -317,6 +317,14 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
   --screenshot /tmp/cockpit.png
 ```
 
+## Stabilité
+
+Qt 6.12 peut crasher dans `QSGBatchRenderer::prepareAlphaBatches()` sur son
+thread de rendu pendant un stream. DeepCrasy H force donc la boucle de rendu
+Quick `basic` (même thread que l'interface), sauf si `QSG_RENDER_LOOP` est déjà
+défini dans l'environnement. C'est un contournement du bug Qt ; il pourra être
+retiré quand Qt Quick sera corrigé.
+
 ## Limites connues
 
 - La vue partagée n'a pas de séparateur déplaçable à la souris ; la part est
