@@ -42,8 +42,7 @@ void Config::load() {
     // absolute path set in Settings is honored as-is.
     m_dshBinary = QStringLiteral("dsh");
     m_opencodeBinary = QStringLiteral("opencode");
-    m_view = (!QStandardPaths::findExecutable("dsh").isEmpty()
-              && !QStandardPaths::findExecutable("opencode").isEmpty()) ? "split" : "opencode";
+    m_view = QStringLiteral("home");
 
     QFile file(m_path);
     if (!file.open(QIODevice::ReadOnly))
@@ -75,11 +74,22 @@ void Config::load() {
         m_opencodeBinary = QStringLiteral("opencode");
 
     const QString view = object.value("view").toString();
-    if (view == "harness" || view == "opencode" || view == "split" || view == "settings")
+    if (view == "home" || view == "harness" || view == "opencode" || view == "split" || view == "settings")
         m_view = view;
 
     m_theme = object.value("theme").toString();
     m_language = object.value("language").toString();
+
+    const QString startup = object.value("startupView").toString();
+    if (startup == "last" || startup == "home" || startup == "harness"
+        || startup == "opencode" || startup == "split")
+        m_startupView = startup;
+    m_autoStartHarness = object.value("autoStartHarness").toBool(true);
+    m_autoStartOpencode = object.value("autoStartOpencode").toBool(true);
+    const double ratio = object.value("splitRatio").toDouble(0.57);
+    if (ratio >= 0.45 && ratio <= 0.68)
+        m_splitRatio = ratio;
+    m_notifyOnFinish = object.value("notifyOnFinish").toBool(true);
 }
 
 void Config::save() {
@@ -92,6 +102,11 @@ void Config::save() {
     object.insert("view", m_view);
     object.insert("theme", m_theme);
     object.insert("language", m_language);
+    object.insert("startupView", m_startupView);
+    object.insert("autoStartHarness", m_autoStartHarness);
+    object.insert("autoStartOpencode", m_autoStartOpencode);
+    object.insert("splitRatio", m_splitRatio);
+    object.insert("notifyOnFinish", m_notifyOnFinish);
 
     QSaveFile file(m_path);
     if (!file.open(QIODevice::WriteOnly))
@@ -137,6 +152,49 @@ void Config::setOpencodeBinary(const QString &binary) {
     emit opencodeBinaryChanged();
 }
 
+void Config::setStartupView(const QString &view) {
+    if (view != "last" && view != "home" && view != "harness" && view != "opencode" && view != "split")
+        return;
+    if (view == m_startupView)
+        return;
+    m_startupView = view;
+    save();
+    emit optionsChanged();
+}
+
+void Config::setAutoStartHarness(bool enabled) {
+    if (enabled == m_autoStartHarness)
+        return;
+    m_autoStartHarness = enabled;
+    save();
+    emit optionsChanged();
+}
+
+void Config::setAutoStartOpencode(bool enabled) {
+    if (enabled == m_autoStartOpencode)
+        return;
+    m_autoStartOpencode = enabled;
+    save();
+    emit optionsChanged();
+}
+
+void Config::setSplitRatio(double ratio) {
+    const double clamped = qBound(0.45, ratio, 0.68);
+    if (qFuzzyCompare(clamped, m_splitRatio))
+        return;
+    m_splitRatio = clamped;
+    save();
+    emit optionsChanged();
+}
+
+void Config::setNotifyOnFinish(bool enabled) {
+    if (enabled == m_notifyOnFinish)
+        return;
+    m_notifyOnFinish = enabled;
+    save();
+    emit optionsChanged();
+}
+
 void Config::setLanguage(const QString &language) {
     if (language == m_language)
         return;
@@ -154,7 +212,7 @@ void Config::setTheme(const QString &theme) {
 }
 
 void Config::setView(const QString &view) {
-    if (view != "harness" && view != "opencode" && view != "split" && view != "settings")
+    if (view != "home" && view != "harness" && view != "opencode" && view != "split" && view != "settings")
         return;
     if (view == m_view)
         return;

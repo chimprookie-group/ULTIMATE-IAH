@@ -578,6 +578,16 @@ void AcpClient::prompt(const QString &text) {
     m_streamingIndex = -1;
     emit messagesChanged();
 
+    if (m_sessionTitle.isEmpty() || m_sessionTitle == tr("New session")) {
+        QString title = trimmed.section('\n', 0, 0).simplified();
+        if (title.size() > 60)
+            title = title.left(57) + "…";
+        if (!title.isEmpty()) {
+            m_sessionTitle = title;
+            emit sessionTitleChanged();
+        }
+    }
+
     setBusy(true);
     QJsonArray blocks;
     blocks.append(QJsonObject{{"type", "text"}, {"text", trimmed}});

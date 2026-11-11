@@ -16,6 +16,7 @@ SOURCES += \
     deepcrasy-h_tests.cpp \
     ../src/acpclient.cpp \
     ../src/config.cpp \
+    ../src/gitstatus.cpp \
     ../src/harnessserver.cpp \
     ../src/theme.cpp \
     ../src/translator.cpp

@@ -95,6 +95,36 @@ qui laissaient des icônes blanches ou des boîtes noires selon la palette.
 `src/ThemeCard.qml` affiche un aperçu réel de chaque palette dans Réglages :
 la carte est peinte avec les couleurs du thème qu'elle représente.
 
+### Le cockpit et la palette
+
+La vue **Accueil** n'est pas un tableau de bord décoratif : `Backend` expose
+l'état réel des deux moteurs, le dossier, Git, le diagnostic et les sessions.
+Les cartes se contentent de le lire. `HomePane` rafraîchit Git et le diagnostic
+quand elle devient visible, puis à chaque changement d'état des moteurs.
+
+La **palette de commandes** est une simple liste d'objets construits dans
+`Main.qml` : vues, actions, thèmes, langues, sessions récentes. Elle ne connaît
+que des identifiants (`view:home`, `theme:nord`, `session:…`) qu'un unique
+`runCommand()` traduit en appels à `Backend`. La recherche replie les accents
+côté QML, sans dépendance.
+
+### Connexions, diagnostic et notifications
+
+- `runDiagnostics()` vérifie les binaires résolus (y compris un chemin absolu
+  choisi dans Réglages), les états du harness et d'OpenCode, le portail XDG,
+  QtWebEngine, l'espace de travail, Git et le service de notifications. Les
+  versions sont mises en cache et invalidées quand le binaire change.
+- `testHarness()` fait une vraie requête HTTP avec `QNetworkAccessManager` sur
+  l'URL tokenisée, sans jamais afficher le token ; seul le statut est exposé.
+- `GitStatus::parse()` lit `git status --porcelain=v1 -b`, sans écriture ni
+  dépendance à libgit2. Le processus tourne en asynchrone.
+- Les notifications passent par `org.freedesktop.Notifications` en D-Bus, et
+  seulement si la fenêtre n'a pas le focus.
+- Les options (vue au démarrage, démarrages automatiques, part de la vue
+  partagée, notifications) vivent dans `Config` et sont relues au lancement.
+  `Backend::applyStartupView()` applique la vue choisie avant le chargement de
+  l'interface.
+
 ### Un seul propriétaire d'état
 
 `Backend` est la seule façade exposée à QML. Il possède `Config`,
@@ -139,10 +169,11 @@ temporaire puis renommage). Un plantage ne laisse pas de fichier à moitié
 
 ## Tests
 
-`tests/deepcrasy-h_tests.cpp` couvre la logique pure (URL, configuration,
-thème, langues) et un véritable aller-retour ACP : `opencode acp` est lancé,
-une session créée, un prompt envoyé, la réponse streamée vérifiée. Ce test
-peut être sauté avec `DEEPCRASY_SKIP_INTEGRATION=1`.
+`tests/deepcrasy-h_tests.cpp` couvre la logique pure (URL, configuration et
+options, lecture Git, thème, langues) et un véritable aller-retour ACP :
+`opencode acp` est lancé, une session créée, un prompt envoyé, la réponse
+streamée vérifiée. Ce test peut être sauté avec
+`DEEPCRASY_SKIP_INTEGRATION=1`.
 
 ## Pistes
 

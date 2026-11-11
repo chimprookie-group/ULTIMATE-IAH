@@ -23,9 +23,50 @@ Item {
         }
     }
 
-    onVisibleChanged: {
-        if (visible)
-            backend.refreshThemes()
+    function refresh() {
+        backend.refreshThemes()
+        backend.runDiagnostics()
+        backend.refreshGit()
+    }
+
+    Component.onCompleted: if (visible) refresh()
+    onVisibleChanged: if (visible) refresh()
+
+    readonly property var providers: {
+        const options = backend.modelOptions
+        const counts = {}
+        for (let i = 0; i < options.length; ++i) {
+            const value = String(options[i].value !== undefined ? options[i].value : "")
+            const provider = value.indexOf("/") > 0 ? value.slice(0, value.indexOf("/")) : "local"
+            counts[provider] = (counts[provider] || 0) + 1
+        }
+        const list = []
+        for (const provider in counts)
+            list.push({"name": provider, "count": counts[provider]})
+        list.sort(function (a, b) { return a.name.localeCompare(b.name) })
+        return list
+    }
+
+    function healthColor() {
+        if (backend.harnessHealth === "ok")
+            return theme.green
+        if (backend.harnessHealth === "failed")
+            return theme.red
+        if (backend.harnessHealth === "checking")
+            return theme.yellow
+        return theme.dimText
+    }
+
+    function healthLabel() {
+        if (backend.harnessHealth === "ok")
+            return qsTr("connected")
+        if (backend.harnessHealth === "failed")
+            return qsTr("unreachable")
+        if (backend.harnessHealth === "checking")
+            return qsTr("testing…")
+        if (backend.harnessHealth === "offline")
+            return qsTr("offline")
+        return qsTr("not tested")
     }
 
     function stateColor(state) {
@@ -168,6 +209,319 @@ Item {
                         }
                     }
 
+                    Item { Layout.fillWidth: true }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Options")
+                width: content.width
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Startup view")
+                    color: theme.text
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Repeater {
+                        model: [
+                            { "id": "last", "label": qsTr("Last view") },
+                            { "id": "home", "label": qsTr("Home") },
+                            { "id": "opencode", "label": qsTr("Chat") },
+                            { "id": "harness", "label": qsTr("Harness") },
+                            { "id": "split", "label": qsTr("Split") }
+                        ]
+
+                        Rectangle {
+                            width: startupLabel.implicitWidth + 24
+                            height: 28
+                            radius: 14
+                            color: backend.startupView === modelData.id ? theme.accent : theme.chip
+                            border.width: 1
+                            border.color: backend.startupView === modelData.id ? theme.accent : theme.border
+
+                            Text {
+                                id: startupLabel
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: backend.startupView === modelData.id ? theme.accentForeground : theme.text
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: backend.setStartupView(modelData.id)
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Last view remembers where you were. The other choices open there every time.")
+                    wrapMode: Text.Wrap
+                    color: theme.dimText
+                    font.pixelSize: 10
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: theme.border
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            text: qsTr("Launch the harness on startup")
+                            color: theme.text
+                            font.pixelSize: 11
+                        }
+                        Text {
+                            text: qsTr("Starts dsh web with the window.")
+                            color: theme.dimText
+                            font.pixelSize: 9
+                        }
+                    }
+                    Switch {
+                        checked: backend.autoStartHarness
+                        onToggled: backend.setAutoStartHarness(checked)
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            text: qsTr("Launch OpenCode on startup")
+                            color: theme.text
+                            font.pixelSize: 11
+                        }
+                        Text {
+                            text: qsTr("Starts opencode acp with the window.")
+                            color: theme.dimText
+                            font.pixelSize: 9
+                        }
+                    }
+                    Switch {
+                        checked: backend.autoStartOpencode
+                        onToggled: backend.setAutoStartOpencode(checked)
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: theme.border
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: qsTr("Split ratio")
+                        color: theme.text
+                        font.pixelSize: 11
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: Math.round(backend.splitRatio * 100) + " %"
+                        color: theme.mutedText
+                        font.pixelSize: 10
+                    }
+                }
+                Slider {
+                    Layout.fillWidth: true
+                    from: 0.45
+                    to: 0.68
+                    stepSize: 0.01
+                    value: backend.splitRatio
+                    onMoved: backend.setSplitRatio(value)
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            text: qsTr("Notify when a turn finishes")
+                            color: theme.text
+                            font.pixelSize: 11
+                        }
+                        Text {
+                            text: qsTr("Desktop notification when the window is not focused.")
+                            color: theme.dimText
+                            font.pixelSize: 9
+                        }
+                    }
+                    Switch {
+                        checked: backend.notifyOnFinish
+                        onToggled: backend.setNotifyOnFinish(checked)
+                    }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Connections")
+                width: content.width
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Button {
+                        text: qsTr("Test the harness")
+                        flat: true
+                        onClicked: backend.testHarness()
+                    }
+                    Text {
+                        text: root.healthLabel()
+                        color: root.healthColor()
+                        font.pixelSize: 10
+                    }
+                    Item { Layout.fillWidth: true }
+                    Button {
+                        text: qsTr("Open in browser")
+                        flat: true
+                        enabled: backend.harnessUrl !== ""
+                        onClicked: Qt.openUrlExternally(backend.harnessUrl)
+                    }
+                }
+
+                Repeater {
+                    model: backend.diagnostics
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        StatusDot {
+                            size: 4
+                            color: modelData.ok ? theme.green : theme.red
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: modelData.label
+                            color: theme.text
+                            font.pixelSize: 10
+                        }
+                        Text {
+                            Layout.maximumWidth: 340
+                            text: modelData.detail
+                            color: theme.dimText
+                            font.pixelSize: 9
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: backend.diagnostics.length === 0
+                    text: qsTr("No diagnostic yet.")
+                    color: theme.mutedText
+                    font.pixelSize: 10
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Button {
+                        text: qsTr("Run diagnostic")
+                        flat: true
+                        enabled: !backend.diagnosticsRunning
+                        onClicked: backend.runDiagnostics()
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: qsTr("%1 checks").arg(backend.diagnostics.length)
+                        color: theme.dimText
+                        font.pixelSize: 9
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: theme.border
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("OpenCode providers")
+                    color: theme.text
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Repeater {
+                        model: root.providers
+
+                        Rectangle {
+                            width: providerLabel.implicitWidth + 16
+                            height: 24
+                            radius: 12
+                            color: theme.chip
+                            border.width: 1
+                            border.color: theme.border
+
+                            Text {
+                                id: providerLabel
+                                anchors.centerIn: parent
+                                text: modelData.name + " · " + modelData.count
+                                color: theme.mutedText
+                                font.pixelSize: 9
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: root.providers.length === 0
+                    text: qsTr("No model loaded yet.")
+                    color: theme.dimText
+                    font.pixelSize: 9
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Button {
+                        text: qsTr("Restart the harness")
+                        flat: true
+                        onClicked: backend.restartHarness()
+                    }
+                    Button {
+                        text: qsTr("Restart OpenCode")
+                        flat: true
+                        onClicked: backend.restartOpencode()
+                    }
                     Item { Layout.fillWidth: true }
                 }
             }

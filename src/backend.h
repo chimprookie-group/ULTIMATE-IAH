@@ -1,9 +1,13 @@
 #pragma once
 
+#include <QNetworkAccessManager>
 #include <QObject>
 #include <QVariantList>
 #include <QVariantMap>
 
+#include <QProcess>
+
+class QNetworkReply;
 class AcpClient;
 class Config;
 class HarnessServer;
@@ -23,6 +27,18 @@ class Backend : public QObject {
     Q_PROPERTY(QString systemThemeId READ systemThemeId NOTIFY themeChanged)
     Q_PROPERTY(bool darkTheme READ darkTheme NOTIFY themeChanged)
     Q_PROPERTY(QVariantList themeOptions READ themeOptions NOTIFY themeOptionsChanged)
+    Q_PROPERTY(QString startupView READ startupView NOTIFY optionsChanged)
+    Q_PROPERTY(bool autoStartHarness READ autoStartHarness NOTIFY optionsChanged)
+    Q_PROPERTY(bool autoStartOpencode READ autoStartOpencode NOTIFY optionsChanged)
+    Q_PROPERTY(double splitRatio READ splitRatio NOTIFY optionsChanged)
+    Q_PROPERTY(bool notifyOnFinish READ notifyOnFinish NOTIFY optionsChanged)
+    Q_PROPERTY(QString gitBranch READ gitBranch NOTIFY gitChanged)
+    Q_PROPERTY(int gitDirtyCount READ gitDirtyCount NOTIFY gitChanged)
+    Q_PROPERTY(bool gitAvailable READ gitAvailable NOTIFY gitChanged)
+    Q_PROPERTY(QVariantList diagnostics READ diagnostics NOTIFY diagnosticsChanged)
+    Q_PROPERTY(bool diagnosticsRunning READ diagnosticsRunning NOTIFY diagnosticsChanged)
+    Q_PROPERTY(QString harnessHealth READ harnessHealth NOTIFY harnessHealthChanged)
+    Q_PROPERTY(QString harnessAddress READ harnessAddress NOTIFY harnessChanged)
     Q_PROPERTY(QString workspace READ workspace NOTIFY workspaceChanged)
     Q_PROPERTY(QString workspaceName READ workspaceName NOTIFY workspaceChanged)
     Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
@@ -63,6 +79,7 @@ public:
     void boot();
     void loadDemo();
     void attachTheme(Theme *theme);
+    void applyStartupView();
 
     QString view() const { return m_view; }
     QString themePreference() const;
@@ -72,6 +89,18 @@ public:
     QString systemThemeId() const;
     bool darkTheme() const;
     QVariantList themeOptions() const;
+    QString startupView() const;
+    bool autoStartHarness() const;
+    bool autoStartOpencode() const;
+    double splitRatio() const;
+    bool notifyOnFinish() const;
+    QString gitBranch() const { return m_demo ? QStringLiteral("main") : m_gitBranch; }
+    int gitDirtyCount() const { return m_demo ? 3 : m_gitDirty; }
+    bool gitAvailable() const { return m_demo ? true : m_gitAvailable; }
+    QVariantList diagnostics() const { return m_diagnostics; }
+    bool diagnosticsRunning() const { return m_diagnosticsRunning; }
+    QString harnessHealth() const { return m_demo ? QStringLiteral("ok") : m_harnessHealth; }
+    QString harnessAddress() const;
     QString workspace() const;
     QString workspaceName() const;
     QString appVersion() const;
@@ -110,6 +139,20 @@ public:
     Q_INVOKABLE void setTheme(const QString &id);
     Q_INVOKABLE void setLanguage(const QString &code);
     Q_INVOKABLE void refreshThemes();
+
+    Q_INVOKABLE void setStartupView(const QString &view);
+    Q_INVOKABLE void setAutoStartHarness(bool enabled);
+    Q_INVOKABLE void setAutoStartOpencode(bool enabled);
+    Q_INVOKABLE void setSplitRatio(double ratio);
+    Q_INVOKABLE void setNotifyOnFinish(bool enabled);
+
+    Q_INVOKABLE void refreshGit();
+    Q_INVOKABLE void runDiagnostics();
+    Q_INVOKABLE void testHarness();
+    Q_INVOKABLE void notify(const QString &title, const QString &body);
+    Q_INVOKABLE QString sessionLabel(const QVariantMap &session) const;
+
+    static QVariantMap parseGitStatus(const QString &output);
     Q_INVOKABLE void setWorkspace(const QString &workspace);
     Q_INVOKABLE void pickWorkspace();
     Q_INVOKABLE void restartHarness();
@@ -131,6 +174,10 @@ signals:
     void themeChanged();
     void languageChanged();
     void themeOptionsChanged();
+    void optionsChanged();
+    void gitChanged();
+    void diagnosticsChanged();
+    void harnessHealthChanged();
     void workspaceChanged();
     void harnessChanged();
     void harnessProfileChanged();
@@ -157,11 +204,24 @@ private:
     PortalFolderPicker *m_portal = nullptr;
     Theme *m_theme = nullptr;
 
+    QProcess *m_gitProcess = nullptr;
+    QNetworkAccessManager m_network;
+    QNetworkReply *m_healthReply = nullptr;
+    QString m_gitBranch;
+    int m_gitDirty = 0;
+    bool m_gitAvailable = false;
+    QVariantList m_diagnostics;
+    bool m_diagnosticsRunning = false;
+    QString m_harnessHealth = QStringLiteral("unknown");
+    QString m_dshVersion;
+    QString m_opencodeVersion;
+
     QString m_view;
     bool m_booted = false;
     bool m_demo = false;
 
     QVariantList m_demoMessages;
+    QVariantList m_demoSessions;
     QVariantList m_demoModelOptions;
     QVariantList m_demoModeOptions;
     QVariantMap m_demoUsage;

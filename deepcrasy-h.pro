@@ -8,6 +8,7 @@ HEADERS += \
     src/acpclient.h \
     src/backend.h \
     src/config.h \
+    src/gitstatus.h \
     src/harnessserver.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
@@ -19,6 +20,7 @@ SOURCES += \
     src/acpclient.cpp \
     src/backend.cpp \
     src/config.cpp \
+    src/gitstatus.cpp \
     src/harnessserver.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \

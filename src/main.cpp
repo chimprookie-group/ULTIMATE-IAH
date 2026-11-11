@@ -131,7 +131,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.4.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.5.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -219,6 +219,8 @@ int main(int argc, char *argv[]) {
 
     if (!themeId.isEmpty())
         theme.setSelectedTheme(themeId);
+
+    backend.applyStartupView();
 
     if (demo)
         backend.loadDemo();

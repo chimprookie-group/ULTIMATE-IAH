@@ -113,7 +113,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: modelData.title !== undefined && modelData.title !== "" ? modelData.title : qsTr("Untitled session")
+                            text: backend.sessionLabel(modelData)
                             color: theme.text
                             font.pixelSize: 12
                             elide: Text.ElideRight

@@ -7,6 +7,7 @@
 
 #include "acpclient.h"
 #include "config.h"
+#include "gitstatus.h"
 #include "harnessserver.h"
 #include "theme.h"
 #include "translator.h"
@@ -54,6 +55,11 @@ private slots:
             config.setView("split");
             config.setTheme("tokyo-night");
             config.setLanguage("fr");
+            config.setStartupView("home");
+            config.setAutoStartHarness(false);
+            config.setAutoStartOpencode(false);
+            config.setSplitRatio(0.62);
+            config.setNotifyOnFinish(false);
         }
         Config reloaded(path);
         QCOMPARE(reloaded.workspace(), QFileInfo(dir.path()).absoluteFilePath());
@@ -61,6 +67,11 @@ private slots:
         QCOMPARE(reloaded.view(), QString("split"));
         QCOMPARE(reloaded.theme(), QString("tokyo-night"));
         QCOMPARE(reloaded.language(), QString("fr"));
+        QCOMPARE(reloaded.startupView(), QString("home"));
+        QCOMPARE(reloaded.autoStartHarness(), false);
+        QCOMPARE(reloaded.autoStartOpencode(), false);
+        QCOMPARE(reloaded.splitRatio(), 0.62);
+        QCOMPARE(reloaded.notifyOnFinish(), false);
     }
 
     void configRejectsMissingWorkspace()
@@ -79,6 +90,21 @@ private slots:
         config.setView("opencode");
         config.setView("bogus");
         QCOMPARE(config.view(), QString("opencode"));
+    }
+
+    void gitStatusParsesBranchAndChanges()
+    {
+        const QVariantMap clean = GitStatus::parse("## main...origin/main\n");
+        QCOMPARE(clean.value("branch").toString(), QString("main"));
+        QCOMPARE(clean.value("dirty").toInt(), 0);
+
+        const QVariantMap dirty = GitStatus::parse("## feature/login...origin/feature/login\n M src/a.cpp\n?? notes.md\n");
+        QCOMPARE(dirty.value("branch").toString(), QString("feature/login"));
+        QCOMPARE(dirty.value("dirty").toInt(), 2);
+
+        const QVariantMap init = GitStatus::parse("## No commits yet on main\n");
+        QCOMPARE(init.value("branch").toString(), QString("main"));
+        QCOMPARE(init.value("dirty").toInt(), 0);
     }
 
     void themeFallsBack()

@@ -10,6 +10,8 @@ Item {
     signal close()
 
     property var rows: [
+        { keys: "Ctrl+0", what: qsTr("Crasy Harness cockpit") },
+        { keys: "Ctrl+K", what: qsTr("Command palette") },
         { keys: "Ctrl+1", what: qsTr("DeepSeek Harness") },
         { keys: "Ctrl+2", what: qsTr("OpenCode chat") },
         { keys: "Ctrl+3", what: qsTr("Split view") },

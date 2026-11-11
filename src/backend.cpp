@@ -2,17 +2,25 @@
 
 #include "acpclient.h"
 #include "config.h"
+#include "gitstatus.h"
 #include "harnessserver.h"
 #include "portalfolderpicker.h"
 #include "theme.h"
 
 #include <QCoreApplication>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusMessage>
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QLocale>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUrl>
 #include <QUuid>
 
 namespace {
@@ -35,6 +43,37 @@ QString opencodeStateName(AcpClient::State state) {
     case AcpClient::Stopped: break;
     }
     return "stopped";
+}
+
+QString resolveBinary(const QString &binary) {
+    if (binary.isEmpty())
+        return {};
+    const QFileInfo info(binary);
+    if (info.isAbsolute())
+        return info.isExecutable() ? binary : QString();
+    return QStandardPaths::findExecutable(binary);
+}
+
+QString probeVersion(const QString &binary, const QStringList &arguments) {
+    if (binary.isEmpty())
+        return {};
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start(binary, arguments);
+    if (!process.waitForStarted(1500))
+        return {};
+    process.waitForFinished(2000);
+    return QString::fromUtf8(process.readAll()).trimmed().split('\n').value(0).trimmed();
+}
+
+bool portalAvailable() {
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    return bus.interface() && bus.interface()->isServiceRegistered(QStringLiteral("org.freedesktop.portal.Desktop"));
+}
+
+bool notificationsAvailable() {
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    return bus.interface() && bus.interface()->isServiceRegistered(QStringLiteral("org.freedesktop.Notifications"));
 }
 
 bool executableExists(const QString &binary) {
@@ -101,11 +140,25 @@ Backend::Backend(QObject *parent)
     connect(m_harness, &HarnessServer::detailChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::logChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::profileChanged, this, &Backend::harnessProfileChanged);
+    connect(m_harness, &HarnessServer::stateChanged, this, [this] {
+        if (m_harness->state() != HarnessServer::Running && m_harnessHealth != "unknown") {
+            m_harnessHealth = "unknown";
+            emit harnessHealthChanged();
+        }
+    });
+    connect(m_harness, &HarnessServer::urlChanged, this, [this] {
+        m_harnessHealth = "unknown";
+        emit harnessHealthChanged();
+    });
 
     connect(m_acp, &AcpClient::stateChanged, this, &Backend::opencodeChanged);
     connect(m_acp, &AcpClient::detailChanged, this, &Backend::opencodeChanged);
     connect(m_acp, &AcpClient::messagesChanged, this, &Backend::messagesChanged);
     connect(m_acp, &AcpClient::busyChanged, this, &Backend::busyChanged);
+    connect(m_acp, &AcpClient::busyChanged, this, [this] {
+        if (!m_acp->busy())
+            refreshGit();
+    });
     connect(m_acp, &AcpClient::sessionIdChanged, this, &Backend::sessionChanged);
     connect(m_acp, &AcpClient::sessionTitleChanged, this, &Backend::sessionChanged);
     connect(m_acp, &AcpClient::configOptionsChanged, this, &Backend::configOptionsChanged);
@@ -125,6 +178,7 @@ Backend::Backend(QObject *parent)
             m_harness->restart();
         if (m_acp->state() == AcpClient::Ready)
             m_acp->newSession(workspace());
+        refreshGit();
         emit workspaceChanged();
     });
     connect(m_config, &Config::harnessProfileChanged, this, [this] {
@@ -132,14 +186,17 @@ Backend::Backend(QObject *parent)
         emit harnessProfileChanged();
     });
     connect(m_config, &Config::dshBinaryChanged, this, [this] {
+        m_dshVersion.clear();
         m_harness->setBinary(m_config->dshBinary());
         restartHarness();
         emit dshBinaryChanged();
     });
     connect(m_config, &Config::opencodeBinaryChanged, this, [this] {
+        m_opencodeVersion.clear();
         restartOpencode();
         emit opencodeBinaryChanged();
     });
+    connect(m_config, &Config::optionsChanged, this, &Backend::optionsChanged);
     connect(m_config, &Config::viewChanged, this, [this] {
         if (m_config->view() == m_view)
             return;
@@ -221,11 +278,25 @@ void Backend::boot() {
     if (m_booted || m_demo)
         return;
     m_booted = true;
-    m_harness->setBinary(dshBinary());
-    m_harness->setProfile(harnessProfile());
-    m_harness->setWorkingDirectory(workspace());
-    m_harness->start();
-    startOpencode();
+    if (m_config->autoStartHarness()) {
+        m_harness->setBinary(dshBinary());
+        m_harness->setProfile(harnessProfile());
+        m_harness->setWorkingDirectory(workspace());
+        m_harness->start();
+    }
+    if (m_config->autoStartOpencode())
+        startOpencode();
+    refreshGit();
+}
+
+void Backend::applyStartupView() {
+    const QString start = m_config->startupView();
+    if (start != "home" && start != "harness" && start != "opencode" && start != "split")
+        return;
+    if (start == m_view)
+        return;
+    m_view = start;
+    emit viewChanged();
 }
 
 void Backend::startOpencode() {
@@ -360,7 +431,214 @@ QVariantMap Backend::permission() const {
 }
 
 QVariantList Backend::sessions() const {
-    return m_acp->sessions();
+    return m_demo ? m_demoSessions : m_acp->sessions();
+}
+
+QString Backend::startupView() const {
+    return m_config->startupView();
+}
+
+bool Backend::autoStartHarness() const {
+    return m_config->autoStartHarness();
+}
+
+bool Backend::autoStartOpencode() const {
+    return m_config->autoStartOpencode();
+}
+
+double Backend::splitRatio() const {
+    return m_config->splitRatio();
+}
+
+bool Backend::notifyOnFinish() const {
+    return m_config->notifyOnFinish();
+}
+
+QString Backend::harnessAddress() const {
+    if (m_demo)
+        return QStringLiteral("127.0.0.1:43110");
+    const QUrl url(m_harness->url());
+    return url.authority().isEmpty() ? tr("offline") : url.authority();
+}
+
+void Backend::setStartupView(const QString &view) {
+    m_config->setStartupView(view);
+}
+
+void Backend::setAutoStartHarness(bool enabled) {
+    m_config->setAutoStartHarness(enabled);
+}
+
+void Backend::setAutoStartOpencode(bool enabled) {
+    m_config->setAutoStartOpencode(enabled);
+}
+
+void Backend::setSplitRatio(double ratio) {
+    m_config->setSplitRatio(ratio);
+}
+
+void Backend::setNotifyOnFinish(bool enabled) {
+    m_config->setNotifyOnFinish(enabled);
+}
+
+void Backend::refreshGit() {
+    if (m_gitProcess && m_gitProcess->state() != QProcess::NotRunning)
+        return;
+
+    const QString git = QStandardPaths::findExecutable(QStringLiteral("git"));
+    if (git.isEmpty()) {
+        m_gitAvailable = false;
+        m_gitBranch.clear();
+        m_gitDirty = 0;
+        emit gitChanged();
+        return;
+    }
+
+    if (!m_gitProcess) {
+        m_gitProcess = new QProcess(this);
+        connect(m_gitProcess, &QProcess::finished, this, [this](int code, QProcess::ExitStatus status) {
+            if (code != 0 || status != QProcess::NormalExit) {
+                m_gitAvailable = false;
+                m_gitBranch.clear();
+                m_gitDirty = 0;
+                emit gitChanged();
+                return;
+            }
+            const QVariantMap result = GitStatus::parse(QString::fromUtf8(m_gitProcess->readAllStandardOutput()));
+            m_gitAvailable = true;
+            m_gitBranch = result.value("branch").toString();
+            m_gitDirty = result.value("dirty").toInt();
+            emit gitChanged();
+        });
+        connect(m_gitProcess, &QProcess::errorOccurred, this, [this] {
+            m_gitAvailable = false;
+            m_gitBranch.clear();
+            m_gitDirty = 0;
+            emit gitChanged();
+        });
+    }
+
+    m_gitProcess->setProgram(git);
+    m_gitProcess->setArguments({"-C", workspace(), "status", "--porcelain=v1", "-b"});
+    m_gitProcess->start();
+}
+
+void Backend::runDiagnostics() {
+    if (m_diagnosticsRunning)
+        return;
+    m_diagnosticsRunning = true;
+    emit diagnosticsChanged();
+
+    QVariantList checks;
+    const auto add = [&checks](const QString &label, bool ok, const QString &detail) {
+        checks.append(QVariantMap{{"label", label}, {"ok", ok}, {"detail", detail}});
+    };
+
+    const QString dsh = resolveBinary(dshBinary());
+    if (m_dshVersion.isEmpty() && !dsh.isEmpty())
+        m_dshVersion = probeVersion(dsh, {"--version"});
+    add(tr("DeepSeek Harness"), !dsh.isEmpty(),
+        dsh.isEmpty() ? tr("not found in PATH")
+                      : (m_dshVersion.isEmpty() ? dsh : m_dshVersion + " · " + dsh));
+
+    const QString opencode = resolveBinary(opencodeBinary());
+    if (m_opencodeVersion.isEmpty() && !opencode.isEmpty())
+        m_opencodeVersion = probeVersion(opencode, {"--version"});
+    add(tr("OpenCode"), !opencode.isEmpty(),
+        opencode.isEmpty() ? tr("not found in PATH")
+                           : (m_opencodeVersion.isEmpty() ? opencode : m_opencodeVersion + " · " + opencode));
+
+    add(tr("Harness server"), m_demo || m_harness->state() == HarnessServer::Running,
+        m_demo || m_harness->state() == HarnessServer::Running ? harnessAddress() : m_harness->detail());
+
+    add(tr("OpenCode session"), m_demo || m_acp->state() == AcpClient::Ready,
+        m_demo || m_acp->state() == AcpClient::Ready
+            ? tr("%n model(s) available", "", modelOptions().size())
+            : m_acp->detail());
+
+    add(tr("Desktop portal"), portalAvailable(),
+        portalAvailable() ? tr("File chooser available") : tr("xdg-desktop-portal is not running"));
+
+    const bool webengine = QFileInfo::exists(QStringLiteral("/usr/lib/qt6/qml/QtWebEngine"));
+    add(tr("QtWebEngine"), webengine,
+        webengine ? tr("QML module installed") : tr("qt6-webengine is missing"));
+
+    const bool writable = QFileInfo(workspace()).isWritable();
+    add(tr("Workspace"), writable,
+        writable ? workspace() : tr("%1 is not writable").arg(workspace()));
+
+    add(tr("Git"), m_demo || m_gitAvailable,
+        m_demo ? tr("main · 3 changes")
+               : (m_gitAvailable ? (m_gitBranch.isEmpty() ? tr("repository") : m_gitBranch)
+                                 : tr("not a git repository")));
+
+    add(tr("Notifications"), notificationsAvailable(),
+        notificationsAvailable() ? tr("Desktop notifications available")
+                                 : tr("notification service is not running"));
+
+    m_diagnostics = checks;
+    m_diagnosticsRunning = false;
+    emit diagnosticsChanged();
+}
+
+void Backend::testHarness() {
+    if (m_harness->url().isEmpty()) {
+        m_harnessHealth = "offline";
+        emit harnessHealthChanged();
+        return;
+    }
+    if (m_healthReply) {
+        m_healthReply->abort();
+        m_healthReply->deleteLater();
+        m_healthReply = nullptr;
+    }
+
+    m_harnessHealth = "checking";
+    emit harnessHealthChanged();
+
+    QNetworkRequest request{QUrl(m_harness->url())};
+    request.setTransferTimeout(5000);
+    m_healthReply = m_network.get(request);
+    connect(m_healthReply, &QNetworkReply::finished, this, [this] {
+        const int code = m_healthReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        m_harnessHealth = (code >= 200 && code < 400) ? "ok" : "failed";
+        m_healthReply->deleteLater();
+        m_healthReply = nullptr;
+        emit harnessHealthChanged();
+    });
+}
+
+QString Backend::sessionLabel(const QVariantMap &session) const {
+    QString title = session.value("title").toString().trimmed();
+    if (title.startsWith("New session - ") || title.startsWith("Nouvelle session - ")
+        || title == "New session" || title == "Nouvelle session") {
+        title.clear();
+    }
+    if (!title.isEmpty())
+        return title;
+    const QDateTime updated = QDateTime::fromString(session.value("updatedAt").toString(), Qt::ISODate);
+    if (updated.isValid())
+        return tr("Session of %1").arg(QLocale().toString(updated, "d MMM · HH:mm"));
+    return tr("Untitled session");
+}
+
+void Backend::notify(const QString &title, const QString &body) {
+    if (!notificationsAvailable())
+        return;
+    QDBusMessage message = QDBusMessage::createMethodCall(
+        QStringLiteral("org.freedesktop.Notifications"),
+        QStringLiteral("/org/freedesktop/Notifications"),
+        QStringLiteral("org.freedesktop.Notifications"),
+        QStringLiteral("Notify"));
+    message << QStringLiteral("DeepCrasy H")
+            << 0u
+            << QStringLiteral("deepcrasy-h")
+            << title
+            << body
+            << QStringList()
+            << QVariantMap{{"desktop-entry", "deepcrasy-h"}}
+            << 5000;
+    QDBusConnection::sessionBus().send(message);
 }
 
 bool Backend::loadingSessions() const {
@@ -368,7 +646,7 @@ bool Backend::loadingSessions() const {
 }
 
 void Backend::setView(const QString &view) {
-    if (view != "harness" && view != "opencode" && view != "split" && view != "settings")
+    if (view != "home" && view != "harness" && view != "opencode" && view != "split" && view != "settings")
         return;
     if (view == m_view)
         return;
@@ -425,6 +703,8 @@ void Backend::cancelPrompt() {
 }
 
 void Backend::newSession() {
+    if (m_demo)
+        return;
     if (m_acp->state() != AcpClient::Ready) {
         emit toast(tr("OpenCode is not ready yet."));
         return;
@@ -433,6 +713,8 @@ void Backend::newSession() {
 }
 
 void Backend::refreshSessions() {
+    if (m_demo)
+        return;
     if (m_acp->state() != AcpClient::Ready) {
         emit toast(tr("OpenCode is not ready yet."));
         return;
@@ -441,10 +723,14 @@ void Backend::refreshSessions() {
 }
 
 void Backend::loadSession(const QString &id) {
+    if (m_demo)
+        return;
     m_acp->loadSession(id, workspace());
 }
 
 void Backend::setConfigOption(const QString &id, const QString &value) {
+    if (m_demo)
+        return;
     m_acp->setConfigOption(id, value);
 }
 
@@ -512,6 +798,15 @@ void Backend::buildDemo() {
         QVariantMap{{"value", "build"}, {"name", "Build"}},
         QVariantMap{{"value", "plan"}, {"name", "Plan"}},
     };
+    const QString now = QDateTime::currentDateTime().toString(Qt::ISODate);
+    m_demoSessions = {
+        QVariantMap{{"sessionId", "demo-session-1"}, {"title", m_demoSessionTitle}, {"updatedAt", now}},
+        QVariantMap{{"sessionId", "demo-session-2"}, {"title", QStringLiteral("Refonte du thème et des couleurs")},
+                    {"updatedAt", QDateTime::currentDateTime().addDays(-1).toString(Qt::ISODate)}},
+        QVariantMap{{"sessionId", "demo-session-3"}, {"title", QStringLiteral("Tests du connecteur Git")},
+                    {"updatedAt", QDateTime::currentDateTime().addDays(-3).toString(Qt::ISODate)}},
+    };
+
     m_demoUsage = QVariantMap{
         {"used", 18432},
         {"size", 200000},

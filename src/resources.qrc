@@ -9,6 +9,9 @@
         <file>HarnessPane.qml</file>
         <file>ChatPane.qml</file>
         <file>Composer.qml</file>
+        <file>HomePane.qml</file>
+        <file>HomeCard.qml</file>
+        <file>CommandPalette.qml</file>
         <file>ChoiceMenu.qml</file>
         <file>PickerChip.qml</file>
         <file>ToolCard.qml</file>
@@ -39,6 +42,12 @@
         <file>icons/copy.svg</file>
         <file>icons/pencil.svg</file>
         <file>icons/file.svg</file>
+        <file>icons/home.svg</file>
+        <file>icons/palette.svg</file>
+        <file>icons/plug.svg</file>
+        <file>icons/branch.svg</file>
+        <file>icons/bell.svg</file>
+        <file>icons/globe.svg</file>
         <file>icons/alert.svg</file>
         <file>icons/search.svg</file>
         <file>i18n/en.json</file>
