@@ -10,6 +10,7 @@ Rectangle {
     id: root
 
     property bool ready: backend.opencodeState === "ready"
+    property bool active: true
     readonly property bool canSend: ready && !backend.busy && input.text.trim() !== ""
 
     signal submit(string text)
@@ -39,7 +40,7 @@ Rectangle {
     Shortcut {
         sequence: "Ctrl+M"
         context: Qt.ApplicationShortcut
-        enabled: root.ready && !backend.busy
+        enabled: root.active && root.ready && !backend.busy
         onActivated: modelPicker.open()
     }
 

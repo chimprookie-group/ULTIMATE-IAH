@@ -464,6 +464,7 @@ Item {
 
         Composer {
             id: composer
+            active: pane.visible
             Layout.fillWidth: true
             Layout.leftMargin: Math.max(14, (pane.width - 908) / 2)
             Layout.rightMargin: Math.max(14, (pane.width - 908) / 2)
