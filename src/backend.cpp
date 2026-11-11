@@ -712,8 +712,9 @@ bool Backend::loadingSessions() const {
 }
 
 void Backend::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "harness"
-        && view != "opencode" && view != "split" && view != "terminal" && view != "settings")
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers"
+        && view != "harness" && view != "opencode" && view != "split" && view != "terminal"
+        && view != "settings")
         return;
     if (view == m_view)
         return;

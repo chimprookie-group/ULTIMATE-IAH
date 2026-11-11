@@ -15,6 +15,7 @@ HEADERS += \
     src/messagemodel.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
+    src/providermanager.h \
     src/terminalsession.h \
     src/theme.h \
     src/workspacemodel.h \
@@ -32,6 +33,7 @@ SOURCES += \
     src/messagemodel.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
+    src/providermanager.cpp \
     src/terminalsession.cpp \
     src/theme.cpp \
     src/workspacemodel.cpp \

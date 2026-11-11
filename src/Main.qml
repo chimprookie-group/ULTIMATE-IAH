@@ -76,6 +76,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Terminal"), "Ctrl+5", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Ecosystem"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Workspace"), "Ctrl+7", "view:workspace", "icons/files.svg")
+        add(qsTr("Navigation"), qsTr("Providers"), "Ctrl+8", "view:providers", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
         add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
@@ -162,6 +163,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
+    Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("providers") }
     Shortcut {
         sequence: "Ctrl+N"
         context: Qt.ApplicationShortcut
@@ -443,6 +445,14 @@ ApplicationWindow {
                     }
 
                     RailButton {
+                        icon: "icons/providers.svg"
+                        label: qsTr("Providers")
+                        hint: qsTr("Providers (Ctrl+8)")
+                        active: backend.view === "providers"
+                        onClicked: backend.setView("providers")
+                    }
+
+                    RailButton {
                         icon: "icons/harness.svg"
                         label: qsTr("Harness")
                         hint: qsTr("DeepSeek Harness (Ctrl+1)")
@@ -498,7 +508,7 @@ ApplicationWindow {
                     spacing: 0
                     visible: backend.view !== "settings" && backend.view !== "home"
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
-                             && backend.view !== "workspace"
+                             && backend.view !== "workspace" && backend.view !== "providers"
 
                     HarnessPane {
                         id: harnessPane
@@ -523,14 +533,7 @@ ApplicationWindow {
                         Layout.preferredWidth: backend.view === "split" ? win.width * (1 - backend.splitRatio) : win.width
                         onOpenSessions: sessionsPanel.open()
                         onChangeModelRequested: chatPane.openModelPicker()
-                        onConnectProviderRequested: {
-                            const raw = backend.currentModel
-                            const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")).replace(/[^A-Za-z0-9._-]/g, "") : ""
-                            const login = provider !== "" ? "opencode auth login " + provider : "opencode auth login"
-                            const logout = provider !== "" ? "opencode auth logout " + provider + "; " : ""
-                            terminal.run(logout + login + " && opencode service restart")
-                            backend.setView("terminal")
-                        }
+                        onConnectProviderRequested: backend.setView("providers")
                     }
                 }
 
@@ -552,6 +555,11 @@ ApplicationWindow {
                         Qt.callLater(function () { chatPane.suggest(prompt) })
                     }
                     onOpenSessions: sessionsPanel.open()
+                }
+
+                ProvidersPane {
+                    anchors.fill: parent
+                    visible: backend.view === "providers"
                 }
 
                 WorkspacePane {

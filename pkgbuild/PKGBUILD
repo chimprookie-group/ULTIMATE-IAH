@@ -1,6 +1,6 @@
 # Maintainer: Crasy
 pkgname=deepcrasy-h
-pkgver=0.15.2
+pkgver=0.16.0
 pkgrel=1
 pkgdesc='DeepSeek Harness and OpenCode in one Omarchy window'
 arch=('x86_64' 'aarch64')

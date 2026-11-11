@@ -2,6 +2,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -11,6 +13,7 @@
 #include "workspacemodel.h"
 #include "gitstatus.h"
 #include "mcpmanager.h"
+#include "providermanager.h"
 #include "messagemodel.h"
 #include "terminalsession.h"
 #include "harnessserver.h"
@@ -151,6 +154,71 @@ private slots:
         QCOMPARE(AcpClient::classifyFailure("No provider is connected"), QString("provider"));
         QCOMPARE(AcpClient::classifyFailure("Authentication required: provider authentication required"), QString("provider"));
         QCOMPARE(AcpClient::classifyFailure("Something else"), QString("error"));
+    }
+
+    void providersPersistCustomModels()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/opencode.json";
+        QFile seed(path);
+        QVERIFY(seed.open(QIODevice::WriteOnly));
+        seed.write("{\"$schema\":\"https://opencode.ai/config.json\"}");
+        seed.close();
+
+        ProviderManager manager(path);
+        manager.saveProvider("mock", "Mock Provider", "http://127.0.0.1:18080/v1",
+                             "secret-key", "mock-model=Mock Model\nsecond");
+        QCOMPARE(manager.providers().size(), 1);
+        const QVariantMap provider = manager.providers().at(0).toMap();
+        QCOMPARE(provider.value("id").toString(), QString("mock"));
+        QCOMPARE(provider.value("modelCount").toInt(), 2);
+        QCOMPARE(provider.value("keyMasked").toString(), QString("••••-key"));
+
+        QFile written(path);
+        QVERIFY(written.open(QIODevice::ReadOnly));
+        const QJsonObject root = QJsonDocument::fromJson(written.readAll()).object();
+        written.close();
+        const QJsonObject entry = root.value("providers").toObject().value("mock").toObject();
+        QCOMPARE(entry.value("settings").toObject().value("baseURL").toString(),
+                 QString("http://127.0.0.1:18080/v1"));
+
+        manager.removeProvider("mock");
+        QCOMPARE(manager.providers().size(), 0);
+    }
+
+    void providerTestReportsVisibleModels()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/opencode.json";
+        QFile seed(path);
+        QVERIFY(seed.open(QIODevice::WriteOnly));
+        seed.write("{}");
+        seed.close();
+
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+        connect(&server, &QTcpServer::newConnection, this, [&server] {
+            QTcpSocket *socket = server.nextPendingConnection();
+            connect(socket, &QTcpSocket::readyRead, socket, [socket] {
+                socket->readAll();
+                const QByteArray body = "{\"data\":[{\"id\":\"mock-model\"}]}";
+                const QByteArray response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                    + QByteArray::number(body.size()) + "\r\nConnection: close\r\n\r\n" + body;
+                socket->write(response);
+                socket->flush();
+                socket->disconnectFromHost();
+            });
+            connect(socket, &QTcpSocket::disconnected, socket, &QObject::deleteLater);
+        });
+
+        ProviderManager manager(path);
+        manager.saveProvider("mock", "Mock", QString("http://127.0.0.1:%1/v1").arg(server.serverPort()),
+                             "secret", "mock-model");
+        QCOMPARE(manager.error(), QString());
+        manager.testProvider("mock");
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.testing(), 5000);
+        QVERIFY2(manager.testMessage().contains("Connected"), qPrintable(manager.testMessage()));
+        QVERIFY(manager.testMessage().contains("1"));
     }
 
     void profilesPersistAcrossRestarts()

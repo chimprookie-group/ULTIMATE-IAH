@@ -1,4 +1,4 @@
-QT += core gui testlib
+QT += network core gui testlib
 CONFIG += c++17 testcase
 TARGET = deepcrasy-h_tests
 TEMPLATE = app
@@ -11,6 +11,7 @@ HEADERS += \
     ../src/ecosystem.h \
     ../src/harnessserver.h \
     ../src/mcpmanager.h \
+    ../src/providermanager.h \
     ../src/messagemodel.h \
     ../src/terminalsession.h \
     ../src/theme.h \
@@ -28,6 +29,7 @@ SOURCES += \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
     ../src/mcpmanager.cpp \
+    ../src/providermanager.cpp \
     ../src/messagemodel.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \

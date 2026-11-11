@@ -165,6 +165,22 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### Gestionnaire de providers
+
+`ProviderManager` lit et écrit `~/.config/opencode/opencode.json`. Chaque
+provider personnalisé est une entrée de `providers` avec le package
+`@opencode/ai/providers/openai-compatible`, `settings.baseURL`,
+`settings.apiKey` et une carte de modèles. Le format a été validé contre
+OpenCode avec un faux serveur OpenAI : `opencode models --standalone` liste le
+modèle et `opencode run --model …` répond.
+
+L'écriture est atomique (`QSaveFile`) et le fichier passe en mode 600. QML ne
+reçoit que l'ID, l'URL, les modèles et un suffixe masqué. Le bouton Tester
+interroge `baseURL/models` avec la clé, sans l'exposer. Après sauvegarde,
+`opencode service restart` puis le redémarrage ACP rendent les nouveaux
+modèles disponibles. Les comptes OAuth/integrés restent gérés par
+`opencode auth list --standalone` dans la carte **Comptes OpenCode**.
+
 ### Modèles, providers et pièces jointes
 
 `Ecosystem::refreshModels()` interroge `opencode models` et

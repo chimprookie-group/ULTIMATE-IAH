@@ -263,7 +263,7 @@ Item {
                                         onClicked: pane.changeModelRequested()
                                     }
                                     Button {
-                                        text: model.kind === "provider" ? qsTr("Replace the key") : qsTr("Connect a provider")
+                                        text: model.kind === "provider" ? qsTr("Manage providers") : qsTr("Connect a provider")
                                         flat: true
                                         font.pixelSize: 9
                                         onClicked: pane.connectProviderRequested()

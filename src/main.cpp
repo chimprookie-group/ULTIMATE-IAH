@@ -30,6 +30,7 @@
 #include "ecosystem.h"
 #include "iconprovider.h"
 #include "mcpmanager.h"
+#include "providermanager.h"
 #include "terminalsession.h"
 #include "theme.h"
 #include "workspacemodel.h"
@@ -158,7 +159,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.15.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.16.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -273,6 +274,7 @@ int main(int argc, char *argv[]) {
 
     TerminalSession terminal;
     McpManager mcp;
+    ProviderManager providerManager;
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
     QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
@@ -295,6 +297,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("terminal", &terminal);
     engine.rootContext()->setContextProperty("mcp", &mcp);
+    engine.rootContext()->setContextProperty("providers", &providerManager);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

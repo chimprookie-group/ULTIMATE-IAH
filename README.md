@@ -50,6 +50,24 @@ environnement, pas seulement les deux moteurs.
 
 ![Écosystème](assets/screenshot-ecosystem.png)
 
+## Providers : n'importe quelle API
+
+![Gestion des providers](assets/screenshot-providers.png)
+
+`Ctrl+8` ouvre le gestionnaire **Providers**. Il permet d'ajouter un provider
+intégré ou n'importe quelle API **compatible OpenAI** : DeepSeek, OpenAI,
+Groq, Mistral, OpenRouter, Ollama, un gateway maison. Chaque provider a son
+ID, son URL de base, sa clé API, ses modèles et un bouton **Tester** qui
+interroge réellement `/models`.
+
+Les clés sont écrites dans `~/.config/opencode/opencode.json` avec le mode
+`600` ; l'interface ne reçoit qu'un suffixe masqué (`••••1234`). Après
+enregistrement, DeepCrasy H redémarre le service et OpenCode. Les modèles du
+provider apparaissent dans le sélecteur et se choisissent directement.
+
+La carte **Comptes OpenCode** garde les connexions OAuth et providers intégrés
+(`opencode auth`) : reconnexion, ajout d'un compte, application.
+
 ## Contexte et pièces jointes
 
 Depuis **Fichiers**, un fichier s'ajoute au prochain message avec **Joindre au
@@ -124,11 +142,10 @@ palette passent tous par le même catalogue.
 
 Quand OpenCode renvoie une limite d'usage, un provider manquant ou une erreur de
 session, le message ne reste plus une réponse morte : il devient une carte avec
-**Changer de modèle**, **Remplacer la clé** / **Connecter un provider** et
-**Réessayer**. La reconnexion cible le provider du modèle courant, efface
-l'ancienne clé, relance `opencode auth login <provider>` puis
-`opencode service restart`. Le modèle se choisit dans le sélecteur habituel ;
-le dernier prompt est conservé pour le retry.
+**Changer de modèle**, **Gérer les providers** et **Réessayer**. Le bouton
+ouvre le gestionnaire de providers, où la clé peut être remplacée par un
+provider personnalisé ou un compte OpenCode reconnecté. Le dernier prompt est
+conservé pour le retry.
 
 ![Erreur actionnable](assets/screenshot-error.png)
 
@@ -201,8 +218,10 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
 - **Erreurs actionnables** : limite d'usage, provider manquant, retry et
   connexion provider depuis la carte d'erreur.
-- **Catalogue de modèles complet**, providers connectés, pièces jointes,
-  historique de prompts et recherche de sessions.
+- **Gestionnaire de providers** : n'importe quelle API compatible OpenAI,
+  clé masquée, test `/models`, modèles, comptes OpenCode.
+- **Catalogue de modèles complet**, pièces jointes, historique de prompts et
+  recherche de sessions.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -333,6 +352,10 @@ Le chat et le sélecteur de modèle :
 - `Ecosystem::refreshModels()` charge `opencode models` et `opencode auth list`
   pour le catalogue et le provider. Le composer assemble les pièces jointes en
   blocs `<file>` et garde 50 prompts d'historique.
+- `ProviderManager` écrit les entrées `providers` d'OpenCode
+  (`package: @opencode/ai/providers/openai-compatible`, `settings.baseURL`,
+  `settings.apiKey`, `models`) et teste `/models` en HTTP. Les clés sont en
+  mode 600 et ne traversent jamais QML en clair.
 - `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
   un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
   sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde
