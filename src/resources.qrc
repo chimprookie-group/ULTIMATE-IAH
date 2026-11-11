@@ -7,6 +7,8 @@
         <file>HarnessPane.qml</file>
         <file>ChatPane.qml</file>
         <file>Composer.qml</file>
+        <file>ChoiceMenu.qml</file>
+        <file>PickerChip.qml</file>
         <file>ToolCard.qml</file>
         <file>SettingsPane.qml</file>
         <file>SettingsSection.qml</file>
@@ -35,6 +37,7 @@
         <file>icons/pencil.svg</file>
         <file>icons/file.svg</file>
         <file>icons/alert.svg</file>
+        <file>icons/search.svg</file>
         <file>i18n/en.json</file>
         <file>i18n/fr.json</file>
     </qresource>

@@ -92,5 +92,10 @@
   "Could not listen for the folder chooser's answer.": "Impossible d'écouter la réponse du sélecteur de dossier.",
   "Folder selection was cancelled.": "La sélection du dossier a été annulée.",
   "The folder chooser returned no folder.": "Le sélecteur n'a renvoyé aucun dossier.",
-  "The chosen folder is not local.": "Le dossier choisi n'est pas local."
+  "The chosen folder is not local.": "Le dossier choisi n'est pas local.",
+  "Model": "Modèle",
+  "Mode": "Mode",
+  "Search models…": "Rechercher un modèle…",
+  "No match. Try another name.": "Aucun résultat. Essayez un autre nom.",
+  "↑↓ navigate · Enter select · Esc close": "↑↓ naviguer · Entrée choisir · Échap fermer"
 }

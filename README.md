@@ -14,6 +14,12 @@ Un seul espace de travail, deux moteurs, aucun terminal à ouvrir.
 
 ![DeepCrasy H](assets/screenshot-chat.png)
 
+Le modèle et le mode se choisissent dans un panneau dédié : recherche, noms
+complets, fournisseur et navigation clavier, au lieu d'une liste Material
+tronquée qui débordait de la fenêtre.
+
+![Sélecteur de modèle](assets/screenshot-picker.png)
+
 ## En bref
 
 - **Un seul espace de travail.** Le dossier choisi est partagé : le harness y

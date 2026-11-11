@@ -36,21 +36,11 @@ Rectangle {
         return value
     }
 
-    function syncModel() {
-        const index = modelCombo.indexOfValue(backend.currentModel)
-        if (index >= 0 && index !== modelCombo.currentIndex)
-            modelCombo.currentIndex = index
-    }
-
-    function syncMode() {
-        const index = modeCombo.indexOfValue(backend.currentMode)
-        if (index >= 0 && index !== modeCombo.currentIndex)
-            modeCombo.currentIndex = index
-    }
-
     Component.onCompleted: {
-        syncModel()
-        syncMode()
+        // Used by the README/test screenshot: open the picker so the custom
+        // menu, not the stock Material popup, is what gets captured.
+        if (Qt.application.arguments.indexOf("--picker") !== -1)
+            Qt.callLater(modelPicker.open)
     }
 
     ColumnLayout {
@@ -110,82 +100,36 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 8
 
-            ComboBox {
-                id: modelCombo
-                Layout.preferredWidth: Math.min(190, implicitWidth)
-                implicitHeight: 24
-                model: backend.modelOptions
-                textRole: "name"
-                valueRole: "value"
-                flat: true
-                padding: 0
-                spacing: 0
+            PickerChip {
+                id: modelPicker
                 enabled: root.ready && !backend.busy
-                font.pixelSize: 10
-                background: Rectangle {
-                    color: "transparent"
-                    radius: Math.min(5, theme.radius)
+                opacity: enabled ? 1 : 0.5
+                title: qsTr("Model")
+                options: backend.modelOptions
+                currentValue: backend.currentModel
+                searchable: true
+                emptyText: qsTr("Model")
+                dotColor: Pal.teal
+                onSelected: function (value) {
+                    backend.setConfigOption("model", value)
+                    input.forceActiveFocus()
                 }
-                indicator: Item { width: 0; height: 0 }
-                contentItem: RowLayout {
-                    spacing: 3
-                    Text {
-                        Layout.fillWidth: true
-                        text: modelCombo.displayText
-                        color: Pal.muted
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                    Image {
-                        source: "icons/chevron.svg"
-                        sourceSize.width: 9
-                        sourceSize.height: 9
-                        opacity: 0.4
-                    }
-                }
-                onActivated: backend.setConfigOption("model", currentValue)
             }
 
-            Rectangle {
-                width: 1
-                height: 14
-                color: Pal.border
-            }
-
-            ComboBox {
-                id: modeCombo
-                Layout.preferredWidth: Math.min(110, implicitWidth)
-                implicitHeight: 24
-                model: backend.modeOptions
-                textRole: "name"
-                valueRole: "value"
-                flat: true
-                padding: 0
-                spacing: 0
+            PickerChip {
+                id: modePicker
                 enabled: root.ready && !backend.busy
-                font.pixelSize: 10
-                background: Rectangle {
-                    color: "transparent"
-                    radius: Math.min(5, theme.radius)
+                opacity: enabled ? 1 : 0.5
+                title: qsTr("Mode")
+                options: backend.modeOptions
+                currentValue: backend.currentMode
+                searchable: false
+                emptyText: qsTr("Mode")
+                dotColor: Pal.orange
+                onSelected: function (value) {
+                    backend.setConfigOption("mode", value)
+                    input.forceActiveFocus()
                 }
-                indicator: Item { width: 0; height: 0 }
-                contentItem: RowLayout {
-                    spacing: 3
-                    Text {
-                        Layout.fillWidth: true
-                        text: modeCombo.displayText
-                        color: Pal.muted
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                    Image {
-                        source: "icons/chevron.svg"
-                        sourceSize.width: 9
-                        sourceSize.height: 9
-                        opacity: 0.4
-                    }
-                }
-                onActivated: backend.setConfigOption("mode", currentValue)
             }
 
             Item { Layout.fillWidth: true }
@@ -234,14 +178,6 @@ Rectangle {
                     }
                 }
             }
-        }
-    }
-
-    Connections {
-        target: backend
-        function onConfigOptionsChanged() {
-            root.syncModel()
-            root.syncMode()
         }
     }
 }
