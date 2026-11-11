@@ -23,6 +23,7 @@
 #include <QtWebEngineQuick/QtWebEngineQuick>
 
 #include "backend.h"
+#include "ecosystem.h"
 #include "iconprovider.h"
 #include "mcpmanager.h"
 #include "terminalsession.h"
@@ -152,7 +153,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.3"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.12.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -232,6 +233,9 @@ int main(int argc, char *argv[]) {
 
     TerminalSession terminal;
     McpManager mcp;
+    Ecosystem ecosystem;
+    QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
+                     [&backend, &ecosystem] { ecosystem.refresh(backend.workspace()); });
     mcp.setWorkspace(backend.workspace());
     QObject::connect(&backend, &Backend::workspaceChanged, &mcp,
                      [&backend, &mcp] { mcp.setWorkspace(backend.workspace()); });
@@ -250,6 +254,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("terminal", &terminal);
     engine.rootContext()->setContextProperty("mcp", &mcp);
+    engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);
 
     if (!themeId.isEmpty())

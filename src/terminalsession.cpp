@@ -8,6 +8,7 @@
 #include <QProcessEnvironment>
 #include <QSocketNotifier>
 #include <QStandardPaths>
+#include <QTimer>
 
 #include <cerrno>
 #include <cstring>
@@ -103,6 +104,12 @@ void TerminalSession::start(const QString &cwd) {
 
     emit runningChanged();
     emit started();
+
+    if (!m_pendingInput.isEmpty()) {
+        const QString pending = m_pendingInput;
+        m_pendingInput.clear();
+        QTimer::singleShot(80, this, [this, pending] { input(pending); });
+    }
 }
 
 void TerminalSession::stop() {
@@ -183,6 +190,16 @@ void TerminalSession::input(const QString &data) {
             break;
         }
     }
+}
+
+void TerminalSession::run(const QString &command) {
+    if (command.trimmed().isEmpty())
+        return;
+    const QString line = command.endsWith('\n') ? command : command + '\n';
+    if (m_master >= 0)
+        input(line);
+    else
+        m_pendingInput = line;
 }
 
 void TerminalSession::resize(int columns, int rows) {

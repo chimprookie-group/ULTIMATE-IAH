@@ -141,6 +141,21 @@ que des identifiants (`view:home`, `theme:nord`, `session:…`) qu'un unique
 `runCommand()` traduit en appels à `Backend`. La recherche replie les accents
 côté QML, sans dépendance.
 
+### L'écosystème
+
+`Ecosystem` est un scanner local, sans réseau : il détecte les binaires connus
+dans le `PATH`, lit le fichier projet (package.json, Cargo.toml, go.mod,
+pyproject.toml, .pro, CMakeLists.txt, Makefile), en déduit des commandes sûres,
+et lit les `SKILL.md` de `~/.agents/skills`, `~/.config/opencode/skills`,
+`~/.claude/skills` et du projet. Les versions d'outils sont sondées une fois et
+mises en cache ; **Rafraîchir** force un nouveau scan.
+
+Le panneau `EcosystemPane` rend ces données et propose les recettes et le brief
+de contexte. Les commandes projet passent par `TerminalSession::run()` : si le
+shell n'est pas encore lancé, la commande est mémorisée et écrite dès que le
+PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
+composer, jamais envoyé sans validation.
+
 ### Le terminal
 
 `TerminalSession` ouvre un PTY avec `forkpty`, prépare l'environnement avant le

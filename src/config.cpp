@@ -74,15 +74,15 @@ void Config::load() {
         m_opencodeBinary = QStringLiteral("opencode");
 
     const QString view = object.value("view").toString();
-    if (view == "home" || view == "harness" || view == "opencode" || view == "split"
-        || view == "terminal" || view == "settings")
+    if (view == "home" || view == "ecosystem" || view == "harness" || view == "opencode"
+        || view == "split" || view == "terminal" || view == "settings")
         m_view = view;
 
     m_theme = object.value("theme").toString();
     m_language = object.value("language").toString();
 
     const QString startup = object.value("startupView").toString();
-    if (startup == "last" || startup == "home" || startup == "harness"
+    if (startup == "last" || startup == "home" || startup == "ecosystem" || startup == "harness"
         || startup == "opencode" || startup == "split" || startup == "terminal")
         m_startupView = startup;
     m_autoStartHarness = object.value("autoStartHarness").toBool(true);
@@ -154,7 +154,8 @@ void Config::setOpencodeBinary(const QString &binary) {
 }
 
 void Config::setStartupView(const QString &view) {
-    if (view != "last" && view != "home" && view != "harness" && view != "opencode" && view != "split")
+    if (view != "last" && view != "home" && view != "ecosystem" && view != "harness"
+        && view != "opencode" && view != "split" && view != "terminal")
         return;
     if (view == m_startupView)
         return;
@@ -213,8 +214,8 @@ void Config::setTheme(const QString &theme) {
 }
 
 void Config::setView(const QString &view) {
-    if (view != "home" && view != "harness" && view != "opencode" && view != "split"
-        && view != "terminal" && view != "settings")
+    if (view != "home" && view != "ecosystem" && view != "harness" && view != "opencode"
+        && view != "split" && view != "terminal" && view != "settings")
         return;
     if (view == m_view)
         return;

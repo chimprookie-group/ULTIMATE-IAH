@@ -250,6 +250,11 @@ Item {
                     onClicked: backend.setView("split")
                 }
                 Button {
+                    text: qsTr("Ecosystem")
+                    flat: true
+                    onClicked: backend.setView("ecosystem")
+                }
+                Button {
                     text: qsTr("Terminal")
                     flat: true
                     onClicked: backend.setView("terminal")

@@ -7,6 +7,7 @@
 
 #include "acpclient.h"
 #include "config.h"
+#include "ecosystem.h"
 #include "gitstatus.h"
 #include "mcpmanager.h"
 #include "messagemodel.h"
@@ -108,6 +109,54 @@ private slots:
         const QVariantMap init = GitStatus::parse("## No commits yet on main\n");
         QCOMPARE(init.value("branch").toString(), QString("main"));
         QCOMPARE(init.value("dirty").toInt(), 0);
+    }
+
+    void ecosystemInspectsProjectAndSkills()
+    {
+        QTemporaryDir dir;
+        QFile package(dir.path() + "/package.json");
+        QVERIFY(package.open(QIODevice::WriteOnly));
+        package.write("{\"scripts\":{\"test\":\"vitest\",\"build\":\"vite build\"}}");
+        package.close();
+        QFile lock(dir.path() + "/package-lock.json");
+        QVERIFY(lock.open(QIODevice::WriteOnly));
+        lock.close();
+
+        const QVariantMap project = Ecosystem::inspectProject(dir.path());
+        QCOMPARE(project.value("type").toString(), QString("node"));
+        QCOMPARE(project.value("manager").toString(), QString("npm"));
+        bool hasTest = false;
+        for (const QVariant &value : project.value("commands").toList()) {
+            if (value.toMap().value("id").toString() == "script:test")
+                hasTest = true;
+        }
+        QVERIFY(hasTest);
+
+        QVERIFY(QDir().mkpath(dir.path() + "/skills/demo"));
+        QFile skill(dir.path() + "/skills/demo/SKILL.md");
+        QVERIFY(skill.open(QIODevice::WriteOnly));
+        skill.write("---\nname: Demo Skill\ndescription: A demo skill\n---\n");
+        skill.close();
+        const QVariantList skills = Ecosystem::inspectSkills(dir.path() + "/skills");
+        QCOMPARE(skills.size(), 1);
+        QCOMPARE(skills.at(0).toMap().value("name").toString(), QString("Demo Skill"));
+    }
+
+    void terminalRunQueuesBeforeStart()
+    {
+        TerminalSession session;
+        QSignalSpy output(&session, &TerminalSession::output);
+        session.run("echo deepcrasy-queued");
+        session.start(QDir::tempPath());
+        QTRY_VERIFY_WITH_TIMEOUT(session.running(), 5000);
+        QString transcript;
+        const auto hasOutput = [&] {
+            while (output.size() > 0)
+                transcript += output.takeFirst().value(0).toString();
+            return transcript.contains("deepcrasy-queued");
+        };
+        QTRY_VERIFY_WITH_TIMEOUT(hasOutput(), 10000);
+        session.stop();
     }
 
     void mcpConfigurationIsEditedSafely()

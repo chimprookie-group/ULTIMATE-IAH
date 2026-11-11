@@ -8,6 +8,7 @@
         <file>StatusDot.qml</file>
         <file>HarnessPane.qml</file>
         <file>ChatPane.qml</file>
+        <file>EcosystemPane.qml</file>
         <file>Composer.qml</file>
         <file>HomePane.qml</file>
         <file>HomeCard.qml</file>
@@ -48,6 +49,7 @@
         <file>icons/plug.svg</file>
         <file>icons/branch.svg</file>
         <file>icons/bell.svg</file>
+        <file>icons/ecosystem.svg</file>
         <file>icons/harness.svg</file>
         <file>icons/key.svg</file>
         <file>icons/logout.svg</file>

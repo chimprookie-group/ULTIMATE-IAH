@@ -30,6 +30,25 @@ La vue **Accueil** (`Ctrl+0`) rassemble l'état réel du poste :
 Les cartes se replient en une colonne dans une fenêtre étroite et suivent le
 thème actif.
 
+## L'écosystème
+
+`Ctrl+6` ouvre le panneau **Écosystème** : il inspecte le projet et son
+environnement, pas seulement les deux moteurs.
+
+- **Projet** : type détecté (Qt/QML, Node, Python, Rust, Go, CMake, Make),
+  gestionnaire de paquets, fichiers, et commandes prêtes à lancer dans le
+  terminal intégré — tests, build, lint, Git, Docker.
+- **Outils** : 15 binaires du poste, présents ou non, avec leur version.
+- **Skills** : les skills Omarchy/agents installées, avec leur description et
+  un bouton pour les confier à OpenCode avec leur chemin.
+- **Modèles** : les modèles OpenCode disponibles, cliquables.
+- **MCP et sessions** : serveurs configurés, reprise d'une session récente.
+- **Recettes** : Expliquer, Relire, Tester, Corriger, Sécurité, Performance.
+- **Contexte** : injecte un brief du projet (stack, commandes, Git, modèle,
+  MCP, outils, skills) directement dans le composer.
+
+![Écosystème](assets/screenshot-ecosystem.png)
+
 ## Palette de commandes
 
 `Ctrl+K` (ou la loupe de l'en-tête) ouvre une palette qui interroge tout :
@@ -129,6 +148,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Serveurs MCP** : liste fusionnée global/projet, ajout local ou distant,
   retrait, authentification et déconnexion OAuth des serveurs distants, statut
   et redémarrage d'OpenCode depuis Réglages.
+- **Écosystème** : détection du projet, commandes dans le terminal, outils,
+  skills, modèles, recettes et brief de contexte.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -186,6 +207,7 @@ règlent dans **Réglages** (`Ctrl+4`).
 | `Ctrl+3` | Vue partagée (les deux panneaux) |
 | `Ctrl+4` | Réglages |
 | `Ctrl+5` | Terminal intégré |
+| `Ctrl+6` | Écosystème du projet |
 | `Ctrl+K` | Palette de commandes |
 | `Ctrl+L` | Aller à la saisie |
 | `Entrée` | Envoyer le message |
@@ -243,6 +265,9 @@ Le chat et le sélecteur de modèle :
 - `src/mcpmanager.*` lit et écrit la section `mcp.servers` des configurations
   OpenCode globale et de projet, et interroge `opencode mcp list` en
   arrière-plan pour les statuts.
+- `src/ecosystem.*` détecte le type de projet, les commandes, les outils et les
+  skills, et compose le brief de contexte. `TerminalSession::run()` met une
+  commande en attente puis l'exécute quand le shell est prêt.
 - `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
   un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
   sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde

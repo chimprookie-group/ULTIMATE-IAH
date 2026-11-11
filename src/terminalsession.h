@@ -26,6 +26,7 @@ public:
     Q_INVOKABLE void start(const QString &cwd);
     Q_INVOKABLE void stop();
     Q_INVOKABLE void input(const QString &data);
+    Q_INVOKABLE void run(const QString &command);
     Q_INVOKABLE void resize(int columns, int rows);
     Q_INVOKABLE void copy(const QString &text);
     Q_INVOKABLE void paste();
@@ -47,6 +48,7 @@ private:
     int m_pid = -1;
     QSocketNotifier *m_notifier = nullptr;
     QString m_cwd;
+    QString m_pendingInput;
     QStringDecoder m_decoder{QStringDecoder::Utf8};
     bool m_stopping = false;
 };

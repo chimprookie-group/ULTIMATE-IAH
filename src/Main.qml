@@ -74,6 +74,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/harness.svg")
         add(qsTr("Navigation"), "OpenCode", "Ctrl+2", "view:opencode", "icons/chat.svg")
         add(qsTr("Navigation"), qsTr("Terminal"), "Ctrl+5", "view:terminal", "icons/terminal.svg")
+        add(qsTr("Navigation"), qsTr("Ecosystem"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
         add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
@@ -83,6 +84,7 @@ ApplicationWindow {
         add(qsTr("Actions"), qsTr("Change workspace"), "", "action:workspace", "icons/folder.svg")
         add(qsTr("Actions"), qsTr("Run diagnostics"), "", "action:diagnostics", "icons/plug.svg")
         add(qsTr("Actions"), qsTr("MCP servers"), "", "action:mcp", "icons/plug.svg")
+        add(qsTr("Actions"), qsTr("Project context"), "", "action:context", "icons/ecosystem.svg")
         add(qsTr("Actions"), qsTr("Open the harness in a browser"), "", "action:browser", "icons/external.svg")
         add(qsTr("Actions"), qsTr("Show shortcuts"), "?", "action:shortcuts", "icons/help.svg")
 
@@ -138,6 +140,10 @@ ApplicationWindow {
                 Qt.openUrlExternally(backend.harnessUrl)
         } else if (id === "action:mcp") {
             backend.setView("settings")
+        } else if (id === "action:context") {
+            ecosystem.refresh(backend.workspace)
+            backend.setView("opencode")
+            Qt.callLater(function () { chatPane.suggest(ecosystem.brief()) })
         } else if (id === "action:shortcuts") {
             win.helpVisible = true
         }
@@ -153,6 +159,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+3"; context: Qt.ApplicationShortcut; onActivated: backend.setView("split") }
     Shortcut { sequence: "Ctrl+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("settings") }
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
+    Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut {
         sequence: "Ctrl+N"
         context: Qt.ApplicationShortcut
@@ -418,6 +425,14 @@ ApplicationWindow {
                         onClicked: backend.setView("home")
                     }
                     RailButton {
+                        icon: "icons/ecosystem.svg"
+                        label: qsTr("Ecosystem")
+                        hint: qsTr("Project ecosystem (Ctrl+6)")
+                        active: backend.view === "ecosystem"
+                        onClicked: backend.setView("ecosystem")
+                    }
+
+                    RailButton {
                         icon: "icons/harness.svg"
                         label: qsTr("Harness")
                         hint: qsTr("DeepSeek Harness (Ctrl+1)")
@@ -471,7 +486,8 @@ ApplicationWindow {
                 RowLayout {
                     anchors.fill: parent
                     spacing: 0
-                    visible: backend.view !== "settings" && backend.view !== "home" && backend.view !== "terminal"
+                    visible: backend.view !== "settings" && backend.view !== "home"
+                             && backend.view !== "terminal" && backend.view !== "ecosystem"
 
                     HarnessPane {
                         id: harnessPane
@@ -501,6 +517,21 @@ ApplicationWindow {
                 TerminalPage {
                     anchors.fill: parent
                     visible: backend.view === "terminal"
+                }
+
+                EcosystemPane {
+                    id: ecosystemPane
+                    anchors.fill: parent
+                    visible: backend.view === "ecosystem"
+                    onCommandRequested: function (command) {
+                        terminal.run(command)
+                        backend.setView("terminal")
+                    }
+                    onPromptRequested: function (prompt) {
+                        backend.setView("opencode")
+                        Qt.callLater(function () { chatPane.suggest(prompt) })
+                    }
+                    onOpenSessions: sessionsPanel.open()
                 }
 
                 HomePane {

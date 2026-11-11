@@ -265,5 +265,95 @@
   "Logout completed.": "Déconnexion effectuée.",
   "Logout failed.": "La déconnexion a échoué.",
   "Logout cancelled.": "Déconnexion annulée.",
-  "Logout timed out.": "La déconnexion a expiré."
+  "Logout timed out.": "La déconnexion a expiré.",
+  "Ecosystem": "Écosystème",
+  "Project context": "Contexte du projet",
+  "The project, the tools it can use, and the skills that know how to use them.": "Le projet, les outils qu'il peut utiliser et les skills qui savent s'en servir.",
+  "%n tool(s) ready": {
+    "one": "%n outil prêt",
+    "other": "%n outils prêts"
+  },
+  "%n skill(s)": {
+    "one": "%n skill",
+    "other": "%n skills"
+  },
+  "%n model(s)": {
+    "one": "%n modèle",
+    "other": "%n modèles"
+  },
+  "%n MCP server(s)": {
+    "one": "%n serveur MCP",
+    "other": "%n serveurs MCP"
+  },
+  "Scanning…": "Analyse…",
+  "workspace": "espace de travail",
+  "Commands run in the integrated terminal.": "Les commandes s'exécutent dans le terminal intégré.",
+  "Context and recipes": "Contexte et recettes",
+  "Give the agent the state of the workspace in one click, or start from a proven workflow.": "Donnez l'état de l'espace de travail à l'agent en un clic, ou partez d'un workflow éprouvé.",
+  "Inject project context": "Injecter le contexte du projet",
+  "Explain": "Expliquer",
+  "Review": "Relire",
+  "Fix": "Corriger",
+  "Security": "Sécurité",
+  "Tools": "Outils",
+  "%n of %1 installed": {
+    "one": "%n sur %1 installé",
+    "other": "%n sur %1 installés"
+  },
+  "Skills": "Skills",
+  "%n available": {
+    "one": "%n disponible",
+    "other": "%n disponibles"
+  },
+  "No skill found in ~/.agents/skills.": "Aucune skill trouvée dans ~/.agents/skills.",
+  "Use": "Utiliser",
+  "Models": "Modèles",
+  "No model selected": "Aucun modèle sélectionné",
+  "%n available · mode %1": {
+    "one": "%n disponible · mode %1",
+    "other": "%n disponibles · mode %1"
+  },
+  "MCP and sessions": "MCP et sessions",
+  "Manage MCP": "Gérer MCP",
+  "- Serveurs MCP : %n": {
+    "one": "- Serveurs MCP : %n",
+    "other": "- Serveurs MCP : %n"
+  },
+  "Contexte de l'espace de travail %1 :": "Contexte de l'espace de travail %1 :",
+  "- Chemin : %1": "- Chemin : %1",
+  "- Projet : %1": "- Projet : %1",
+  "- Commande %1 : %2": "- Commande %1 : %2",
+  "- Outils disponibles : %1": "- Outils disponibles : %1",
+  "- Skills : %1": "- Skills : %1",
+  "Espace de travail": "Espace de travail",
+  "Installer": "Installer",
+  "Compiler": "Compiler",
+  "Lister": "Lister",
+  "Configurer": "Configurer",
+  "Tests": "Tests",
+  "- Git: %1": "- Git : %1",
+  "- OpenCode model: %1 · %2": "- Modèle OpenCode : %1 · %2",
+  "- MCP servers: %n": {
+    "one": "- Serveurs MCP : %n",
+    "other": "- Serveurs MCP : %n"
+  },
+  "Explain this project's architecture, its main modules and the data flow between them. Cite the important files.": "Explique l'architecture de ce projet, ses modules principaux et le flux de données entre eux. Cite les fichiers importants.",
+  "Review my uncommitted changes: look for bugs, regressions, edge cases and security issues. Propose concrete fixes.": "Relis mes changements non commités : cherche les bugs, les régressions, les cas limites et les problèmes de sécurité. Propose des correctifs concrets.",
+  "Look at the project and propose the most useful missing tests. Write them, then run the test suite.": "Regarde le projet et propose les tests manquants les plus utiles. Écris-les, puis lance la suite de tests.",
+  "Reproduce the problem I'm about to describe, find the root cause, fix it, and verify with a real test or command.": "Reproduis le problème que je vais décrire, trouve la cause racine, corrige-la et vérifie avec un test ou une commande réelle.",
+  "Audit the project's security: unvalidated input, secrets, permissions, dependencies and execution paths. Rank risks by severity.": "Fais un audit de sécurité du projet : entrées non validées, secrets, permissions, dépendances et chemins d'exécution. Classe les risques par gravité.",
+  "Find the project's performance bottlenecks. Measure where possible, then propose optimizations ranked by impact.": "Cherche les goulets d'étranglement de performance du projet. Mesure si possible, puis propose des optimisations classées par impact.",
+  "Use the « %1 » skill to help me on this project. Start by telling me what it brings and what you need.": "Utilise la skill « %1 » pour m'aider sur ce projet. Commence par me dire ce qu'elle apporte et ce dont tu as besoin.",
+  "Performance": "Performance",
+  "Project ecosystem (Ctrl+6)": "Écosystème du projet (Ctrl+6)",
+  "Terminal (Ctrl+5)": "Terminal (Ctrl+5)",
+  "Desktop portal": "Portail de bureau",
+  "Harness server": "Serveur harness",
+  "OpenCode session": "Session OpenCode",
+  "Git": "Git",
+  "Notifications": "Notifications",
+  "QtWebEngine": "QtWebEngine",
+  "OpenCode 2.2.7": "OpenCode 2.2.7",
+  "Serving on 127.0.0.1:43110": "En écoute sur 127.0.0.1:43110",
+  "Use the « %1 » skill from %2 to help me on this project. Start by telling me what it brings and what you need.": "Utilise la skill « %1 » depuis %2 pour m'aider sur ce projet. Commence par me dire ce qu'elle apporte et ce dont tu as besoin."
 }

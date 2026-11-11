@@ -58,7 +58,10 @@ Item {
 
     onVisibleChanged: {
         if (visible) {
+            const wasLoaded = loaded
             arm()
+            if (wasLoaded && !terminal.running)
+                terminal.start(backend.workspace)
             Qt.callLater(function () {
                 web.forceActiveFocus()
                 web.runJavaScript("window.termFocus && window.termFocus()")

@@ -8,6 +8,7 @@ INCLUDEPATH += ../src
 HEADERS += \
     ../src/acpclient.h \
     ../src/config.h \
+    ../src/ecosystem.h \
     ../src/harnessserver.h \
     ../src/mcpmanager.h \
     ../src/messagemodel.h \
@@ -21,6 +22,7 @@ SOURCES += \
     deepcrasy-h_tests.cpp \
     ../src/acpclient.cpp \
     ../src/config.cpp \
+    ../src/ecosystem.cpp \
     ../src/gitstatus.cpp \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
