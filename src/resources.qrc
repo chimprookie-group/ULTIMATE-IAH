@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+        <file>Palette.js</file>
+        <file>RailButton.qml</file>
+        <file>IconButton.qml</file>
+        <file>HarnessPane.qml</file>
+        <file>ChatPane.qml</file>
+        <file>Composer.qml</file>
+        <file>ToolCard.qml</file>
+        <file>SettingsPane.qml</file>
+        <file>SettingsSection.qml</file>
+        <file>HelpOverlay.qml</file>
+        <file>SessionsPanel.qml</file>
+        <file>PermissionDialog.qml</file>
+        <file alias="assets/icon-128.png">../assets/icon-128.png</file>
+        <file alias="assets/icon-256.png">../assets/icon-256.png</file>
+        <file>icons/terminal.svg</file>
+        <file>icons/chat.svg</file>
+        <file>icons/split.svg</file>
+        <file>icons/gear.svg</file>
+        <file>icons/help.svg</file>
+        <file>icons/folder.svg</file>
+        <file>icons/reload.svg</file>
+        <file>icons/external.svg</file>
+        <file>icons/send.svg</file>
+        <file>icons/stop.svg</file>
+        <file>icons/plus.svg</file>
+        <file>icons/history.svg</file>
+        <file>icons/close.svg</file>
+        <file>icons/check.svg</file>
+        <file>icons/chevron.svg</file>
+        <file>icons/spark.svg</file>
+        <file>icons/copy.svg</file>
+        <file>icons/pencil.svg</file>
+        <file>icons/file.svg</file>
+        <file>icons/alert.svg</file>
+        <file>i18n/en.json</file>
+        <file>i18n/fr.json</file>
+    </qresource>
+</RCC>

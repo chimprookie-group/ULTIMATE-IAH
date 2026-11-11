@@ -1,0 +1,41 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+
+import "Palette.js" as Pal
+
+Rectangle {
+    id: root
+    property string title: ""
+    default property alias content: column.data
+
+    Layout.fillWidth: true
+    implicitHeight: column.implicitHeight + 36
+    color: Pal.raised
+    radius: Math.min(10, theme.radius)
+    border.width: 1
+    border.color: Pal.border
+
+    ColumnLayout {
+        id: column
+        x: 16
+        y: 16
+        width: parent.width - 32
+        spacing: 10
+
+        Text {
+            text: root.title.toUpperCase()
+            font.pixelSize: 9
+            font.letterSpacing: 1.3
+            font.weight: Font.DemiBold
+            color: Pal.muted
+        }
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.bottomMargin: 2
+            height: 1
+            color: Pal.border
+        }
+    }
+}
