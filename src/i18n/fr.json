@@ -520,5 +520,13 @@
   "Writing the harness provider timed out.": "L'écriture du provider harness a expiré.",
   "The harness patch could not be generated: %1": "Le patch du harness n'a pas pu être généré : %1",
   "The 9Router key file could not be written.": "Le fichier de clé 9Router n'a pas pu être écrit.",
-  "The 9Router key file could not be saved.": "Le fichier de clé 9Router n'a pas pu être sauvegardé."
+  "The 9Router key file could not be saved.": "Le fichier de clé 9Router n'a pas pu être sauvegardé.",
+  "pkexec could not be started. Is a polkit authentication agent running?": "pkexec n'a pas pu démarrer. Un agent d'authentification polkit est-il lancé ?",
+  "Dependency installation failed or was cancelled.": "L'installation des dépendances a échoué ou a été annulée.",
+  "pkexec was not found. Install polkit first.": "pkexec est introuvable. Installez polkit d'abord.",
+  "This dependency helper expects the pacman package manager.": "Cet assistant de dépendances attend le gestionnaire de paquets pacman.",
+  "Waiting for polkit authorization…": "En attente de l'autorisation polkit…",
+  "Authorizing…": "Autorisation…",
+  "System dependencies (sudo)": "Dépendances système (sudo)",
+  "The local install needs no root. pkexec is only used for Node/npm/PyYAML dependencies, and the password stays with polkit.": "L'installation locale ne demande pas root. pkexec sert seulement aux dépendances Node/npm/PyYAML ; le mot de passe reste dans polkit."
 }

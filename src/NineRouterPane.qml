@@ -327,6 +327,18 @@ Item {
                             wrapMode: Text.Wrap
                         }
 
+                        Text {
+                            Layout.fillWidth: true
+                            visible: nineRouter.privilegedLog !== ""
+                            text: nineRouter.privilegedLog
+                            color: theme.dimText
+                            font.family: backend.monoFont
+                            font.pixelSize: 8
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 4
+                            elide: Text.ElideRight
+                        }
+
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 8
@@ -338,12 +350,28 @@ Item {
                                 flat: true
                                 onClicked: nineRouter.start()
                             }
+                            Button {
+                                text: nineRouter.privilegedBusy ? qsTr("Authorizing…") : qsTr("System dependencies (sudo)")
+                                flat: true
+                                font.pixelSize: 9
+                                enabled: !nineRouter.privilegedBusy && !nineRouter.installing
+                                onClicked: nineRouter.installDependencies()
+                            }
                             ActionButton {
                                 visible: !nineRouter.installed
                                 text: nineRouter.installing ? qsTr("Installing…") : qsTr("Install 9Router")
                                 enabled: !nineRouter.installing
                                 onClicked: nineRouter.install()
                             }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: !nineRouter.installed && nineRouter.privilegedLog === ""
+                            text: qsTr("The local install needs no root. pkexec is only used for Node/npm/PyYAML dependencies, and the password stays with polkit.")
+                            color: theme.dimText
+                            font.pixelSize: 8
+                            wrapMode: Text.Wrap
                         }
                     }
                 }

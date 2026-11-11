@@ -74,6 +74,11 @@ Le panneau **Intégration** permet de choisir les modèles à exposer :
 mot de passe initial `123456` ; changez-le dans ses réglages. Le service écoute
 uniquement sur `127.0.0.1`.
 
+Si Node, npm ou PyYAML manquent, le bouton **Dépendances système (sudo)**
+lance `pkexec pacman -S --needed --noconfirm nodejs npm python-yaml`. La
+fenêtre polkit demande le mot de passe administrateur ; l'application ne le
+voit jamais et l'installation locale de 9Router reste sans root.
+
 ## Providers : n'importe quelle API
 
 ![Gestion des providers](assets/screenshot-providers.png)

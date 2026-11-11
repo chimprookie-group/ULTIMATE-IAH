@@ -184,6 +184,12 @@ persistant. Le panneau d'intégration choisit les modèles à exposer :
   dans l'environnement de `dsh`. Le patch peut aussi définir
   `agent-default-model`.
 
+L'installation locale de 9Router ne demande pas root. Si les outils système
+manquent, `NineRouterManager::installDependencies()` exécute
+`pkexec pacman -S --needed --noconfirm nodejs npm python-yaml` : les arguments
+sont fixes, le mot de passe est saisi dans la fenêtre polkit et ne traverse
+jamais l'application. Un agent polkit doit être actif dans la session.
+
 Un marqueur `nine-router.enabled` et la présence du patch permettent de
 redémarrer 9Router avec l'application. Le port reste local et le dashboard
 9Router n'est jamais exposé au réseau.

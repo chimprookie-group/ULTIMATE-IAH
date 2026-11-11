@@ -26,6 +26,8 @@ class NineRouterManager : public QObject {
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString logTail READ logTail NOTIFY logChanged)
     Q_PROPERTY(QString installLog READ installLog NOTIFY installLogChanged)
+    Q_PROPERTY(bool privilegedBusy READ privilegedBusy NOTIFY privilegedBusyChanged)
+    Q_PROPERTY(QString privilegedLog READ privilegedLog NOTIFY privilegedLogChanged)
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
     Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
 
@@ -45,11 +47,14 @@ public:
     QString error() const { return m_error; }
     QString logTail() const { return m_log.join('\n'); }
     QString installLog() const { return m_installLog; }
+    bool privilegedBusy() const { return m_privilegedBusy; }
+    QString privilegedLog() const { return m_privilegedLog; }
     QString configPath() const { return m_configDir; }
     QVariantList models() const { return m_models; }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void install();
+    Q_INVOKABLE void installDependencies();
     Q_INVOKABLE void start();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void login(const QString &password);
@@ -70,6 +75,9 @@ signals:
     void errorChanged();
     void logChanged();
     void installLogChanged();
+    void privilegedBusyChanged();
+    void privilegedLogChanged();
+    void dependenciesInstalled();
     void modelsChanged();
     void openCodeApplied();
     void harnessApplied();
@@ -102,6 +110,7 @@ private:
     QNetworkAccessManager *m_network = nullptr;
     QProcess m_process;
     QProcess m_installProcess;
+    QProcess m_privilegedProcess;
     QTimer *m_healthTimer = nullptr;
     QTimer *m_startTimer = nullptr;
     QString m_binary;
@@ -113,12 +122,14 @@ private:
     QString m_keyMasked;
     QString m_error;
     QString m_installLog;
+    QString m_privilegedLog;
     QStringList m_log;
     QVariantList m_models;
     int m_port = 20128;
     bool m_running = false;
     bool m_starting = false;
     bool m_installing = false;
+    bool m_privilegedBusy = false;
     bool m_authRequired = false;
     bool m_stopping = false;
     bool m_probeBeforeStart = false;

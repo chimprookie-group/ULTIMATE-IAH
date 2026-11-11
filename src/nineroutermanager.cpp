@@ -109,6 +109,32 @@ NineRouterManager::NineRouterManager(QObject *parent)
         }
     });
 
+    m_privilegedProcess.setProcessChannelMode(QProcess::MergedChannels);
+    connect(&m_privilegedProcess, &QProcess::readyReadStandardOutput, this, [this] {
+        m_privilegedLog += QString::fromUtf8(m_privilegedProcess.readAllStandardOutput());
+        if (m_privilegedLog.size() > 12000)
+            m_privilegedLog = m_privilegedLog.right(12000);
+        emit privilegedLogChanged();
+    });
+    connect(&m_privilegedProcess, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) {
+            m_privilegedBusy = false;
+            emit privilegedBusyChanged();
+            setError(tr("pkexec could not be started. Is a polkit authentication agent running?"));
+        }
+    });
+    connect(&m_privilegedProcess, &QProcess::finished, this, [this](int code, QProcess::ExitStatus) {
+        m_privilegedBusy = false;
+        emit privilegedBusyChanged();
+        if (code != 0) {
+            setError(tr("Dependency installation failed or was cancelled."));
+            return;
+        }
+        detect();
+        emit dependenciesInstalled();
+        install();
+    });
+
     detect();
     if (installed() && (QFileInfo::exists(m_configDir + "/nine-router.patch.yml")
                         || QFileInfo::exists(m_configDir + "/nine-router.enabled")))
@@ -138,6 +164,31 @@ void NineRouterManager::detect() {
     emit installedChanged();
     if (m_binary.isEmpty())
         setDetail(tr("Not installed"));
+}
+
+void NineRouterManager::installDependencies() {
+    if (m_privilegedBusy)
+        return;
+    const QString pkexec = QStandardPaths::findExecutable(QStringLiteral("pkexec"));
+    if (pkexec.isEmpty()) {
+        setError(tr("pkexec was not found. Install polkit first."));
+        return;
+    }
+    const QString pacman = QStandardPaths::findExecutable(QStringLiteral("pacman"));
+    if (pacman.isEmpty()) {
+        setError(tr("This dependency helper expects the pacman package manager."));
+        return;
+    }
+    m_privilegedBusy = true;
+    m_privilegedLog.clear();
+    emit privilegedBusyChanged();
+    emit privilegedLogChanged();
+    setError({});
+    setDetail(tr("Waiting for polkit authorization…"));
+    m_privilegedProcess.start(pkexec, {pacman, QStringLiteral("-S"), QStringLiteral("--needed"),
+                                       QStringLiteral("--noconfirm"),
+                                       QStringLiteral("nodejs"), QStringLiteral("npm"),
+                                       QStringLiteral("python-yaml")});
 }
 
 void NineRouterManager::install() {
