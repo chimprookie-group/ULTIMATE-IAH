@@ -40,6 +40,7 @@ Rectangle {
                 color: root.accent
             }
             Text {
+        renderType: Text.NativeRendering
                 text: root.title.toUpperCase()
                 color: theme.mutedText
                 font.pixelSize: 9

@@ -24,6 +24,7 @@ Rectangle {
         spacing: 10
 
         Text {
+        renderType: Text.NativeRendering
             text: root.title.toUpperCase()
             font.pixelSize: 9
             font.letterSpacing: 1.3

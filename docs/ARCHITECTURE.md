@@ -97,15 +97,18 @@ la carte est peinte avec les couleurs du thème qu'elle représente.
 
 ### Le rendu et le crash du render thread
 
-Sous Qt 6.12, le render loop threadé peut segfaulter dans
-`QSGBatchRenderer::prepareAlphaBatches()` quand le transcript streame et que la
-ListView se remet en bas. La pile ne contient que Qt Quick, et le thread
-principal est dans sa boucle d'événements : c'est une course interne au moteur
-de rendu, pas une erreur de données ACP. `main.cpp` force donc
-`QSG_RENDER_LOOP=basic` avant `QGuiApplication` (une valeur déjà présente dans
-l'environnement reste prioritaire). Le rendu, QtWebEngine et le terminal
-fonctionnent avec cette boucle ; elle est plus simple et suffisante pour cette
-application.
+Sous Qt 6.12, un `QSGDistanceFieldGlyphNode` peut arriver dans le batch
+renderer avec une matrice nulle ; `Element::computeBounds()` déréférence alors
+`node->matrix()` et segfaulte dans `prepareAlphaBatches()`. Le core identifie
+précisément ce type de nœud, et la pile ne contient que Qt Quick : ce n'est ni
+l'ACP ni un OOM.
+
+Deux contournements sont appliqués : tous les `Text` et `TextEdit` de
+l'interface forcent `NativeRendering`, qui n'utilise pas les nœuds de distance
+field ; et `main.cpp` force `QSG_RENDER_LOOP=basic` avant `QGuiApplication`
+(une valeur déjà présente dans l'environnement reste prioritaire). Un stream
+de stress de 200 secondes et les vues terminal/harness passent avec ce
+réglage. À retirer quand Qt Quick sera corrigé.
 
 ### Le transcript
 

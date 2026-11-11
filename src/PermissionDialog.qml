@@ -53,6 +53,7 @@ Item {
                     color: theme.yellow
                 }
                 Text {
+        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("OpenCode asks for permission")
                     font.pixelSize: 14
@@ -62,6 +63,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 visible: root.opened && request.title !== undefined && request.title !== ""
                 text: root.opened ? request.title : ""
@@ -81,6 +83,7 @@ Item {
                 border.color: theme.border
 
                 Text {
+        renderType: Text.NativeRendering
                     id: commandText
                     anchors.fill: parent
                     anchors.margins: 8
@@ -93,6 +96,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: qsTr("Nothing runs until you choose. Escape refuses.")
                 color: theme.dimText

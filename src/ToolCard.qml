@@ -105,6 +105,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: root.title !== "" ? root.title : qsTr("Tool call")
                 font.family: backend.monoFont
@@ -133,6 +134,7 @@ Item {
                         color: root.statusColor(root.status)
                     }
                     Text {
+        renderType: Text.NativeRendering
                         text: root.statusLabel(root.status)
                         font.pixelSize: 8
                         font.letterSpacing: 0.3
@@ -152,6 +154,7 @@ Item {
         }
 
         Text {
+        renderType: Text.NativeRendering
             Layout.fillWidth: true
             visible: root.command !== ""
             text: "$ " + root.command
@@ -163,6 +166,7 @@ Item {
         }
 
         Text {
+        renderType: Text.NativeRendering
             Layout.fillWidth: true
             visible: root.output !== ""
             text: root.output
@@ -176,6 +180,7 @@ Item {
         }
 
         Text {
+        renderType: Text.NativeRendering
             Layout.fillWidth: true
             visible: root.expanded && root.locations.length > 0
             text: {
@@ -189,6 +194,7 @@ Item {
         }
 
         Text {
+        renderType: Text.NativeRendering
             Layout.fillWidth: true
             visible: root.expanded && root.exitCode >= 0
             text: qsTr("exit code %1").arg(root.exitCode)

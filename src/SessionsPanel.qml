@@ -58,12 +58,14 @@ Item {
                     Layout.fillWidth: true
                     spacing: 1
                     Text {
+        renderType: Text.NativeRendering
                         text: qsTr("Sessions")
                         font.pixelSize: 15
                         font.weight: Font.DemiBold
                         color: theme.text
                     }
                     Text {
+        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: backend.workspaceName
                         color: theme.dimText
@@ -112,6 +114,7 @@ Item {
                         spacing: 2
 
                         Text {
+        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: backend.sessionLabel(modelData)
                             color: theme.text
@@ -122,6 +125,7 @@ Item {
                             Layout.fillWidth: true
                             spacing: 8
                             Text {
+        renderType: Text.NativeRendering
                                 text: modelData.updatedAt !== undefined
                                       ? Qt.formatDateTime(new Date(modelData.updatedAt), "d MMM · HH:mm")
                                       : ""
@@ -129,6 +133,7 @@ Item {
                                 font.pixelSize: 10
                             }
                             Text {
+        renderType: Text.NativeRendering
                                 Layout.fillWidth: true
                                 text: modelData.sessionId !== undefined ? modelData.sessionId : ""
                                 color: theme.dimText
@@ -153,6 +158,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 visible: backend.loadingSessions
                 text: qsTr("Loading sessions…")
@@ -162,6 +168,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 visible: !backend.loadingSessions && backend.sessions.length === 0
                 text: qsTr("No sessions in this workspace yet. Send a message to start one.")

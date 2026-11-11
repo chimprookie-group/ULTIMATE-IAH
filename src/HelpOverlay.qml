@@ -60,6 +60,7 @@ Item {
                 Layout.fillWidth: true
 
                 Text {
+        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: qsTr("Keyboard")
                     font.pixelSize: 16
@@ -74,6 +75,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: qsTr("Everything works from the keyboard. The harness keeps its page when you switch views; OpenCode keeps its transcript.")
                 wrapMode: Text.Wrap
@@ -101,6 +103,7 @@ Item {
                         border.width: 1
                         border.color: theme.border
                         Text {
+        renderType: Text.NativeRendering
                             anchors.centerIn: parent
                             text: modelData.keys
                             font.family: backend.monoFont
@@ -109,6 +112,7 @@ Item {
                         }
                     }
                     Text {
+        renderType: Text.NativeRendering
                         Layout.fillWidth: true
                         text: modelData.what
                         color: theme.mutedText

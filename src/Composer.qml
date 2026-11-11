@@ -74,6 +74,7 @@ Rectangle {
             Layout.preferredHeight: Math.min(148, Math.max(26, input.contentHeight + 6))
 
             TextEdit {
+        renderType: TextEdit.NativeRendering
                 id: input
                 anchors.fill: parent
                 anchors.margins: 2
@@ -99,6 +100,7 @@ Rectangle {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.margins: 3
@@ -153,6 +155,7 @@ Rectangle {
             Item { Layout.fillWidth: true }
 
             Text {
+        renderType: Text.NativeRendering
                 visible: backend.usage.used !== undefined
                 text: {
                     const usage = backend.usage

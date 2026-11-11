@@ -80,6 +80,7 @@ Item {
             Item { Layout.fillHeight: true }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: root.label
                 color: root.cardForeground
@@ -89,6 +90,7 @@ Item {
             }
 
             Text {
+        renderType: Text.NativeRendering
                 Layout.fillWidth: true
                 text: root.subtitle !== "" ? root.subtitle : (root.mode === "light" ? qsTr("Light") : qsTr("Dark"))
                 color: root.cardForeground

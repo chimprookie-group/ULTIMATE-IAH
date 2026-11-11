@@ -104,12 +104,14 @@ Item {
                     color: terminal.running ? theme.green : theme.dimText
                 }
                 Text {
+        renderType: Text.NativeRendering
                     text: qsTr("Terminal")
                     color: theme.text
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
                 Text {
+        renderType: Text.NativeRendering
                     Layout.fillWidth: true
                     text: terminal.shell.substring(terminal.shell.lastIndexOf("/") + 1) + " · " + backend.workspace
                     color: theme.dimText

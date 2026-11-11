@@ -133,7 +133,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.1"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.11.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -201,6 +201,11 @@ int main(int argc, char *argv[]) {
     // app_id) and the launcher pick up the installed icon.
     app.setDesktopFileName(QStringLiteral("deepcrasy-h"));
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("deepcrasy-h")));
+
+    // Qt 6.12's distance-field glyph nodes can reach the batch renderer with a
+    // null matrix while text streams, which crashes prepareAlphaBatches().
+    // Native glyph rendering does not use QSGDistanceFieldGlyphNode.
+    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
     QQuickStyle::setStyle(QStringLiteral("Material"));
 

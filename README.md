@@ -319,11 +319,12 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
 
 ## Stabilité
 
-Qt 6.12 peut crasher dans `QSGBatchRenderer::prepareAlphaBatches()` sur son
-thread de rendu pendant un stream. DeepCrasy H force donc la boucle de rendu
-Quick `basic` (même thread que l'interface), sauf si `QSG_RENDER_LOOP` est déjà
-défini dans l'environnement. C'est un contournement du bug Qt ; il pourra être
-retiré quand Qt Quick sera corrigé.
+Qt 6.12 peut crasher dans `QSGBatchRenderer::prepareAlphaBatches()` sur un
+glyphe de texte en distance field dont la matrice est nulle. DeepCrasy H force
+donc le **rendu natif des glyphes** (`Text.NativeRendering`) et la boucle Quick
+`basic` (même thread que l'interface), sauf si `QSG_RENDER_LOOP` est déjà défini.
+C'est un contournement de deux bugs Qt ; il pourra être retiré quand Qt Quick
+sera corrigé.
 
 ## Limites connues
 

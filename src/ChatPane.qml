@@ -76,6 +76,7 @@ Item {
                     RowLayout {
                         spacing: 6
                         Text {
+        renderType: Text.NativeRendering
                             Layout.fillWidth: true
                             text: backend.sessionTitle !== "" ? backend.sessionTitle : qsTr("New session")
                             font.pixelSize: 12
@@ -98,6 +99,7 @@ Item {
                         }
                     }
                     Text {
+        renderType: Text.NativeRendering
                         text: backend.sessionId !== "" ? backend.sessionId : qsTr("no session yet")
                         font.family: backend.monoFont
                         font.pixelSize: 9
@@ -181,6 +183,7 @@ Item {
                                 }
 
                                 Text {
+        renderType: Text.NativeRendering
                                     id: userLabel
                                     anchors.fill: parent
                                     anchors.margins: 9
@@ -194,6 +197,7 @@ Item {
                         }
 
                         Text {
+        renderType: Text.NativeRendering
                             visible: model.role === "assistant"
                             width: parent.width
                             text: model.text !== undefined ? model.text : ""
@@ -221,6 +225,7 @@ Item {
                         }
 
                         Text {
+        renderType: Text.NativeRendering
                             visible: model.role === "thought"
                             width: parent.width
                             text: "thinking · " + model.text
@@ -261,6 +266,7 @@ Item {
                                 spacing: 5
 
                                 Text {
+        renderType: Text.NativeRendering
                                     text: qsTr("PLAN")
                                     font.pixelSize: 8
                                     font.letterSpacing: 1.2
@@ -280,6 +286,7 @@ Item {
                                             color: pane.planColor(modelData.status)
                                         }
                                         Text {
+        renderType: Text.NativeRendering
                                             Layout.fillWidth: true
                                             text: modelData.content
                                             wrapMode: Text.Wrap
@@ -292,6 +299,7 @@ Item {
                         }
 
                         Text {
+        renderType: Text.NativeRendering
                             visible: model.role === "notice"
                             width: parent.width
                             text: model.text !== undefined ? model.text : ""
@@ -344,6 +352,7 @@ Item {
                         }
                     }
                     Text {
+        renderType: Text.NativeRendering
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.Wrap
@@ -353,6 +362,7 @@ Item {
                         font.weight: Font.DemiBold
                     }
                     Text {
+        renderType: Text.NativeRendering
                         width: parent.width
                         text: qsTr("The harness runs beside this chat. Ask OpenCode to read, edit, or run anything in the shared workspace — tool calls and permissions stay visible.")
                         wrapMode: Text.Wrap
@@ -390,6 +400,7 @@ Item {
                                         color: theme.cyan
                                     }
                                     Text {
+        renderType: Text.NativeRendering
                                         Layout.fillWidth: true
                                         text: modelData
                                         color: theme.mutedText
@@ -429,12 +440,14 @@ Item {
                         implicitHeight: 28
                     }
                     Text {
+        renderType: Text.NativeRendering
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: backend.opencodeState === "stopped" ? qsTr("OpenCode is stopped") : qsTr("Starting OpenCode…")
                         color: theme.text
                         font.pixelSize: 13
                     }
                     Text {
+        renderType: Text.NativeRendering
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: backend.opencodeDetail
                         color: theme.dimText
@@ -462,6 +475,7 @@ Item {
                         color: theme.yellow
                     }
                     Text {
+        renderType: Text.NativeRendering
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: qsTr("OpenCode is not available")
                         color: theme.text
@@ -469,6 +483,7 @@ Item {
                         font.weight: Font.DemiBold
                     }
                     Text {
+        renderType: Text.NativeRendering
                         width: parent.width
                         text: backend.opencodeDetail
                         wrapMode: Text.Wrap
