@@ -92,12 +92,15 @@ on change de vue, suit le thème actif, se redimensionne avec la fenêtre, et
 ## Serveurs MCP
 
 **Réglages → Serveurs MCP** gère les serveurs d'outils exposés à OpenCode :
-liste avec type et cible, ajout d'un serveur local (`npx …`) ou distant
-(`https://…`), retrait, et statut demandé à `opencode mcp list`. Le fichier
-`~/.config/opencode/opencode.json` est modifié de façon atomique, sans toucher
-au thème, à l'autoupdate ni au reste de la configuration. Un bouton relance
-OpenCode pour charger un serveur qui vient d'être ajouté ; le statut reste
-best-effort et peut afficher « Non testé » tant que le service n'a pas rechargé.
+liste fusionnée avec type, cible et portée, ajout d'un serveur local (`npx …`)
+ou distant (`https://…`), retrait, et statut demandé à `opencode mcp list`.
+Deux portées sont disponibles : **Global** dans
+`~/.config/opencode/opencode.json`, et **Projet** dans
+`<espace de travail>/opencode.json`. Le fichier choisi est modifié de façon
+atomique, sans toucher au thème, à l'autoupdate ni au reste de la
+configuration. Un bouton relance OpenCode pour charger un serveur qui vient
+d'être ajouté ; le statut reste best-effort et peut afficher « Non testé » tant
+que le service n'a pas rechargé.
 
 ![Serveurs MCP](assets/screenshot-mcp.png)
 
@@ -114,8 +117,8 @@ best-effort et peut afficher « Non testé » tant que le service n'a pas rechar
   instantanée et transcript conservé.
 - **Terminal intégré** (`Ctrl+5`) : PTY réel, shell de l'utilisateur, thème,
   copier/coller, redémarrage.
-- **Serveurs MCP** : liste, ajout local ou distant, retrait, statut et
-  redémarrage d'OpenCode depuis Réglages.
+- **Serveurs MCP** : liste fusionnée global/projet, ajout local ou distant,
+  retrait, statut et redémarrage d'OpenCode depuis Réglages.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -227,8 +230,9 @@ Le chat et le sélecteur de modèle :
 - `src/terminalsession.*` ouvre un PTY avec `forkpty`, décode l'UTF-8 au fil de
   l'eau et expose l'entrée/sortie à xterm.js via QWebChannel. `src/terminal/`
   contient xterm.js et son addon de redimensionnement.
-- `src/mcpmanager.*` lit et écrit la section `mcp.servers` de la configuration
-  OpenCode, et interroge `opencode mcp list` en arrière-plan pour les statuts.
+- `src/mcpmanager.*` lit et écrit la section `mcp.servers` des configurations
+  OpenCode globale et de projet, et interroge `opencode mcp list` en
+  arrière-plan pour les statuts.
 - `src/gitstatus.*` lit `git status --porcelain=v1 -b` sans toucher au dépôt ;
   `src/theme.*` lit les palettes Omarchy et en dérive toute l'interface ;
   `src/iconprovider.*` teinte les SVG avec la bonne couleur.

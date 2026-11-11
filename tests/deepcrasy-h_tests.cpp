@@ -121,7 +121,7 @@ private slots:
         McpManager mcp(path, false);
         QCOMPARE(mcp.servers().size(), 0);
 
-        mcp.addServer("filesystem", "local", "npx -y @modelcontextprotocol/server-filesystem /tmp");
+        mcp.addServer("filesystem", "local", "npx -y @modelcontextprotocol/server-filesystem /tmp", "global");
         QCOMPARE(mcp.servers().size(), 1);
         QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("filesystem"));
         QCOMPARE(mcp.error(), QString());
@@ -136,14 +136,28 @@ private slots:
         QCOMPARE(server.value("type").toString(), QString("local"));
         QCOMPARE(server.value("command").toArray().size(), 4);
 
-        mcp.addServer("remote", "remote", "https://example.com/mcp");
+        mcp.addServer("remote", "remote", "https://example.com/mcp", "global");
         QCOMPARE(mcp.servers().size(), 2);
 
-        mcp.removeServer("filesystem");
-        QCOMPARE(mcp.servers().size(), 1);
-        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("remote"));
+        QTemporaryDir project;
+        mcp.setWorkspace(project.path());
+        QCOMPARE(mcp.projectConfigPath(), project.path() + "/opencode.json");
+        mcp.addServer("project-tools", "remote", "https://example.com/project", "project");
+        QCOMPARE(mcp.servers().size(), 3);
+        QFile projectConfig(project.path() + "/opencode.json");
+        QVERIFY(projectConfig.open(QIODevice::ReadOnly));
+        const QJsonObject projectRoot = QJsonDocument::fromJson(projectConfig.readAll()).object();
+        projectConfig.close();
+        QVERIFY(projectRoot.value("mcp").toObject().value("servers").toObject()
+                    .contains("project-tools"));
 
-        mcp.addServer("bad name", "local", "echo");
+        mcp.removeServer("filesystem", "global");
+        QCOMPARE(mcp.servers().size(), 2);
+        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("remote"));
+        mcp.removeServer("project-tools", "project");
+        QCOMPARE(mcp.servers().size(), 1);
+
+        mcp.addServer("bad name", "local", "echo", "global");
         QVERIFY(!mcp.error().isEmpty());
     }
 

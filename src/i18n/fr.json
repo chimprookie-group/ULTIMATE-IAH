@@ -243,5 +243,11 @@
   "The OpenCode configuration could not be written.": "La configuration OpenCode n'a pas pu être écrite.",
   "OpenCode was not found.": "OpenCode est introuvable.",
   "MCP status timed out.": "La vérification des serveurs MCP a expiré.",
-  "Pending": "En attente"
+  "Pending": "En attente",
+  "Scope": "Portée",
+  "Global": "Global",
+  "Project": "Projet",
+  "Choose a global or project MCP server.": "Choisissez un serveur MCP global ou de projet.",
+  "A project MCP server needs a workspace.": "Un serveur MCP de projet a besoin d'un espace de travail.",
+  "The project OpenCode configuration could not be read.": "La configuration OpenCode du projet n'a pas pu être lue."
 }

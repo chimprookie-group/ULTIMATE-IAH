@@ -128,15 +128,18 @@ entreraient en conflit avec le shell (Ctrl+K, Ctrl+R, Ctrl+L, Ctrl+N, ?, Q,
 
 ### Les serveurs MCP
 
-`McpManager` possède la section `mcp.servers` de la configuration OpenCode
-globale (`~/.config/opencode/opencode.json`, ou `OPENCODE_CONFIG` si défini).
-Les ajouts et retraits réécrivent le document JSON avec `QSaveFile` en
-préservant toutes les autres clés ; une configuration illisible est signalée
-et jamais écrasée. Les commandes locales sont découpées avec
-`QProcess::splitCommand`, les URL distantes doivent être http(s).
+`McpManager` possède la section `mcp.servers` de deux configurations OpenCode :
+la globale (`~/.config/opencode/opencode.json`, ou `OPENCODE_CONFIG` si défini)
+et celle du projet (`<espace de travail>/opencode.json`). `setWorkspace()`
+suit l'espace de travail et recalcule le chemin projet ; la liste affichée
+fusionne les deux portées, chaque entrée portant son `scope`. Ajouts et
+retraits réécrivent le document JSON choisi avec `QSaveFile` en préservant
+toutes les autres clés ; une configuration illisible est signalée et jamais
+écrasée. Les commandes locales sont découpées avec `QProcess::splitCommand`,
+les URL distantes doivent être http(s).
 
-Le statut vient de `opencode mcp list`, lancé en arrière-plan avec un délai de
-20 s. Le format texte (glyphes `✓`, `✗`, `○`, `-`) est parsé et fusionné avec
+Le statut vient de `opencode mcp list`, lancé en arrière-plan dans l'espace de
+travail avec un délai de 20 s. Le format texte (glyphes `✓`, `✗`, `○`, `-`) est parsé et fusionné avec
 la liste issue du fichier ; un serveur non reconnu reste « non testé ». Comme
 OpenCode garde sa configuration en mémoire, l'ajout ne prend effet qu'après un
 redémarrage — le bouton correspondant relance le client ACP.

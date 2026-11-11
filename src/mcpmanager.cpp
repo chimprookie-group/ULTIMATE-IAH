@@ -70,8 +70,8 @@ QString McpManager::defaultConfigPath() {
         + "/opencode/opencode.json";
 }
 
-bool McpManager::readConfig(QJsonObject &root) const {
-    QFile file(m_configPath);
+bool McpManager::readConfig(const QString &path, QJsonObject &root) const {
+    QFile file(path);
     if (!file.exists()) {
         root = QJsonObject{};
         return true;
@@ -90,10 +90,10 @@ bool McpManager::readConfig(QJsonObject &root) const {
     return true;
 }
 
-bool McpManager::writeConfig(const QJsonObject &root) {
-    if (!QDir().mkpath(QFileInfo(m_configPath).absolutePath()))
+bool McpManager::writeConfig(const QString &path, const QJsonObject &root) {
+    if (!QDir().mkpath(QFileInfo(path).absolutePath()))
         return false;
-    QSaveFile file(m_configPath);
+    QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly))
         return false;
     file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
@@ -101,8 +101,8 @@ bool McpManager::writeConfig(const QJsonObject &root) {
 }
 
 void McpManager::loadConfig() {
-    QJsonObject root;
-    m_configOk = readConfig(root);
+    QJsonObject global;
+    m_configOk = readConfig(m_configPath, global);
     if (!m_configOk) {
         m_servers.clear();
         emit serversChanged();
@@ -110,27 +110,53 @@ void McpManager::loadConfig() {
         return;
     }
 
-    const QJsonObject servers = root.value("mcp").toObject().value("servers").toObject();
     QVariantList list;
-    for (auto it = servers.begin(); it != servers.end(); ++it) {
-        const QJsonObject server = it.value().toObject();
-        const QString type = server.value("type").toString(
-            server.contains("url") ? QStringLiteral("remote") : QStringLiteral("local"));
-        QVariantMap entry;
-        entry["name"] = it.key();
-        entry["type"] = type;
-        entry["target"] = type == "remote"
-            ? server.value("url").toString()
-            : commandLine(server.value("command").toArray());
-        entry["status"] = "unknown";
-        entry["detail"] = "";
-        list.append(entry);
+    const auto append = [&list](const QJsonObject &root, const QString &scope) {
+        const QJsonObject servers = root.value("mcp").toObject().value("servers").toObject();
+        for (auto it = servers.begin(); it != servers.end(); ++it) {
+            const QJsonObject server = it.value().toObject();
+            const QString type = server.value("type").toString(
+                server.contains("url") ? QStringLiteral("remote") : QStringLiteral("local"));
+            QVariantMap entry;
+            entry["name"] = it.key();
+            entry["scope"] = scope;
+            entry["type"] = type;
+            entry["target"] = type == "remote"
+                ? server.value("url").toString()
+                : commandLine(server.value("command").toArray());
+            entry["status"] = "unknown";
+            entry["detail"] = "";
+            list.append(entry);
+        }
+    };
+
+    append(global, QStringLiteral("global"));
+    if (!m_projectConfigPath.isEmpty() && QFileInfo::exists(m_projectConfigPath)) {
+        QJsonObject project;
+        if (readConfig(m_projectConfigPath, project)) {
+            append(project, QStringLiteral("project"));
+        } else {
+            setError(tr("The project OpenCode configuration could not be read."));
+        }
     }
+
     m_servers = list;
     emit serversChanged();
 }
 
+void McpManager::setWorkspace(const QString &workspace) {
+    const QString clean = workspace.isEmpty() ? QString() : QDir::cleanPath(workspace);
+    if (clean == m_workspace)
+        return;
+    m_workspace = clean;
+    m_projectConfigPath = clean.isEmpty() ? QString() : QDir(clean).filePath(QStringLiteral("opencode.json"));
+    emit workspaceChanged();
+    emit projectConfigPathChanged();
+    refresh();
+}
+
 void McpManager::refresh() {
+    setError({});
     loadConfig();
     if (!m_configOk)
         return;
@@ -154,7 +180,11 @@ void McpManager::refresh() {
         m_process->waitForFinished(500);
     }
 
-    setError({});
+    if (!m_workspace.isEmpty() && QFileInfo(m_workspace).isDir())
+        m_process->setWorkingDirectory(m_workspace);
+    else
+        m_process->setWorkingDirectory(QDir::currentPath());
+
     m_timedOut = false;
     setLoading(true);
 
@@ -223,7 +253,8 @@ void McpManager::parseStatuses(const QString &output) {
     emit serversChanged();
 }
 
-void McpManager::addServer(const QString &name, const QString &type, const QString &target) {
+void McpManager::addServer(const QString &name, const QString &type, const QString &target,
+                           const QString &scope) {
     const QString trimmedName = name.trimmed();
     const QString trimmedTarget = target.trimmed();
     static const QRegularExpression validName(QStringLiteral("^[A-Za-z0-9][A-Za-z0-9_-]*$"));
@@ -235,14 +266,27 @@ void McpManager::addServer(const QString &name, const QString &type, const QStri
         setError(tr("Choose a local or remote MCP server."));
         return;
     }
+    if (scope != "global" && scope != "project") {
+        setError(tr("Choose a global or project MCP server."));
+        return;
+    }
     if (trimmedTarget.isEmpty()) {
         setError(type == "local" ? tr("A local MCP server needs a command.")
                                  : tr("A remote MCP server needs an http(s) URL."));
         return;
     }
 
+    QString path = m_configPath;
+    if (scope == "project") {
+        if (m_projectConfigPath.isEmpty()) {
+            setError(tr("A project MCP server needs a workspace."));
+            return;
+        }
+        path = m_projectConfigPath;
+    }
+
     QJsonObject root;
-    if (!readConfig(root)) {
+    if (!readConfig(path, root)) {
         setError(tr("The OpenCode configuration could not be read."));
         return;
     }
@@ -278,7 +322,7 @@ void McpManager::addServer(const QString &name, const QString &type, const QStri
     servers.insert(trimmedName, server);
     mcp["servers"] = servers;
     root["mcp"] = mcp;
-    if (!writeConfig(root)) {
+    if (!writeConfig(path, root)) {
         setError(tr("The OpenCode configuration could not be written."));
         return;
     }
@@ -286,9 +330,17 @@ void McpManager::addServer(const QString &name, const QString &type, const QStri
     refresh();
 }
 
-void McpManager::removeServer(const QString &name) {
+void McpManager::removeServer(const QString &name, const QString &scope) {
+    QString path = m_configPath;
+    if (scope == "project")
+        path = m_projectConfigPath;
+    if (path.isEmpty()) {
+        setError(tr("A project MCP server needs a workspace."));
+        return;
+    }
+
     QJsonObject root;
-    if (!readConfig(root)) {
+    if (!readConfig(path, root)) {
         setError(tr("The OpenCode configuration could not be read."));
         return;
     }
@@ -300,7 +352,7 @@ void McpManager::removeServer(const QString &name) {
     servers.remove(name);
     mcp["servers"] = servers;
     root["mcp"] = mcp;
-    if (!writeConfig(root)) {
+    if (!writeConfig(path, root)) {
         setError(tr("The OpenCode configuration could not be written."));
         return;
     }

@@ -56,6 +56,7 @@ Item {
     onVisibleChanged: if (visible) refresh()
 
     property string mcpType: "local"
+    property string mcpScope: "global"
 
     readonly property var providers: {
         const options = backend.modelOptions
@@ -566,11 +567,54 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 6
+
+                    Text {
+                        text: qsTr("Scope")
+                        color: theme.mutedText
+                        font.pixelSize: 9
+                    }
+
+                    Repeater {
+                        model: [
+                            { "id": "global", "label": qsTr("Global") },
+                            { "id": "project", "label": qsTr("Project") }
+                        ]
+
+                        Rectangle {
+                            width: scopeLabel.implicitWidth + 20
+                            height: 26
+                            radius: 13
+                            color: root.mcpScope === modelData.id ? theme.accent : theme.chip
+                            border.width: 1
+                            border.color: root.mcpScope === modelData.id ? theme.accent : theme.border
+
+                            Text {
+                                id: scopeLabel
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: root.mcpScope === modelData.id ? theme.accentForeground : theme.text
+                                font.pixelSize: 9
+                                font.weight: Font.DemiBold
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.mcpScope = modelData.id
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
                     spacing: 8
 
                     Text {
                         Layout.fillWidth: true
-                        text: mcp.configPath
+                        text: root.mcpScope === "project" ? mcp.projectConfigPath : mcp.configPath
                         color: theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: 8
@@ -645,6 +689,21 @@ Item {
                                             font.pixelSize: 8
                                         }
                                     }
+                                    Rectangle {
+                                        width: scopeBadge.implicitWidth + 12
+                                        height: 16
+                                        radius: 8
+                                        color: modelData.scope === "project" ? theme.accentSoft : theme.background
+                                        border.width: 1
+                                        border.color: modelData.scope === "project" ? theme.accent : theme.border
+                                        Text {
+                                            id: scopeBadge
+                                            anchors.centerIn: parent
+                                            text: modelData.scope === "project" ? qsTr("Project") : qsTr("Global")
+                                            color: modelData.scope === "project" ? theme.accent : theme.mutedText
+                                            font.pixelSize: 8
+                                        }
+                                    }
                                     Item { Layout.fillWidth: true }
                                     Text {
                                         text: root.mcpLabel(modelData.status)
@@ -675,7 +734,7 @@ Item {
                             IconButton {
                                 icon: "icons/trash.svg"
                                 hint: qsTr("Remove this MCP server")
-                                onClicked: mcp.removeServer(modelData.name)
+                                onClicked: mcp.removeServer(modelData.name, modelData.scope)
                             }
                         }
                     }
@@ -755,7 +814,7 @@ Item {
                     }
                     ActionButton {
                         text: qsTr("Add")
-                        onClicked: mcp.addServer(mcpName.text, root.mcpType, mcpTarget.text)
+                        onClicked: mcp.addServer(mcpName.text, root.mcpType, mcpTarget.text, root.mcpScope)
                     }
                 }
 

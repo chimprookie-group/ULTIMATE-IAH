@@ -133,7 +133,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.7.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.8.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -207,6 +207,9 @@ int main(int argc, char *argv[]) {
 
     TerminalSession terminal;
     McpManager mcp;
+    mcp.setWorkspace(backend.workspace());
+    QObject::connect(&backend, &Backend::workspaceChanged, &mcp,
+                     [&backend, &mcp] { mcp.setWorkspace(backend.workspace()); });
 
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
