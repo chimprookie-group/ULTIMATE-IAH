@@ -522,6 +522,11 @@ ApplicationWindow {
                         Layout.fillHeight: true
                         Layout.preferredWidth: backend.view === "split" ? win.width * (1 - backend.splitRatio) : win.width
                         onOpenSessions: sessionsPanel.open()
+                        onChangeModelRequested: chatPane.openModelPicker()
+                        onConnectProviderRequested: {
+                            terminal.run("opencode auth login")
+                            backend.setView("terminal")
+                        }
                     }
                 }
 

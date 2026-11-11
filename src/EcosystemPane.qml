@@ -413,6 +413,20 @@ Item {
                         font.pixelSize: 9
                     }
 
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Connect a provider or subscribe to OpenCode Go to unlock paid models.")
+                        color: theme.dimText
+                        font.pixelSize: 8
+                        wrapMode: Text.Wrap
+                    }
+                    Button {
+                        text: qsTr("Connect a provider")
+                        flat: true
+                        font.pixelSize: 9
+                        onClicked: root.commandRequested("opencode auth login")
+                    }
+
                     Flow {
                         Layout.fillWidth: true
                         spacing: 5

@@ -143,6 +143,15 @@ private slots:
         QCOMPARE(skills.at(0).toMap().value("name").toString(), QString("Demo Skill"));
     }
 
+    void acpClassifiesUsageFailures()
+    {
+        QCOMPARE(AcpClient::classifyFailure(
+                     "Internal error: Free usage limit reached. Connect a provider or subscribe to OpenCode Go."),
+                 QString("usage"));
+        QCOMPARE(AcpClient::classifyFailure("No provider is connected"), QString("provider"));
+        QCOMPARE(AcpClient::classifyFailure("Something else"), QString("error"));
+    }
+
     void profilesPersistAcrossRestarts()
     {
         QTemporaryDir dir;

@@ -156,6 +156,16 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### Les erreurs OpenCode
+
+Un échec de prompt peut arriver en réponse JSON-RPC, mais aussi comme texte
+d'assistant. `AcpClient::classifyFailure()` reconnaît les limites d'usage et les
+providers manquants ; `detectFailuresInTranscript()` convertit le message en
+rôle `error` à la fin du prompt, et les erreurs JSON-RPC créent directement ce
+rôle. Le dernier prompt est gardé pour `retryLastPrompt()`. QML rend une carte
+avec trois actions : ouvrir le sélecteur de modèle, lancer
+`opencode auth login` dans le terminal, ou réessayer.
+
 ### Le workspace et les profils
 
 `WorkspaceModel` liste les fichiers avec `git ls-files` quand le dossier est un

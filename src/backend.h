@@ -166,6 +166,7 @@ public:
     Q_INVOKABLE void pickWorkspace();
     Q_INVOKABLE QString saveProfile(const QString &name);
     Q_INVOKABLE void applyProfile(const QString &id);
+    Q_INVOKABLE void retryLastPrompt();
     Q_INVOKABLE void deleteProfile(const QString &id);
     Q_INVOKABLE void restartHarness();
     Q_INVOKABLE void restartOpencode();

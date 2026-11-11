@@ -521,6 +521,12 @@ void Backend::applyProfile(const QString &id) {
         emit toast(tr("The profile will apply when OpenCode is ready."));
 }
 
+void Backend::retryLastPrompt() {
+    if (m_demo)
+        return;
+    m_acp->retryLastPrompt();
+}
+
 void Backend::deleteProfile(const QString &id) {
     m_config->removeProfile(id);
 }

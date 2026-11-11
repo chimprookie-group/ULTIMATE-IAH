@@ -395,5 +395,10 @@
   "This file cannot be read.": "Ce fichier n'est pas lisible.",
   "Binary file — %1 bytes.": "Fichier binaire — %1 octets.",
   "… (truncated)": "… (tronqué)",
-  "No diff for this file. Showing its contents instead.": "Aucun diff pour ce fichier. Affichage de son contenu à la place."
+  "No diff for this file. Showing its contents instead.": "Aucun diff pour ce fichier. Affichage de son contenu à la place.",
+  "OpenCode usage limit": "Limite d'usage OpenCode",
+  "OpenCode needs attention": "OpenCode demande une action",
+  "Change model": "Changer de modèle",
+  "Connect a provider": "Connecter un provider",
+  "Connect a provider or subscribe to OpenCode Go to unlock paid models.": "Connectez un provider ou abonnez-vous à OpenCode Go pour débloquer les modèles payants."
 }

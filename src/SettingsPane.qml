@@ -638,6 +638,14 @@ Item {
                         onClicked: backend.restartHarness()
                     }
                     Button {
+                        text: qsTr("Connect a provider")
+                        flat: true
+                        onClicked: {
+                            terminal.run("opencode auth login")
+                            backend.setView("terminal")
+                        }
+                    }
+                    Button {
                         text: qsTr("Restart OpenCode")
                         flat: true
                         onClicked: backend.restartOpencode()

@@ -36,6 +36,11 @@ Rectangle {
         input.forceActiveFocus()
     }
 
+    function openModelPicker() {
+        if (modelPicker.enabled)
+            modelPicker.open()
+    }
+
     function setText(value) {
         input.text = value
         focusInput()

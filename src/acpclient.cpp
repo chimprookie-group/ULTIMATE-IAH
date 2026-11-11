@@ -194,7 +194,8 @@ void AcpClient::handleResponse(const QJsonObject &object) {
             emit loadingSessionsChanged();
         } else if (method == "session/prompt") {
             setBusy(false);
-            addNotice(message.isEmpty() ? tr("OpenCode reported an error.") : message);
+            const QString detail = message.isEmpty() ? tr("OpenCode reported an error.") : message;
+            addError(classifyFailure(detail), detail);
         } else {
             addNotice(message.isEmpty() ? tr("OpenCode reported an error.") : message);
         }
@@ -234,6 +235,7 @@ void AcpClient::handleResponse(const QJsonObject &object) {
                 m_messages.setAt(i, message);
             }
         }
+        detectFailuresInTranscript();
         emit messagesChanged();
         const QJsonObject promptUsage = result.value("usage").toObject();
         if (!promptUsage.isEmpty()) {
@@ -405,6 +407,48 @@ void AcpClient::setBusy(bool busy) {
     emit busyChanged();
 }
 
+QString AcpClient::classifyFailure(const QString &text) {
+    const QString lower = text.toLower();
+    if (lower.contains("free usage limit") || lower.contains("usage limit reached")
+        || lower.contains("subscribe to opencode go"))
+        return QStringLiteral("usage");
+    if (lower.contains("connect a provider") || lower.contains("no provider")
+        || lower.contains("provider is not connected"))
+        return QStringLiteral("provider");
+    return QStringLiteral("error");
+}
+
+void AcpClient::addError(const QString &kind, const QString &text) {
+    QVariantMap error;
+    error["id"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    error["role"] = QStringLiteral("error");
+    error["kind"] = kind;
+    error["text"] = text;
+    error["streaming"] = false;
+    m_messages.append(error);
+    emit messagesChanged();
+}
+
+void AcpClient::detectFailuresInTranscript() {
+    for (int i = 0; i < m_messages.count(); ++i) {
+        QVariantMap message = m_messages.at(i);
+        if (message.value("role").toString() != "assistant")
+            continue;
+        const QString text = message.value("text").toString();
+        if (text.trimmed().isEmpty())
+            continue;
+        const QString kind = classifyFailure(text);
+        if (kind == "error")
+            continue;
+        message["role"] = QStringLiteral("error");
+        message["kind"] = kind;
+        message["streaming"] = false;
+        m_messages.setAt(i, message);
+        emit messagesChanged();
+        return;
+    }
+}
+
 void AcpClient::addNotice(const QString &text) {
     QVariantMap notice;
     notice["id"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -522,10 +566,17 @@ void AcpClient::updateMode(const QString &modeId) {
     }
 }
 
+void AcpClient::retryLastPrompt() {
+    if (m_lastPrompt.isEmpty() || m_busy)
+        return;
+    prompt(m_lastPrompt);
+}
+
 void AcpClient::newSession(const QString &cwd) {
     if (m_state != Ready)
         return;
     clearTranscript();
+    m_lastPrompt.clear();
     m_sessionId.clear();
     m_sessionTitle = tr("New session");
     emit sessionIdChanged();
@@ -543,6 +594,7 @@ void AcpClient::loadSession(const QString &id, const QString &cwd) {
     if (m_state != Ready || id.isEmpty())
         return;
     clearTranscript();
+    m_lastPrompt.clear();
     m_sessionId = id;
     emit sessionIdChanged();
     for (const auto &value : m_sessions) {
@@ -576,6 +628,7 @@ void AcpClient::prompt(const QString &text) {
     const QString trimmed = text.trimmed();
     if (trimmed.isEmpty())
         return;
+    m_lastPrompt = trimmed;
 
     QVariantMap user;
     user["id"] = QUuid::createUuid().toString(QUuid::WithoutBraces);

@@ -58,9 +58,12 @@ public:
     Q_INVOKABLE void loadSession(const QString &id, const QString &cwd);
     Q_INVOKABLE void refreshSessions(const QString &cwd);
     Q_INVOKABLE void prompt(const QString &text);
+    Q_INVOKABLE void retryLastPrompt();
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void setConfigOption(const QString &id, const QString &value);
     Q_INVOKABLE void respondPermission(const QString &optionId);
+
+    static QString classifyFailure(const QString &text);
     void setConversation(const QVariantList &messages);
 
 signals:
@@ -102,6 +105,8 @@ private:
     void clearTranscript();
     void setBusy(bool busy);
     void addNotice(const QString &text);
+    void addError(const QString &kind, const QString &text);
+    void detectFailuresInTranscript();
     void rebuildConfigOptions(const QJsonArray &options);
     void updateMode(const QString &modeId);
 
@@ -117,6 +122,7 @@ private:
     QString m_sessionId;
     QString m_sessionTitle;
     QString m_stderr;
+    QString m_lastPrompt;
     MessageListModel m_messages;
     QVariantList m_configOptions;
     QVariantList m_commands;

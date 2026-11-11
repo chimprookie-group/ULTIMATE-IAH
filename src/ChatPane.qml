@@ -15,9 +15,15 @@ Item {
     ]
 
     signal openSessions()
+    signal changeModelRequested()
+    signal connectProviderRequested()
 
     function focusComposer() {
         composer.focusInput()
+    }
+
+    function openModelPicker() {
+        composer.openModelPicker()
     }
 
     function suggest(text) {
@@ -189,6 +195,78 @@ Item {
                                     wrapMode: Text.Wrap
                                     color: theme.text
                                     font.pixelSize: 13
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            visible: model.role === "error"
+                            width: parent.width
+                            height: errorColumn.implicitHeight + 20
+                            radius: Math.min(10, theme.radius)
+                            color: theme.chip
+                            border.width: 1
+                            border.color: theme.red
+
+                            ColumnLayout {
+                                id: errorColumn
+                                x: 12
+                                y: 10
+                                width: parent.width - 24
+                                spacing: 7
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 7
+                                    ThemedIcon {
+                                        source: "icons/alert.svg"
+                                        width: 14
+                                        height: 14
+                                        color: model.kind === "usage" ? theme.yellow : theme.red
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: model.kind === "usage"
+                                              ? qsTr("OpenCode usage limit")
+                                              : qsTr("OpenCode needs attention")
+                                        color: theme.text
+                                        font.pixelSize: 11
+                                        font.weight: Font.DemiBold
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: model.text
+                                    color: theme.mutedText
+                                    font.pixelSize: 10
+                                    wrapMode: Text.Wrap
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+
+                                    Button {
+                                        text: qsTr("Change model")
+                                        flat: true
+                                        font.pixelSize: 9
+                                        onClicked: pane.changeModelRequested()
+                                    }
+                                    Button {
+                                        text: qsTr("Connect a provider")
+                                        flat: true
+                                        font.pixelSize: 9
+                                        onClicked: pane.connectProviderRequested()
+                                    }
+                                    Button {
+                                        text: qsTr("Retry")
+                                        flat: true
+                                        font.pixelSize: 9
+                                        onClicked: backend.retryLastPrompt()
+                                    }
+                                    Item { Layout.fillWidth: true }
                                 }
                             }
                         }

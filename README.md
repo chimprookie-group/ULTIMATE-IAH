@@ -108,6 +108,17 @@ palette passent tous par le même catalogue.
 - **Fournisseurs OpenCode** détectés depuis les modèles disponibles, et
   redémarrage des deux moteurs.
 
+## Erreurs actionnables
+
+Quand OpenCode renvoie une limite d'usage, un provider manquant ou une erreur de
+session, le message ne reste plus une réponse morte : il devient une carte avec
+**Changer de modèle**, **Connecter un provider** et **Réessayer**. Le provider
+se connecte dans le terminal intégré (`opencode auth login`) ; le modèle se
+choisit dans le sélecteur habituel ; le dernier prompt est conservé pour le
+retry.
+
+![Erreur actionnable](assets/screenshot-error.png)
+
 ## Profils de travail
 
 Un **profil** mémorise le modèle OpenCode et le mode courants. Enregistrez-en un
@@ -175,6 +186,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Fichiers et diff** : exploration du workspace, aperçu et diff Git, envoi
   d'un fichier à OpenCode.
 - **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
+- **Erreurs actionnables** : limite d'usage, provider manquant, retry et
+  connexion provider depuis la carte d'erreur.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -298,6 +311,10 @@ Le chat et le sélecteur de modèle :
   lit un aperçu sûr et produit le diff d'un fichier.
 - Les profils vivent dans `Config` (nom, modèle, mode, profil actif) et sont
   réappliqués par `Backend` quand OpenCode publie ses options.
+- `AcpClient::classifyFailure()` transforme les réponses de limite d'usage ou
+  de provider manquant en messages `error` ; le dernier prompt est conservé
+  pour `retryLastPrompt()`. La carte d'erreur ouvre le modèle, le terminal
+  d'authentification ou relance le prompt.
 - `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
   un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
   sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde
