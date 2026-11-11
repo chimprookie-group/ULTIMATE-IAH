@@ -263,7 +263,8 @@ Item {
                             { "id": "harness", "label": qsTr("Harness") },
                             { "id": "split", "label": qsTr("Split") },
                             { "id": "terminal", "label": qsTr("Terminal") },
-                            { "id": "ecosystem", "label": qsTr("Ecosystem") }
+                            { "id": "ecosystem", "label": qsTr("Ecosystem") },
+                            { "id": "workspace", "label": qsTr("Workspace") }
                         ]
 
                         Rectangle {
@@ -405,6 +406,97 @@ Item {
                         checked: backend.notifyOnFinish
                         onToggled: backend.setNotifyOnFinish(checked)
                     }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Work profiles")
+                width: content.width
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("A profile remembers the current model and mode. Apply it before starting a task instead of re-selecting everything.")
+                    wrapMode: Text.Wrap
+                    color: theme.mutedText
+                    font.pixelSize: 11
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    SettingsField {
+                        id: profileName
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("Profile name")
+                    }
+                    ActionButton {
+                        text: qsTr("Save current profile")
+                        onClicked: {
+                            backend.saveProfile(profileName.text)
+                            profileName.text = ""
+                        }
+                    }
+                }
+
+                Repeater {
+                    model: backend.profiles
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 54
+                        radius: Math.min(8, theme.radius)
+                        color: backend.activeProfileId === modelData.id ? theme.chip : theme.background
+                        border.width: 1
+                        border.color: backend.activeProfileId === modelData.id ? theme.accent : theme.border
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 8
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 1
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.name
+                                    color: theme.text
+                                    font.pixelSize: 11
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.description
+                                    color: theme.dimText
+                                    font.family: backend.monoFont
+                                    font.pixelSize: 9
+                                    elide: Text.ElideMiddle
+                                }
+                            }
+
+                            Button {
+                                text: qsTr("Apply")
+                                flat: true
+                                font.pixelSize: 9
+                                onClicked: backend.applyProfile(modelData.id)
+                            }
+                            IconButton {
+                                icon: "icons/trash.svg"
+                                hint: qsTr("Delete this profile")
+                                onClicked: backend.deleteProfile(modelData.id)
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: backend.profiles.length === 0
+                    text: qsTr("No profile saved yet.")
+                    color: theme.dimText
+                    font.pixelSize: 9
                 }
             }
 
@@ -800,6 +892,22 @@ Item {
                                             anchors.centerIn: parent
                                             text: modelData.scope === "project" ? qsTr("Project") : qsTr("Global")
                                             color: modelData.scope === "project" ? theme.accent : theme.mutedText
+                                            font.pixelSize: 8
+                                        }
+                                    }
+                                    Rectangle {
+                                        visible: modelData.type === "remote"
+                                        width: oauthBadge.implicitWidth + 12
+                                        height: 16
+                                        radius: 8
+                                        color: theme.background
+                                        border.width: 1
+                                        border.color: root.mcpColor(modelData.auth !== undefined ? modelData.auth : "unknown")
+                                        Text {
+                                            id: oauthBadge
+                                            anchors.centerIn: parent
+                                            text: qsTr("OAuth")
+                                            color: root.mcpColor(modelData.auth !== undefined ? modelData.auth : "unknown")
                                             font.pixelSize: 8
                                         }
                                     }

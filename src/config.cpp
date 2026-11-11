@@ -4,9 +4,11 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QUuid>
 
 Config::Config(const QString &path, QObject *parent)
     : QObject(parent),
@@ -43,6 +45,8 @@ void Config::load() {
     m_dshBinary = QStringLiteral("dsh");
     m_opencodeBinary = QStringLiteral("opencode");
     m_view = QStringLiteral("home");
+    m_profiles.clear();
+    m_activeProfileId.clear();
 
     QFile file(m_path);
     if (!file.open(QIODevice::ReadOnly))
@@ -66,6 +70,25 @@ void Config::load() {
     if (!opencode.isEmpty())
         m_opencodeBinary = opencode;
 
+    const QJsonArray profiles = object.value("profiles").toArray();
+    for (const QJsonValue &value : profiles) {
+        const QJsonObject profile = value.toObject();
+        const QString id = profile.value("id").toString();
+        const QString name = profile.value("name").toString();
+        const QString model = profile.value("model").toString();
+        const QString mode = profile.value("mode").toString();
+        if (id.isEmpty() || name.isEmpty() || model.isEmpty() || mode.isEmpty())
+            continue;
+        m_profiles.append(QVariantMap{{"id", id}, {"value", id}, {"name", name},
+                                      {"model", model}, {"mode", mode},
+                                      {"description", model + " · " + mode}});
+    }
+    m_activeProfileId = object.value("activeProfile").toString();
+    if (!profileById(m_activeProfileId).isEmpty())
+        m_activeProfileId = m_activeProfileId;
+    else
+        m_activeProfileId.clear();
+
     // Older builds stored versioned absolute paths; if that version is gone,
     // fall back to the name so an upgrade does not leave the app broken.
     if (QFileInfo(m_dshBinary).isAbsolute() && !QFileInfo::exists(m_dshBinary))
@@ -74,16 +97,16 @@ void Config::load() {
         m_opencodeBinary = QStringLiteral("opencode");
 
     const QString view = object.value("view").toString();
-    if (view == "home" || view == "ecosystem" || view == "harness" || view == "opencode"
-        || view == "split" || view == "terminal" || view == "settings")
+    if (view == "home" || view == "ecosystem" || view == "workspace" || view == "harness"
+        || view == "opencode" || view == "split" || view == "terminal" || view == "settings")
         m_view = view;
 
     m_theme = object.value("theme").toString();
     m_language = object.value("language").toString();
 
     const QString startup = object.value("startupView").toString();
-    if (startup == "last" || startup == "home" || startup == "ecosystem" || startup == "harness"
-        || startup == "opencode" || startup == "split" || startup == "terminal")
+    if (startup == "last" || startup == "home" || startup == "ecosystem" || startup == "workspace"
+        || startup == "harness" || startup == "opencode" || startup == "split" || startup == "terminal")
         m_startupView = startup;
     m_autoStartHarness = object.value("autoStartHarness").toBool(true);
     m_autoStartOpencode = object.value("autoStartOpencode").toBool(true);
@@ -108,6 +131,16 @@ void Config::save() {
     object.insert("autoStartOpencode", m_autoStartOpencode);
     object.insert("splitRatio", m_splitRatio);
     object.insert("notifyOnFinish", m_notifyOnFinish);
+    QJsonArray profiles;
+    for (const QVariant &value : m_profiles) {
+        const QVariantMap profile = value.toMap();
+        profiles.append(QJsonObject{{"id", profile.value("id").toString()},
+                                    {"name", profile.value("name").toString()},
+                                    {"model", profile.value("model").toString()},
+                                    {"mode", profile.value("mode").toString()}});
+    }
+    object.insert("profiles", profiles);
+    object.insert("activeProfile", m_activeProfileId);
 
     QSaveFile file(m_path);
     if (!file.open(QIODevice::WriteOnly))
@@ -153,9 +186,69 @@ void Config::setOpencodeBinary(const QString &binary) {
     emit opencodeBinaryChanged();
 }
 
+QVariantMap Config::profileById(const QString &id) const {
+    for (const QVariant &value : m_profiles) {
+        const QVariantMap profile = value.toMap();
+        if (profile.value("id").toString() == id)
+            return profile;
+    }
+    return {};
+}
+
+QString Config::saveProfile(const QString &name, const QString &model, const QString &mode) {
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty() || model.isEmpty() || mode.isEmpty())
+        return {};
+    QString id;
+    for (int i = 0; i < m_profiles.size(); ++i) {
+        QVariantMap profile = m_profiles.at(i).toMap();
+        if (profile.value("name").toString().compare(trimmed, Qt::CaseInsensitive) == 0) {
+            id = profile.value("id").toString();
+            profile["model"] = model;
+            profile["mode"] = mode;
+            profile["description"] = model + " · " + mode;
+            m_profiles[i] = profile;
+            break;
+        }
+    }
+    if (id.isEmpty()) {
+        id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        m_profiles.append(QVariantMap{{"id", id}, {"value", id}, {"name", trimmed},
+                                      {"model", model}, {"mode", mode},
+                                      {"description", model + " · " + mode}});
+    }
+    m_activeProfileId = id;
+    save();
+    emit profilesChanged();
+    return id;
+}
+
+void Config::removeProfile(const QString &id) {
+    for (int i = 0; i < m_profiles.size(); ++i) {
+        if (m_profiles.at(i).toMap().value("id").toString() == id) {
+            m_profiles.removeAt(i);
+            if (m_activeProfileId == id)
+                m_activeProfileId.clear();
+            save();
+            emit profilesChanged();
+            return;
+        }
+    }
+}
+
+void Config::setActiveProfile(const QString &id) {
+    if (!id.isEmpty() && profileById(id).isEmpty())
+        return;
+    if (m_activeProfileId == id)
+        return;
+    m_activeProfileId = id;
+    save();
+    emit profilesChanged();
+}
+
 void Config::setStartupView(const QString &view) {
-    if (view != "last" && view != "home" && view != "ecosystem" && view != "harness"
-        && view != "opencode" && view != "split" && view != "terminal")
+    if (view != "last" && view != "home" && view != "ecosystem" && view != "workspace"
+        && view != "harness" && view != "opencode" && view != "split" && view != "terminal")
         return;
     if (view == m_startupView)
         return;
@@ -214,8 +307,8 @@ void Config::setTheme(const QString &theme) {
 }
 
 void Config::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "harness" && view != "opencode"
-        && view != "split" && view != "terminal" && view != "settings")
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "harness"
+        && view != "opencode" && view != "split" && view != "terminal" && view != "settings")
         return;
     if (view == m_view)
         return;

@@ -119,6 +119,23 @@ Rectangle {
             spacing: 8
 
             PickerChip {
+                id: profilePicker
+                visible: backend.profiles.length > 0
+                enabled: root.ready && !backend.busy
+                opacity: enabled ? 1 : 0.5
+                title: qsTr("Profile")
+                options: backend.profiles
+                currentValue: backend.activeProfileId
+                searchable: true
+                emptyText: qsTr("Profile")
+                dotColor: theme.magenta
+                onSelected: function (value) {
+                    backend.applyProfile(value)
+                    input.forceActiveFocus()
+                }
+            }
+
+            PickerChip {
                 id: modelPicker
                 enabled: root.ready && !backend.busy
                 opacity: enabled ? 1 : 0.5

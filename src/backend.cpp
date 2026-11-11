@@ -154,6 +154,15 @@ Backend::Backend(QObject *parent)
     connect(m_acp, &AcpClient::stateChanged, this, &Backend::opencodeChanged);
     connect(m_acp, &AcpClient::detailChanged, this, &Backend::opencodeChanged);
     connect(m_acp, &AcpClient::messagesChanged, this, &Backend::messagesChanged);
+    connect(m_acp, &AcpClient::configOptionsChanged, this, [this] {
+        if (m_profileApplied)
+            return;
+        const QString id = m_config->activeProfileId();
+        if (id.isEmpty())
+            return;
+        m_profileApplied = true;
+        applyProfile(id);
+    });
     connect(m_acp, &AcpClient::busyChanged, this, &Backend::busyChanged);
     connect(m_acp, &AcpClient::busyChanged, this, [this] {
         if (!m_acp->busy())
@@ -197,6 +206,7 @@ Backend::Backend(QObject *parent)
         emit opencodeBinaryChanged();
     });
     connect(m_config, &Config::optionsChanged, this, &Backend::optionsChanged);
+    connect(m_config, &Config::profilesChanged, this, &Backend::profilesChanged);
     connect(m_config, &Config::viewChanged, this, [this] {
         if (m_config->view() == m_view)
             return;
@@ -291,8 +301,8 @@ void Backend::boot() {
 
 void Backend::applyStartupView() {
     const QString start = m_config->startupView();
-    if (start != "home" && start != "ecosystem" && start != "harness" && start != "opencode"
-        && start != "split" && start != "terminal")
+    if (start != "home" && start != "ecosystem" && start != "workspace" && start != "harness"
+        && start != "opencode" && start != "split" && start != "terminal")
         return;
     if (start == m_view)
         return;
@@ -301,6 +311,7 @@ void Backend::applyStartupView() {
 }
 
 void Backend::startOpencode() {
+    m_profileApplied = false;
     m_acp->start(opencodeBinary(), workspace());
 }
 
@@ -472,6 +483,46 @@ QString Backend::harnessAddress() const {
 
 void Backend::setStartupView(const QString &view) {
     m_config->setStartupView(view);
+}
+
+QVariantList Backend::profiles() const {
+    return m_config->profiles();
+}
+
+QString Backend::activeProfileId() const {
+    return m_config->activeProfileId();
+}
+
+QString Backend::saveProfile(const QString &name) {
+    if (name.trimmed().isEmpty()) {
+        emit toast(tr("Give the profile a name first."));
+        return {};
+    }
+    if (currentModel().isEmpty() || currentMode().isEmpty()) {
+        emit toast(tr("OpenCode has not published a model or mode yet."));
+        return {};
+    }
+    const QString id = m_config->saveProfile(name, currentModel(), currentMode());
+    if (!id.isEmpty())
+        emit toast(tr("Profile saved."));
+    return id;
+}
+
+void Backend::applyProfile(const QString &id) {
+    const QVariantMap profile = m_config->profileById(id);
+    if (profile.isEmpty())
+        return;
+    m_config->setActiveProfile(id);
+    if (!profile.value("model").toString().isEmpty())
+        setConfigOption(QStringLiteral("model"), profile.value("model").toString());
+    if (!profile.value("mode").toString().isEmpty())
+        setConfigOption(QStringLiteral("mode"), profile.value("mode").toString());
+    if (m_acp->state() != AcpClient::Ready)
+        emit toast(tr("The profile will apply when OpenCode is ready."));
+}
+
+void Backend::deleteProfile(const QString &id) {
+    m_config->removeProfile(id);
 }
 
 void Backend::setAutoStartHarness(bool enabled) {
@@ -655,8 +706,8 @@ bool Backend::loadingSessions() const {
 }
 
 void Backend::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "harness" && view != "opencode"
-        && view != "split" && view != "terminal" && view != "settings")
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "harness"
+        && view != "opencode" && view != "split" && view != "terminal" && view != "settings")
         return;
     if (view == m_view)
         return;
@@ -719,6 +770,7 @@ void Backend::newSession() {
         emit toast(tr("OpenCode is not ready yet."));
         return;
     }
+    m_profileApplied = false;
     m_acp->newSession(workspace());
 }
 
@@ -735,6 +787,7 @@ void Backend::refreshSessions() {
 void Backend::loadSession(const QString &id) {
     if (m_demo)
         return;
+    m_profileApplied = false;
     m_acp->loadSession(id, workspace());
 }
 

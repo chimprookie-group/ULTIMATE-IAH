@@ -49,6 +49,16 @@ environnement, pas seulement les deux moteurs.
 
 ![Écosystème](assets/screenshot-ecosystem.png)
 
+## Fichiers et diff
+
+`Ctrl+7` ouvre l'explorateur du workspace : liste des fichiers suivis par Git
+(ou parcours borné sans Git), filtre, statut, aperçu texte en lecture seule et
+**diff Git** du fichier sélectionné. Un fichier se confie à OpenCode pour
+l'expliquer, ou s'ouvre dans l'éditeur du bureau. Aucun fichier n'est modifié
+depuis cette vue.
+
+![Workspace](assets/screenshot-workspace.png)
+
 ## Palette de commandes
 
 `Ctrl+K` (ou la loupe de l'en-tête) ouvre une palette qui interroge tout :
@@ -98,6 +108,16 @@ palette passent tous par le même catalogue.
 - **Fournisseurs OpenCode** détectés depuis les modèles disponibles, et
   redémarrage des deux moteurs.
 
+## Profils de travail
+
+Un **profil** mémorise le modèle OpenCode et le mode courants. Enregistrez-en un
+depuis **Réglages → Profils de travail**, puis retrouvez-le dans le composer à
+côté du modèle et du mode. Le profil actif est réappliqué au prochain démarrage
+d'OpenCode. Idéal pour passer de « Revue » (Plan) à « Implémentation » (Build)
+sans tout resélectionner.
+
+![Profils de travail](assets/screenshot-profiles.png)
+
 ## Terminal
 
 `Ctrl+5` ouvre un vrai terminal dans le dossier de travail. C'est un **PTY**
@@ -121,7 +141,9 @@ configuration. Un bouton relance OpenCode pour charger un serveur qui vient
 d'être ajouté ; le statut reste best-effort et peut afficher « Non testé » tant
 que le service n'a pas rechargé.
 
-Les serveurs **distants** ont un bouton clé : DeepCrasy H lance
+Chaque serveur distant porte un badge **OAuth** coloré selon son état
+(connecté, en attente, échec, non testé). Les serveurs **distants** ont un
+bouton clé : DeepCrasy H lance
 `opencode mcp auth <nom> --standalone`, reconnaît l'URL d'autorisation,
 l'ouvre dans le navigateur et attend la fin du flux. L'URL reste cliquable
 dans le bandeau, l'authentification peut être annulée, et le statut est
@@ -150,6 +172,9 @@ d'échec, le résultat est aussi lu dans sa sortie.
   et redémarrage d'OpenCode depuis Réglages.
 - **Écosystème** : détection du projet, commandes dans le terminal, outils,
   skills, modèles, recettes et brief de contexte.
+- **Fichiers et diff** : exploration du workspace, aperçu et diff Git, envoi
+  d'un fichier à OpenCode.
+- **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
 - **Thèmes complets, français et anglais, palette de commandes, diagnostic,
   Git, notifications.**
 - **Une seule fenêtre Wayland**, un binaire, une entrée de lanceur, une icône.
@@ -208,6 +233,7 @@ règlent dans **Réglages** (`Ctrl+4`).
 | `Ctrl+4` | Réglages |
 | `Ctrl+5` | Terminal intégré |
 | `Ctrl+6` | Écosystème du projet |
+| `Ctrl+7` | Fichiers et diff du workspace |
 | `Ctrl+K` | Palette de commandes |
 | `Ctrl+L` | Aller à la saisie |
 | `Entrée` | Envoyer le message |
@@ -268,6 +294,10 @@ Le chat et le sélecteur de modèle :
 - `src/ecosystem.*` détecte le type de projet, les commandes, les outils et les
   skills, et compose le brief de contexte. `TerminalSession::run()` met une
   commande en attente puis l'exécute quand le shell est prêt.
+- `src/workspacemodel.*` liste les fichiers Git ou parcourt le dossier, filtre,
+  lit un aperçu sûr et produit le diff d'un fichier.
+- Les profils vivent dans `Config` (nom, modèle, mode, profil actif) et sont
+  réappliqués par `Backend` quand OpenCode publie ses options.
 - `src/messagemodel.*` expose le transcript comme un vrai modèle de liste :
   un token streame ne réécrit qu'une ligne, la ListView garde ses délégués et
   sa position. L'auto-scroll est coalescé à 40 ms et le bas du transcript garde

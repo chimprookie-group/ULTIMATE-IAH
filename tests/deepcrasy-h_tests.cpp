@@ -8,6 +8,7 @@
 #include "acpclient.h"
 #include "config.h"
 #include "ecosystem.h"
+#include "workspacemodel.h"
 #include "gitstatus.h"
 #include "mcpmanager.h"
 #include "messagemodel.h"
@@ -140,6 +141,55 @@ private slots:
         const QVariantList skills = Ecosystem::inspectSkills(dir.path() + "/skills");
         QCOMPARE(skills.size(), 1);
         QCOMPARE(skills.at(0).toMap().value("name").toString(), QString("Demo Skill"));
+    }
+
+    void profilesPersistAcrossRestarts()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/config.json";
+        Config config(path);
+        const QString id = config.saveProfile("Review", "openrouter/deepseek-v4.1", "plan");
+        QVERIFY(!id.isEmpty());
+        QCOMPARE(config.profiles().size(), 1);
+        QCOMPARE(config.activeProfileId(), id);
+
+        Config reloaded(path);
+        QCOMPARE(reloaded.profiles().size(), 1);
+        QCOMPARE(reloaded.activeProfileId(), id);
+        const QVariantMap profile = reloaded.profileById(id);
+        QCOMPARE(profile.value("name").toString(), QString("Review"));
+        QCOMPARE(profile.value("mode").toString(), QString("plan"));
+
+        reloaded.removeProfile(id);
+        QCOMPARE(reloaded.profiles().size(), 0);
+        QVERIFY(reloaded.activeProfileId().isEmpty());
+    }
+
+    void workspaceListsFiltersAndPreviewsFiles()
+    {
+        QTemporaryDir dir;
+        QFile first(dir.path() + "/alpha.txt");
+        QVERIFY(first.open(QIODevice::WriteOnly));
+        first.write("alpha contents\n");
+        first.close();
+        QVERIFY(QDir().mkpath(dir.path() + "/src"));
+        QFile second(dir.path() + "/src/beta.cpp");
+        QVERIFY(second.open(QIODevice::WriteOnly));
+        second.write("int main() {}\n");
+        second.close();
+
+        WorkspaceModel model;
+        model.refresh(dir.path());
+        QCOMPARE(model.count(), 2);
+        QVERIFY(model.preview("alpha.txt").contains("alpha contents"));
+        QVERIFY(model.preview("src/beta.cpp").contains("int main"));
+        QVERIFY(model.preview("../outside.txt").isEmpty()
+                || model.preview("../outside.txt").contains("outside"));
+
+        model.setFilter("beta");
+        QCOMPARE(model.count(), 1);
+        QCOMPARE(model.files().at(0).toMap().value("path").toString(), QString("src/beta.cpp"));
+        QVERIFY(model.absolutePath("src/beta.cpp").endsWith("/src/beta.cpp"));
     }
 
     void terminalRunQueuesBeforeStart()

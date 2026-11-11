@@ -33,6 +33,8 @@ class Backend : public QObject {
     Q_PROPERTY(bool autoStartOpencode READ autoStartOpencode NOTIFY optionsChanged)
     Q_PROPERTY(double splitRatio READ splitRatio NOTIFY optionsChanged)
     Q_PROPERTY(bool notifyOnFinish READ notifyOnFinish NOTIFY optionsChanged)
+    Q_PROPERTY(QVariantList profiles READ profiles NOTIFY profilesChanged)
+    Q_PROPERTY(QString activeProfileId READ activeProfileId NOTIFY profilesChanged)
     Q_PROPERTY(QString gitBranch READ gitBranch NOTIFY gitChanged)
     Q_PROPERTY(int gitDirtyCount READ gitDirtyCount NOTIFY gitChanged)
     Q_PROPERTY(bool gitAvailable READ gitAvailable NOTIFY gitChanged)
@@ -97,6 +99,8 @@ public:
     bool autoStartOpencode() const;
     double splitRatio() const;
     bool notifyOnFinish() const;
+    QVariantList profiles() const;
+    QString activeProfileId() const;
     QString gitBranch() const { return m_demo ? QStringLiteral("main") : m_gitBranch; }
     int gitDirtyCount() const { return m_demo ? 3 : m_gitDirty; }
     bool gitAvailable() const { return m_demo ? true : m_gitAvailable; }
@@ -160,6 +164,9 @@ public:
     static QVariantMap parseGitStatus(const QString &output);
     Q_INVOKABLE void setWorkspace(const QString &workspace);
     Q_INVOKABLE void pickWorkspace();
+    Q_INVOKABLE QString saveProfile(const QString &name);
+    Q_INVOKABLE void applyProfile(const QString &id);
+    Q_INVOKABLE void deleteProfile(const QString &id);
     Q_INVOKABLE void restartHarness();
     Q_INVOKABLE void restartOpencode();
     Q_INVOKABLE void setHarnessProfile(const QString &profile);
@@ -180,6 +187,7 @@ signals:
     void languageChanged();
     void themeOptionsChanged();
     void optionsChanged();
+    void profilesChanged();
     void gitChanged();
     void diagnosticsChanged();
     void harnessHealthChanged();
@@ -225,6 +233,7 @@ private:
     bool m_booted = false;
     bool m_demo = false;
 
+    bool m_profileApplied = false;
     QVariantList m_demoMessages;
     QVariantList m_demoSessions;
     QVariantList m_demoModelOptions;

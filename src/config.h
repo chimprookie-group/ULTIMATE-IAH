@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <QVariantList>
+#include <QVariantMap>
 
 // Persistent settings for DeepCrasy H, stored as one JSON object under the
 // user's config directory. Every setter writes the file atomically so a crash
@@ -19,6 +21,8 @@ class Config : public QObject {
     Q_PROPERTY(bool autoStartOpencode READ autoStartOpencode WRITE setAutoStartOpencode NOTIFY optionsChanged)
     Q_PROPERTY(double splitRatio READ splitRatio WRITE setSplitRatio NOTIFY optionsChanged)
     Q_PROPERTY(bool notifyOnFinish READ notifyOnFinish WRITE setNotifyOnFinish NOTIFY optionsChanged)
+    Q_PROPERTY(QVariantList profiles READ profiles NOTIFY profilesChanged)
+    Q_PROPERTY(QString activeProfileId READ activeProfileId NOTIFY profilesChanged)
 
 public:
     explicit Config(const QString &path = {}, QObject *parent = nullptr);
@@ -59,6 +63,13 @@ public:
     bool notifyOnFinish() const { return m_notifyOnFinish; }
     void setNotifyOnFinish(bool enabled);
 
+    QVariantList profiles() const { return m_profiles; }
+    QString activeProfileId() const { return m_activeProfileId; }
+    QString saveProfile(const QString &name, const QString &model, const QString &mode);
+    void removeProfile(const QString &id);
+    void setActiveProfile(const QString &id);
+    QVariantMap profileById(const QString &id) const;
+
     QString path() const { return m_path; }
 
     static QString defaultPath();
@@ -74,6 +85,7 @@ signals:
     void themeChanged();
     void languageChanged();
     void optionsChanged();
+    void profilesChanged();
 
 private:
     void load();
@@ -92,4 +104,6 @@ private:
     bool m_autoStartOpencode = true;
     double m_splitRatio = 0.57;
     bool m_notifyOnFinish = true;
+    QVariantList m_profiles;
+    QString m_activeProfileId;
 };

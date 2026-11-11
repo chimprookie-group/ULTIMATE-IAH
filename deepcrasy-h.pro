@@ -17,6 +17,7 @@ HEADERS += \
     src/portalfolderpicker.h \
     src/terminalsession.h \
     src/theme.h \
+    src/workspacemodel.h \
     src/translator.h
 
 SOURCES += \
@@ -33,6 +34,7 @@ SOURCES += \
     src/portalfolderpicker.cpp \
     src/terminalsession.cpp \
     src/theme.cpp \
+    src/workspacemodel.cpp \
     src/translator.cpp
 
 RESOURCES += src/resources.qrc

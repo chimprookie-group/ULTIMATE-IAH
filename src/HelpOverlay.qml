@@ -16,6 +16,7 @@ Item {
         { keys: "Ctrl+2", what: qsTr("OpenCode chat") },
         { keys: "Ctrl+5", what: qsTr("Terminal") },
         { keys: "Ctrl+6", what: qsTr("Ecosystem") },
+        { keys: "Ctrl+7", what: qsTr("Workspace files and diffs") },
         { keys: "Ctrl+3", what: qsTr("Split view") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
         { keys: "Ctrl+Enter", what: qsTr("Send the message") },

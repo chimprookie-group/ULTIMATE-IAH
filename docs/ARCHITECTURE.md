@@ -156,6 +156,21 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### Le workspace et les profils
+
+`WorkspaceModel` liste les fichiers avec `git ls-files` quand le dossier est un
+dépôt, sinon avec un parcours borné qui ignore `build`, `node_modules`,
+`.git`, etc. La lecture et le diff passent par un chemin résolu et vérifié
+(`canonicalFilePath` doit rester sous le workspace). L'aperçu est limité à
+256 Kio et détecte les binaires ; le diff à 320 Kio. Le QML ne fait que
+sélectionner, filtrer et afficher.
+
+Les profils sont une liste persistée dans `Config` (`id`, `name`, `model`,
+`mode`) avec un `activeProfile`. `Backend::applyProfile()` applique le modèle et
+le mode, et `configOptionsChanged` réapplique le profil actif une fois quand
+OpenCode est prêt. Le choix manuel du modèle ou du mode ne détruit pas le
+profil ; il reste le point de départ.
+
 ### Le terminal
 
 `TerminalSession` ouvre un PTY avec `forkpty`, prépare l'environnement avant le

@@ -75,6 +75,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), "OpenCode", "Ctrl+2", "view:opencode", "icons/chat.svg")
         add(qsTr("Navigation"), qsTr("Terminal"), "Ctrl+5", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Ecosystem"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
+        add(qsTr("Navigation"), qsTr("Workspace"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
         add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
@@ -160,6 +161,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("settings") }
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
+    Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
     Shortcut {
         sequence: "Ctrl+N"
         context: Qt.ApplicationShortcut
@@ -433,6 +435,14 @@ ApplicationWindow {
                     }
 
                     RailButton {
+                        icon: "icons/files.svg"
+                        label: qsTr("Files")
+                        hint: qsTr("Files and diffs (Ctrl+7)")
+                        active: backend.view === "workspace"
+                        onClicked: backend.setView("workspace")
+                    }
+
+                    RailButton {
                         icon: "icons/harness.svg"
                         label: qsTr("Harness")
                         hint: qsTr("DeepSeek Harness (Ctrl+1)")
@@ -488,6 +498,7 @@ ApplicationWindow {
                     spacing: 0
                     visible: backend.view !== "settings" && backend.view !== "home"
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
+                             && backend.view !== "workspace"
 
                     HarnessPane {
                         id: harnessPane
@@ -532,6 +543,15 @@ ApplicationWindow {
                         Qt.callLater(function () { chatPane.suggest(prompt) })
                     }
                     onOpenSessions: sessionsPanel.open()
+                }
+
+                WorkspacePane {
+                    anchors.fill: parent
+                    visible: backend.view === "workspace"
+                    onPromptRequested: function (prompt) {
+                        backend.setView("opencode")
+                        Qt.callLater(function () { chatPane.suggest(prompt) })
+                    }
                 }
 
                 HomePane {

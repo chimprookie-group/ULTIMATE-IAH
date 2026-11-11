@@ -14,6 +14,7 @@ HEADERS += \
     ../src/messagemodel.h \
     ../src/terminalsession.h \
     ../src/theme.h \
+    ../src/workspacemodel.h \
     ../src/translator.h
 
 LIBS += -lutil
@@ -29,4 +30,5 @@ SOURCES += \
     ../src/mcpmanager.cpp \
     ../src/messagemodel.cpp \
     ../src/theme.cpp \
+    ../src/workspacemodel.cpp \
     ../src/translator.cpp

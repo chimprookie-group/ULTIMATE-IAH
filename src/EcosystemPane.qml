@@ -460,8 +460,8 @@ Item {
                                 elide: Text.ElideRight
                             }
                             Text {
-                                text: root.mcpStatusLabel(modelData.status)
-                                color: root.mcpColor(modelData.status)
+                                text: root.mcpStatusLabel(modelData.auth !== undefined ? modelData.auth : modelData.status)
+                                color: root.mcpColor(modelData.auth !== undefined ? modelData.auth : modelData.status)
                                 font.pixelSize: 8
                             }
                         }

@@ -28,6 +28,7 @@
 #include "mcpmanager.h"
 #include "terminalsession.h"
 #include "theme.h"
+#include "workspacemodel.h"
 #include "translator.h"
 
 namespace {
@@ -153,7 +154,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.12.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.13.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -233,6 +234,7 @@ int main(int argc, char *argv[]) {
 
     TerminalSession terminal;
     McpManager mcp;
+    WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
     QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
                      [&backend, &ecosystem] { ecosystem.refresh(backend.workspace()); });
@@ -255,6 +257,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("terminal", &terminal);
     engine.rootContext()->setContextProperty("mcp", &mcp);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
+    engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);
 
     if (!themeId.isEmpty())

@@ -197,6 +197,7 @@ void McpManager::loadConfig() {
                 ? server.value("url").toString()
                 : commandLine(server.value("command").toArray());
             entry["status"] = "unknown";
+            entry["auth"] = "unknown";
             entry["detail"] = "";
             list.append(entry);
         }
@@ -318,6 +319,7 @@ void McpManager::parseStatuses(const QString &output) {
         const auto found = statuses.constFind(server.value("name").toString());
         if (found != statuses.constEnd()) {
             server["status"] = found->first;
+            server["auth"] = found->first;
             server["detail"] = found->second;
             m_servers[i] = server;
         }
