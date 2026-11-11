@@ -329,6 +329,15 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
+                            visible: nineRouter.installReport !== ""
+                            text: nineRouter.installReport
+                            color: theme.green
+                            font.pixelSize: 9
+                            wrapMode: Text.Wrap
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
                             visible: nineRouter.privilegedLog !== ""
                             text: nineRouter.privilegedLog
                             color: theme.dimText

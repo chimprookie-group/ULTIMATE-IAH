@@ -101,8 +101,7 @@ NineRouterManager::NineRouterManager(QObject *parent)
         emit installingChanged();
         detect();
         if (code == 0 && installed()) {
-            setDetail(tr("Installed"));
-            start();
+            verifyInstalled();
         } else {
             setError(tr("The 9Router installation failed."));
             setDetail(tr("Not installed"));
@@ -130,6 +129,13 @@ NineRouterManager::NineRouterManager(QObject *parent)
             setError(tr("Dependency installation failed or was cancelled."));
             return;
         }
+        QString verificationError;
+        if (!verifyDependencies(&verificationError)) {
+            setError(verificationError);
+            return;
+        }
+        m_installReport = tr("System dependencies verified: node, npm, PyYAML");
+        emit installReportChanged();
         detect();
         emit dependenciesInstalled();
         install();
@@ -164,6 +170,59 @@ void NineRouterManager::detect() {
     emit installedChanged();
     if (m_binary.isEmpty())
         setDetail(tr("Not installed"));
+}
+
+void NineRouterManager::cleanupInstallArtifacts() {
+    const QString root = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/9router";
+    QDir(root + "/node_modules/.cache").removeRecursively();
+    QDir(root + "/.cache").removeRecursively();
+    QDir(root + "/.npm").removeRecursively();
+    QFile::remove(root + "/npm-debug.log");
+}
+
+void NineRouterManager::verifyInstalled() {
+    cleanupInstallArtifacts();
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start(m_binary, {QStringLiteral("--version")});
+    if (!process.waitForStarted(2500) || !process.waitForFinished(8000)) {
+        process.kill();
+        process.waitForFinished(100);
+        setError(tr("9Router was installed but its version check timed out."));
+        setDetail(tr("Installation could not be verified"));
+        return;
+    }
+    const QString version = QString::fromUtf8(process.readAll()).trimmed();
+    if (process.exitCode() != 0 || version.isEmpty()) {
+        setError(tr("9Router was installed but the version check failed."));
+        setDetail(tr("Installation could not be verified"));
+        return;
+    }
+    m_installReport = tr("Verified: 9Router %1 · temporary files cleaned").arg(version);
+    emit installReportChanged();
+    setDetail(tr("Installed and verified"));
+    start();
+}
+
+bool NineRouterManager::verifyDependencies(QString *error) {
+    const QString node = QStandardPaths::findExecutable(QStringLiteral("node"));
+    const QString npm = QStandardPaths::findExecutable(QStringLiteral("npm"));
+    const QString python = QStandardPaths::findExecutable(QStringLiteral("python3"));
+    if (node.isEmpty() || npm.isEmpty() || python.isEmpty()) {
+        if (error)
+            *error = tr("node, npm or python3 is still missing after installation.");
+        return false;
+    }
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start(python, {QStringLiteral("-c"), QStringLiteral("import yaml; print(yaml.__version__)")});
+    if (!process.waitForStarted(2000) || !process.waitForFinished(5000) || process.exitCode() != 0) {
+        process.kill();
+        if (error)
+            *error = tr("PyYAML is still missing after installation.");
+        return false;
+    }
+    return true;
 }
 
 void NineRouterManager::installDependencies() {

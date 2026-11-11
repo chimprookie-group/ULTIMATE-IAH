@@ -70,7 +70,9 @@ Le panneau **Intégration** permet de choisir les modèles à exposer :
 ![Harness avec un modèle 9Router](assets/screenshot-harness-9router.png)
 
 9Router est installé localement dans les données de l'application
-(`npm install --prefix …`), sans root ni npm global. Le dashboard utilise le
+(`npm install --prefix …`), sans root ni npm global. Après l'installation,
+l'app vérifie `9router --version`, supprime les caches temporaires de
+l'installation, puis démarre le service et contrôle sa santé. Le dashboard utilise le
 mot de passe initial `123456` ; changez-le dans ses réglages. Le service écoute
 uniquement sur `127.0.0.1`.
 
@@ -464,6 +466,20 @@ QT_QPA_PLATFORM=offscreen ./build/deepcrasy-h \
   --theme catppuccin-latte --view home --height 1000 --palette \
   --screenshot /tmp/cockpit.png
 ```
+
+## Règles d'installation
+
+Les règles par défaut sont consignées dans [AGENTS.md](AGENTS.md) et appliquées
+par les installateurs de l'application :
+
+- après chaque installation, les caches et fichiers temporaires créés pour
+  elle sont supprimés ; les données utilisateur et les fichiers runtime
+  nécessaires sont conservés ;
+- l'installation est ensuite **vérifiée réellement** (binaire, version,
+  dépendances, démarrage/santé) avant d'être annoncée comme réussie ;
+- toute action administrateur passe par `pkexec`, jamais par un `sudo`
+  silencieux. Le mot de passe est saisi dans polkit et n'est jamais lu,
+  journalisé ou stocké par l'application.
 
 ## Stabilité
 

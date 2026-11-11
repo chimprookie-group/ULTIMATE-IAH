@@ -28,6 +28,7 @@ class NineRouterManager : public QObject {
     Q_PROPERTY(QString installLog READ installLog NOTIFY installLogChanged)
     Q_PROPERTY(bool privilegedBusy READ privilegedBusy NOTIFY privilegedBusyChanged)
     Q_PROPERTY(QString privilegedLog READ privilegedLog NOTIFY privilegedLogChanged)
+    Q_PROPERTY(QString installReport READ installReport NOTIFY installReportChanged)
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
     Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
 
@@ -49,6 +50,7 @@ public:
     QString installLog() const { return m_installLog; }
     bool privilegedBusy() const { return m_privilegedBusy; }
     QString privilegedLog() const { return m_privilegedLog; }
+    QString installReport() const { return m_installReport; }
     QString configPath() const { return m_configDir; }
     QVariantList models() const { return m_models; }
 
@@ -77,6 +79,7 @@ signals:
     void installLogChanged();
     void privilegedBusyChanged();
     void privilegedLogChanged();
+    void installReportChanged();
     void dependenciesInstalled();
     void modelsChanged();
     void openCodeApplied();
@@ -94,6 +97,9 @@ private:
     void setModels(const QVariantList &models);
     void appendLog(const QString &line);
     void launchProcess();
+    void verifyInstalled();
+    bool verifyDependencies(QString *error);
+    void cleanupInstallArtifacts();
     void probeHealth();
     void authenticate();
     void authenticateWith(const QString &password);
@@ -123,6 +129,7 @@ private:
     QString m_error;
     QString m_installLog;
     QString m_privilegedLog;
+    QString m_installReport;
     QStringList m_log;
     QVariantList m_models;
     int m_port = 20128;

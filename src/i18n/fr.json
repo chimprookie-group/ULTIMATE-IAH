@@ -528,5 +528,13 @@
   "Waiting for polkit authorization…": "En attente de l'autorisation polkit…",
   "Authorizing…": "Autorisation…",
   "System dependencies (sudo)": "Dépendances système (sudo)",
-  "The local install needs no root. pkexec is only used for Node/npm/PyYAML dependencies, and the password stays with polkit.": "L'installation locale ne demande pas root. pkexec sert seulement aux dépendances Node/npm/PyYAML ; le mot de passe reste dans polkit."
+  "The local install needs no root. pkexec is only used for Node/npm/PyYAML dependencies, and the password stays with polkit.": "L'installation locale ne demande pas root. pkexec sert seulement aux dépendances Node/npm/PyYAML ; le mot de passe reste dans polkit.",
+  "9Router was installed but its version check timed out.": "9Router a été installé mais la vérification de version a expiré.",
+  "Installation could not be verified": "Installation non vérifiée",
+  "9Router was installed but the version check failed.": "9Router a été installé mais la vérification de version a échoué.",
+  "Verified: 9Router %1 · temporary files cleaned": "Vérifié : 9Router %1 · fichiers temporaires nettoyés",
+  "Installed and verified": "Installé et vérifié",
+  "node, npm or python3 is still missing after installation.": "node, npm ou python3 manque encore après l'installation.",
+  "PyYAML is still missing after installation.": "PyYAML manque encore après l'installation.",
+  "System dependencies verified: node, npm, PyYAML": "Dépendances système vérifiées : node, npm, PyYAML"
 }

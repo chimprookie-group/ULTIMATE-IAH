@@ -184,6 +184,12 @@ persistant. Le panneau d'intégration choisit les modèles à exposer :
   dans l'environnement de `dsh`. Le patch peut aussi définir
   `agent-default-model`.
 
+Après l'installation, `verifyInstalled()` exécute `9router --version`,
+`cleanupInstallArtifacts()` retire les caches npm locaux créés pour
+l'installation, puis le service démarre et sa santé est contrôlée. Les
+dépendances sont vérifiées de la même façon (node, npm, import PyYAML) avant
+d'enchaîner sur l'installation de 9Router.
+
 L'installation locale de 9Router ne demande pas root. Si les outils système
 manquent, `NineRouterManager::installDependencies()` exécute
 `pkexec pacman -S --needed --noconfirm nodejs npm python-yaml` : les arguments
