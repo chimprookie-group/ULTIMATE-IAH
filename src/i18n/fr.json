@@ -97,5 +97,6 @@
   "Mode": "Mode",
   "Search models…": "Rechercher un modèle…",
   "No match. Try another name.": "Aucun résultat. Essayez un autre nom.",
-  "↑↓ navigate · Enter select · Esc close": "↑↓ naviguer · Entrée choisir · Échap fermer"
+  "↑↓ navigate · Enter select · Esc close": "↑↓ naviguer · Entrée choisir · Échap fermer",
+  "Choose the model": "Choisir le modèle"
 }

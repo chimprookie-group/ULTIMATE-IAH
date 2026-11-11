@@ -36,6 +36,13 @@ Rectangle {
         return value
     }
 
+    Shortcut {
+        sequence: "Ctrl+M"
+        context: Qt.ApplicationShortcut
+        enabled: root.ready && !backend.busy
+        onActivated: modelPicker.open()
+    }
+
     Component.onCompleted: {
         // Used by the README/test screenshot: open the picker so the custom
         // menu, not the stock Material popup, is what gets captured.

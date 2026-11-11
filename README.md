@@ -90,6 +90,7 @@ règlent dans **Réglages** (`Ctrl+4`).
 | `Entrée` | Envoyer le message |
 | `Maj+Entrée` | Nouvelle ligne |
 | `Ctrl+N` | Nouvelle session OpenCode |
+| `Ctrl+M` | Choisir le modèle |
 | `Ctrl+R` | Relancer le harness |
 | `?` / `F1` | Toutes les touches |
 | `Échap` | Fermer la fenêtre active |

@@ -18,6 +18,7 @@ Item {
         { keys: "Ctrl+Enter", what: qsTr("Send the message") },
         { keys: "Shift+Enter", what: qsTr("New line in the composer") },
         { keys: "Ctrl+N", what: qsTr("New OpenCode session") },
+        { keys: "Ctrl+M", what: qsTr("Choose the model") },
         { keys: "Ctrl+L", what: qsTr("Focus the composer") },
         { keys: "Ctrl+R", what: qsTr("Restart the harness") },
         { keys: "?", what: qsTr("This help") },
