@@ -149,6 +149,7 @@ private slots:
                      "Internal error: Free usage limit reached. Connect a provider or subscribe to OpenCode Go."),
                  QString("usage"));
         QCOMPARE(AcpClient::classifyFailure("No provider is connected"), QString("provider"));
+        QCOMPARE(AcpClient::classifyFailure("Authentication required: provider authentication required"), QString("provider"));
         QCOMPARE(AcpClient::classifyFailure("Something else"), QString("error"));
     }
 

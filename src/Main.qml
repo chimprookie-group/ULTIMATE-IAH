@@ -524,7 +524,11 @@ ApplicationWindow {
                         onOpenSessions: sessionsPanel.open()
                         onChangeModelRequested: chatPane.openModelPicker()
                         onConnectProviderRequested: {
-                            terminal.run("opencode auth login")
+                            const raw = backend.currentModel
+                            const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")).replace(/[^A-Za-z0-9._-]/g, "") : ""
+                            const login = provider !== "" ? "opencode auth login " + provider : "opencode auth login"
+                            const logout = provider !== "" ? "opencode auth logout " + provider + "; " : ""
+                            terminal.run(logout + login + " && opencode service restart")
                             backend.setView("terminal")
                         }
                     }

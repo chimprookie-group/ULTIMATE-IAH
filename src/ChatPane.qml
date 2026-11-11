@@ -234,7 +234,9 @@ Item {
                                         Layout.fillWidth: true
                                         text: model.kind === "usage"
                                               ? qsTr("OpenCode usage limit")
-                                              : qsTr("OpenCode needs attention")
+                                              : (model.kind === "provider"
+                                                 ? qsTr("Provider authentication required")
+                                                 : qsTr("OpenCode needs attention"))
                                         color: theme.text
                                         font.pixelSize: 11
                                         font.weight: Font.DemiBold
@@ -261,7 +263,7 @@ Item {
                                         onClicked: pane.changeModelRequested()
                                     }
                                     Button {
-                                        text: qsTr("Connect a provider")
+                                        text: model.kind === "provider" ? qsTr("Replace the key") : qsTr("Connect a provider")
                                         flat: true
                                         font.pixelSize: 9
                                         onClicked: pane.connectProviderRequested()

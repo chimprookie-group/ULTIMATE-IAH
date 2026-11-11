@@ -411,5 +411,8 @@
   },
   "Search sessions…": "Rechercher des sessions…",
   "No session matches.": "Aucune session ne correspond.",
-  "free": "gratuit"
+  "free": "gratuit",
+  "Reconnect provider": "Reconnecter le provider",
+  "Provider authentication required": "Authentification du provider requise",
+  "Replace the key": "Remplacer la clé"
 }

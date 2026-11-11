@@ -641,7 +641,10 @@ Item {
                         text: qsTr("Connect a provider")
                         flat: true
                         onClicked: {
-                            terminal.run("opencode auth login")
+                            const raw = backend.currentModel
+                            const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")).replace(/[^A-Za-z0-9._-]/g, "") : ""
+                            const login = provider !== "" ? "opencode auth login " + provider : "opencode auth login"
+                            terminal.run(login + " && opencode service restart")
                             backend.setView("terminal")
                         }
                     }

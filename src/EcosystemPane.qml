@@ -90,6 +90,13 @@ Item {
         promptRequested(qsTr("Use the « %1 » skill from %2 to help me on this project. Start by telling me what it brings and what you need.").arg(skill.name).arg(skill.path))
     }
 
+    function connectProvider() {
+        const raw = backend.currentModel
+        const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")).replace(/[^A-Za-z0-9._-]/g, "") : ""
+        const login = provider !== "" ? "opencode auth login " + provider : "opencode auth login"
+        root.commandRequested(login + " && opencode service restart")
+    }
+
     function useSession(session) {
         backend.loadSession(session.sessionId, backend.workspace)
         backend.setView("opencode")
@@ -439,7 +446,7 @@ Item {
                         text: qsTr("Connect a provider")
                         flat: true
                         font.pixelSize: 9
-                        onClicked: root.commandRequested("opencode auth login")
+                        onClicked: root.connectProvider()
                     }
 
                     Flow {

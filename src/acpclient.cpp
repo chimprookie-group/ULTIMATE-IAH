@@ -413,7 +413,8 @@ QString AcpClient::classifyFailure(const QString &text) {
         || lower.contains("subscribe to opencode go"))
         return QStringLiteral("usage");
     if (lower.contains("connect a provider") || lower.contains("no provider")
-        || lower.contains("provider is not connected"))
+        || lower.contains("provider is not connected") || lower.contains("provider authentication required")
+        || lower.contains("authentication required"))
         return QStringLiteral("provider");
     return QStringLiteral("error");
 }

@@ -124,10 +124,11 @@ palette passent tous par le même catalogue.
 
 Quand OpenCode renvoie une limite d'usage, un provider manquant ou une erreur de
 session, le message ne reste plus une réponse morte : il devient une carte avec
-**Changer de modèle**, **Connecter un provider** et **Réessayer**. Le provider
-se connecte dans le terminal intégré (`opencode auth login`) ; le modèle se
-choisit dans le sélecteur habituel ; le dernier prompt est conservé pour le
-retry.
+**Changer de modèle**, **Remplacer la clé** / **Connecter un provider** et
+**Réessayer**. La reconnexion cible le provider du modèle courant, efface
+l'ancienne clé, relance `opencode auth login <provider>` puis
+`opencode service restart`. Le modèle se choisit dans le sélecteur habituel ;
+le dernier prompt est conservé pour le retry.
 
 ![Erreur actionnable](assets/screenshot-error.png)
 

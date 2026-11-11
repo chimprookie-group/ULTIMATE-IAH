@@ -184,8 +184,9 @@ d'assistant. `AcpClient::classifyFailure()` reconnaît les limites d'usage et le
 providers manquants ; `detectFailuresInTranscript()` convertit le message en
 rôle `error` à la fin du prompt, et les erreurs JSON-RPC créent directement ce
 rôle. Le dernier prompt est gardé pour `retryLastPrompt()`. QML rend une carte
-avec trois actions : ouvrir le sélecteur de modèle, lancer
-`opencode auth login` dans le terminal, ou réessayer.
+avec trois actions : ouvrir le sélecteur de modèle, remplacer la clé du
+provider courant (`opencode auth logout`, `opencode auth login`, puis
+`opencode service restart`) dans le terminal, ou réessayer.
 
 ### Le workspace et les profils
 

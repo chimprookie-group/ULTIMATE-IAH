@@ -158,7 +158,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.15.1"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.15.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
