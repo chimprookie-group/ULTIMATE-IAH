@@ -30,6 +30,20 @@ Item {
 
     z: 150
     visible: false
+    focus: visible
+    onVisibleChanged: if (visible) forceActiveFocus()
+    Keys.onPressed: function (event) {
+        const maximum = Math.max(0, shortcutScroll.contentHeight - shortcutScroll.height)
+        if (event.key === Qt.Key_Down) {
+            shortcutScroll.contentY = Math.min(maximum, shortcutScroll.contentY + 40); event.accepted = true
+        } else if (event.key === Qt.Key_Up) {
+            shortcutScroll.contentY = Math.max(0, shortcutScroll.contentY - 40); event.accepted = true
+        } else if (event.key === Qt.Key_PageDown) {
+            shortcutScroll.contentY = Math.min(maximum, shortcutScroll.contentY + shortcutScroll.height * 0.85); event.accepted = true
+        } else if (event.key === Qt.Key_PageUp) {
+            shortcutScroll.contentY = Math.max(0, shortcutScroll.contentY - shortcutScroll.height * 0.85); event.accepted = true
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -99,12 +113,18 @@ Item {
                 color: theme.border
             }
 
-            ScrollView {
+            Flickable {
                 id: shortcutScroll
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
+                contentWidth: width
+                contentHeight: shortcutColumn.implicitHeight
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
                 focus: visible
+                focusPolicy: Qt.StrongFocus
+                activeFocusOnTab: true
                 Component.onCompleted: contentY = 0
                 onVisibleChanged: {
                     if (visible) {
@@ -112,18 +132,23 @@ Item {
                         forceActiveFocus()
                     }
                 }
-                Keys.onDownPressed: contentY = Math.min(contentHeight - height, contentY + 40)
-                Keys.onUpPressed: contentY = Math.max(0, contentY - 40)
-                Keys.onPageDownPressed: contentY = Math.min(contentHeight - height, contentY + height * 0.85)
-                Keys.onPageUpPressed: contentY = Math.max(0, contentY - height * 0.85)
-                Keys.onHomePressed: contentY = 0
-                Keys.onEndPressed: contentY = Math.max(0, contentHeight - height)
-                contentWidth: availableWidth
-                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                Keys.onPressed: function (event) {
+                    const maximum = Math.max(0, contentHeight - height)
+                    if (event.key === Qt.Key_Down) {
+                        contentY = Math.min(maximum, contentY + 40); event.accepted = true
+                    } else if (event.key === Qt.Key_Up) {
+                        contentY = Math.max(0, contentY - 40); event.accepted = true
+                    } else if (event.key === Qt.Key_PageDown) {
+                        contentY = Math.min(maximum, contentY + height * 0.85); event.accepted = true
+                    } else if (event.key === Qt.Key_PageUp) {
+                        contentY = Math.max(0, contentY - height * 0.85); event.accepted = true
+                    }
+                }
                 ScrollBar.vertical: AppScrollBar {}
 
                 Column {
-                    width: parent.width
+                    id: shortcutColumn
+                    width: shortcutScroll.width
                     spacing: design.space2
 
                     Repeater {
@@ -151,13 +176,14 @@ Item {
                                 Layout.fillWidth: true
                                 text: modelData.what
                                 color: theme.mutedText
-                                font.pixelSize: design.textLabel
+                                font.pixelSize: design.textCaption
                                 wrapMode: Text.Wrap
                             }
                         }
                     }
                 }
             }
+
 
             RowLayout {
                 Layout.fillWidth: true

@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.5"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.6"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -407,6 +407,11 @@ int main(int argc, char *argv[]) {
     if (!view.isEmpty())
         backend.setView(view);
 
+    QObject::connect(&engine, &QQmlApplicationEngine::warnings, &app,
+                     [](const QList<QQmlError> &warnings) {
+                         for (const QQmlError &warning : warnings)
+                             qWarning().noquote() << "QML:" << warning.toString();
+                     });
     engine.load(QUrl(QStringLiteral("qrc:/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
