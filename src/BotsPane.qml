@@ -462,7 +462,7 @@ Item {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: composerRow.implicitHeight + design.space3
+                        Layout.preferredHeight: composerRow.implicitHeight + design.space4
                         Layout.leftMargin: design.space3
                         Layout.rightMargin: design.space3
                         Layout.bottomMargin: design.space3
@@ -474,7 +474,10 @@ Item {
                         RowLayout {
                             id: composerRow
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.leftMargin: design.space2
+                            anchors.rightMargin: design.space2
+                            anchors.topMargin: 6
+                            anchors.bottomMargin: design.space3
                             spacing: design.space2
                             Item {
                                 Layout.fillWidth: true
@@ -513,12 +516,14 @@ Item {
                                 }
                             }
                             Rectangle {
-                                Layout.alignment: Qt.AlignBottom
-                                implicitWidth: 36
-                                implicitHeight: 36
+                                Layout.alignment: Qt.AlignVCenter
+                                implicitWidth: 38
+                                implicitHeight: 38
                                 radius: design.radiusMd
                                 color: root.currentId > 0 && composerField.text.trim() !== "" ? theme.accent : theme.chip
-                                ThemedIcon { anchors.centerIn: parent; source: "icons/send.svg"; width: 15; height: 15; color: root.currentId > 0 && composerField.text.trim() !== "" ? theme.accentForeground : theme.dimText }
+                                border.width: 1
+                                border.color: root.currentId > 0 && composerField.text.trim() !== "" ? theme.accent : theme.borderStrong
+                                ThemedIcon { anchors.centerIn: parent; source: "icons/send.svg"; width: 16; height: 16; color: root.currentId > 0 && composerField.text.trim() !== "" ? theme.accentForeground : theme.dimText }
                                 MouseArea { anchors.fill: parent; enabled: root.currentId > 0; cursorShape: Qt.PointingHandCursor; onClicked: root.send() }
                             }
                         }

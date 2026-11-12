@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.9.8-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.9.9-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
