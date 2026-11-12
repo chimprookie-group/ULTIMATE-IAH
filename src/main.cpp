@@ -1,4 +1,4 @@
-// deepcrasy-h — DeepSeek Harness and OpenCode in one Omarchy window.
+// deepcrasy-h — Crasy Harness, the DeepSeek Harness cockpit for Omarchy.
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -29,9 +29,8 @@
 #include "backend.h"
 #include "ecosystem.h"
 #include "iconprovider.h"
-#include "mcpmanager.h"
-#include "providermanager.h"
 #include "nineroutermanager.h"
+#include "harnessconnections.h"
 #include "mausbotmanager.h"
 #include "terminalsession.h"
 #include "theme.h"
@@ -78,14 +77,6 @@ int runDoctor(bool json) {
     add("dsh", !dsh.isEmpty(), dsh.isEmpty() ? QStringLiteral("not found in PATH")
                                              : dsh + " · " + probe(dsh, {"--version"}));
 
-    const QString opencode = QStandardPaths::findExecutable("opencode");
-    QString opencodeVersion;
-    if (!opencode.isEmpty())
-        opencodeVersion = probe(opencode, {"--version"});
-    add("opencode", !opencode.isEmpty(),
-        opencode.isEmpty() ? QStringLiteral("not found in PATH")
-                           : opencode + (opencodeVersion.isEmpty() ? QString() : " · " + opencodeVersion));
-
     const bool portal = QDBusConnection::sessionBus().interface()
         && QDBusConnection::sessionBus().interface()->isServiceRegistered("org.freedesktop.portal.Desktop");
     add("portal", portal, portal ? QStringLiteral("org.freedesktop.portal.Desktop is available")
@@ -121,25 +112,24 @@ int runDoctor(bool json) {
 QString skillText() {
     return QStringLiteral(R"(# DeepCrasy H
 
-DeepCrasy H is an Omarchy desktop application that puts the DeepSeek Harness
-web UI and an OpenCode chat in one window, sharing one workspace.
+Crasy Harness is an Omarchy desktop cockpit for the DeepSeek Harness, with a
+real terminal agent and project-aware tools.
 
 ## Commands
 
 - `deepcrasy-h open [folder]` opens the GUI, optionally rooted at a folder.
-- `deepcrasy-h doctor --json` checks that `dsh`, `opencode`, QtWebEngine, and
-  the desktop portal are available. Exit code 0 means everything is ready.
+- `deepcrasy-h doctor --json` checks that `dsh`, QtWebEngine, and the desktop
+  portal are available. Exit code 0 means everything is ready.
 - `deepcrasy-h skill install` writes this file.
 
 ## What it does
 
 - Harness pane: `dsh web` is started on a free port and its tokenized URL is
   embedded in the window.
-- OpenCode pane: `opencode acp` is driven over the Agent Client Protocol, so
-  sessions, models, modes, tool calls, and permissions are native UI.
-- Split pane: both at once, one workspace.
+- Terminal agent: a real PTY and a `dsh headless` task bar in the same workspace.
+- Project and files: Git, diffs, tools and skills stay one gesture away.
 
-Use it when the user asks to run both agents against the same project.
+Use it when the user wants the DeepSeek Harness plus a terminal agent.
 )");
 }
 
@@ -161,7 +151,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.21.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.22.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -211,7 +201,7 @@ int main(int argc, char *argv[]) {
     }
 
     // The QML disk cache keys qrc URLs by path, so a rebuilt binary can keep
-    // serving an old Composer.qml from ~/.cache. Start fresh every time; the
+    // serving an old QML resource from cache. Start fresh every time; the
     // app is small enough that recompiling costs nothing noticeable.
     qputenv("QML_DISABLE_DISK_CACHE", "1");
 
@@ -278,17 +268,13 @@ int main(int argc, char *argv[]) {
     backend.attachTheme(&theme);
 
     TerminalSession terminal;
-    McpManager mcp;
-    ProviderManager providerManager;
     NineRouterManager nineRouter;
     MausBotManager mausBot;
+    HarnessConnections connections;
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
     QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
                      [&backend, &ecosystem] { ecosystem.refresh(backend.workspace()); });
-    mcp.setWorkspace(backend.workspace());
-    QObject::connect(&backend, &Backend::workspaceChanged, &mcp,
-                     [&backend, &mcp] { mcp.setWorkspace(backend.workspace()); });
 
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
@@ -303,10 +289,9 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("theme", &theme);
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("terminal", &terminal);
-    engine.rootContext()->setContextProperty("mcp", &mcp);
-    engine.rootContext()->setContextProperty("providers", &providerManager);
     engine.rootContext()->setContextProperty("nineRouter", &nineRouter);
     engine.rootContext()->setContextProperty("mausBot", &mausBot);
+    engine.rootContext()->setContextProperty("connections", &connections);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

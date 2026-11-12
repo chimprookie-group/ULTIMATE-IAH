@@ -22,92 +22,40 @@ Item {
 
     function availableTools() {
         let count = 0
-        for (let i = 0; i < ecosystem.tools.length; ++i) {
+        for (let i = 0; i < ecosystem.tools.length; ++i)
             if (ecosystem.tools[i].available)
                 count++
-        }
         return count
-    }
-
-    function mcpStatusLabel(status) {
-        if (status === "connected")
-            return qsTr("Connected")
-        if (status === "failed")
-            return qsTr("Failed")
-        if (status === "pending")
-            return qsTr("Pending")
-        if (status === "disabled")
-            return qsTr("Disabled")
-        return qsTr("Not tested")
-    }
-
-    function mcpColor(status) {
-        if (status === "connected")
-            return theme.green
-        if (status === "failed")
-            return theme.red
-        if (status === "disabled")
-            return theme.dimText
-        return theme.yellow
     }
 
     function contextBrief() {
         let text = ecosystem.brief()
         if (backend.gitAvailable) {
             const state = backend.gitDirtyCount > 0
-                    ? qsTr("%n change(s)", "", backend.gitDirtyCount)
-                    : qsTr("clean")
-            text += "\n" + qsTr("- Git: %1").arg(backend.gitBranch + " · " + state)
+                    ? qsTr("%n changement(s)", "", backend.gitDirtyCount)
+                    : qsTr("propre")
+            text += "\n" + qsTr("- Git : %1").arg(backend.gitBranch + " · " + state)
         }
         return text
     }
 
-    function recipePrompt(id) {
-        if (id === "explain")
-            return qsTr("Explain this project's architecture, its main modules and the data flow between them. Cite the important files.")
-        if (id === "review")
-            return qsTr("Review my uncommitted changes: look for bugs, regressions, edge cases and security issues. Propose concrete fixes.")
-        if (id === "test")
-            return qsTr("Look at the project and propose the most useful missing tests. Write them, then run the test suite.")
-        if (id === "fix")
-            return qsTr("Reproduce the problem I'm about to describe, find the root cause, fix it, and verify with a real test or command.")
-        if (id === "security")
-            return qsTr("Audit the project's security: unvalidated input, secrets, permissions, dependencies and execution paths. Rank risks by severity.")
-        if (id === "perf")
-            return qsTr("Find the project's performance bottlenecks. Measure where possible, then propose optimizations ranked by impact.")
-        return ""
-    }
-
-    function useSkill(skill) {
-        agentTaskRequested(qsTr("Use the « %1 » skill from %2 to help me on this project. Start by telling me what it brings and what you need.").arg(skill.name).arg(skill.path))
-    }
-
-    function connectProvider() {
-        const raw = backend.currentModel
-        const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")).replace(/[^A-Za-z0-9._-]/g, "") : ""
-        const login = provider !== "" ? "opencode auth login " + provider : "opencode auth login"
-        root.commandRequested(login + " && opencode service restart")
-    }
-
-    function useSession(session) {
-        backend.loadSession(session.sessionId, backend.workspace)
-        backend.setView("opencode")
+    function sendTask(text) {
+        if (text !== "")
+            root.agentTaskRequested(text)
     }
 
     Component.onCompleted: if (visible) Qt.callLater(refresh)
     onVisibleChanged: if (visible) refresh()
 
     ScrollView {
-        id: scroll
         anchors.fill: parent
         clip: true
         contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
         Column {
-            id: content
             width: root.contentWidth
-            x: Math.max(24, (scroll.availableWidth - width) / 2)
+            x: Math.max(24, (parent.width - width) / 2)
             topPadding: 26
             bottomPadding: 32
             spacing: 14
@@ -115,75 +63,58 @@ Item {
             RowLayout {
                 width: parent.width
                 spacing: 14
-
                 Item {
                     width: 56
                     height: 56
-                    Layout.alignment: Qt.AlignTop
-
                     Rectangle {
                         anchors.centerIn: parent
                         width: 54
                         height: 54
                         radius: 27
                         color: theme.accent
-                        opacity: theme.dark ? 0.12 : 0.07
+                        opacity: 0.1
                     }
-                    ThemedIcon {
-                        anchors.centerIn: parent
-                        source: "icons/ecosystem.svg"
-                        width: 25
-                        height: 25
-                        color: theme.accent
-                    }
+                    ThemedIcon { anchors.centerIn: parent; source: "icons/ecosystem.svg"; width: 24; height: 24; color: theme.accent }
                 }
-
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 3
-
+                    spacing: 2
                     Text {
-                        text: qsTr("Ecosystem")
+                        text: qsTr("Projet")
                         color: theme.brightText
-                        font.pixelSize: 25
+                        font.family: "iA Writer Duospace"
+                        font.pixelSize: 26
                         font.weight: Font.Bold
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("The project, the tools it can use, and the skills that know how to use them.")
+                        text: qsTr("Le projet, ses outils, ses skills et le contexte à confier au harness.")
                         color: theme.mutedText
                         font.pixelSize: 11
                         wrapMode: Text.Wrap
                     }
                 }
-
-                Button {
-                    text: qsTr("Refresh")
-                    flat: true
-                    onClicked: root.refresh(true)
-                }
+                Button { text: qsTr("Rafraîchir"); flat: true; onClicked: root.refresh(true) }
             }
 
             Flow {
                 width: parent.width
                 spacing: 6
-
                 Repeater {
                     model: [
                         { "label": ecosystem.project.label !== undefined ? ecosystem.project.label : qsTr("workspace") },
-                        { "label": qsTr("%n tool(s) ready", "", root.availableTools()) },
+                        { "label": qsTr("%n outil(s) prêt(s)", "", root.availableTools()) },
                         { "label": qsTr("%n skill(s)", "", ecosystem.skills.length) }
                     ]
-
                     Rectangle {
-                        width: chipLabel.implicitWidth + 18
+                        width: chip.implicitWidth + 18
                         height: 24
                         radius: 12
                         color: theme.chip
                         border.width: 1
                         border.color: theme.border
                         Text {
-                            id: chipLabel
+                            id: chip
                             anchors.centerIn: parent
                             text: modelData.label
                             color: theme.mutedText
@@ -198,137 +129,68 @@ Item {
                 spacing: 12
 
                 HomeCard {
-                    title: qsTr("Project")
+                    title: qsTr("Projet")
                     icon: "icons/branch.svg"
-                    accent: theme.green
                     cardWidth: root.cardWidth
 
                     Text {
                         Layout.fillWidth: true
-                        text: ecosystem.project.label !== undefined ? ecosystem.project.label : qsTr("Scanning…")
+                        text: ecosystem.project.name !== undefined ? ecosystem.project.name : backend.workspaceName
                         color: theme.text
-                        font.pixelSize: 13
+                        font.pixelSize: 12
                         font.weight: Font.DemiBold
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: ecosystem.project.workspace !== undefined ? ecosystem.project.workspace : backend.workspace
+                        text: backend.workspace
                         color: theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: 9
                         elide: Text.ElideMiddle
                     }
+                    Text {
+                        Layout.fillWidth: true
+                        text: backend.gitAvailable
+                              ? (backend.gitBranch + " · " + (backend.gitDirtyCount > 0 ? qsTr("%n changement(s)", "", backend.gitDirtyCount) : qsTr("propre")))
+                              : qsTr("hors dépôt git")
+                        color: backend.gitDirtyCount > 0 ? theme.orange : theme.mutedText
+                        font.family: backend.monoFont
+                        font.pixelSize: 9
+                    }
                     Flow {
                         Layout.fillWidth: true
-                        spacing: 5
-
+                        spacing: 4
                         Repeater {
                             model: ecosystem.project.commands !== undefined ? ecosystem.project.commands : []
-
                             Button {
                                 text: modelData.label
                                 flat: true
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 onClicked: root.commandRequested(modelData.command)
                             }
                         }
                     }
-                    Text {
-                        Layout.fillWidth: true
-                        visible: ecosystem.project.files !== undefined
-                        text: ecosystem.project.files !== undefined ? ecosystem.project.files.join(" · ") : ""
-                        color: theme.dimText
-                        font.pixelSize: 8
-                        elide: Text.ElideRight
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Commands run in the integrated terminal.")
-                        color: theme.dimText
-                        font.pixelSize: 8
-                    }
-                }
-
-                HomeCard {
-                    title: qsTr("Context and recipes")
-                    icon: "icons/spark.svg"
-                    accent: theme.cyan
-                    cardWidth: root.cardWidth
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Give the agent the state of the workspace in one click, or start from a proven workflow.")
-                        color: theme.mutedText
-                        font.pixelSize: 10
-                        wrapMode: Text.Wrap
-                    }
-
-                    ActionButton {
-                        text: qsTr("Inject project context")
-                        onClicked: root.agentTaskRequested(root.contextBrief())
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 5
-
-                        Repeater {
-                            model: [
-                                { "id": "explain", "label": qsTr("Explain") },
-                                { "id": "review", "label": qsTr("Review") },
-                                { "id": "test", "label": qsTr("Tests") },
-                                { "id": "fix", "label": qsTr("Fix") },
-                                { "id": "security", "label": qsTr("Security") },
-                                { "id": "perf", "label": qsTr("Performance") }
-                            ]
-
-                            Button {
-                                text: modelData.label
-                                flat: true
-                                font.pixelSize: 10
-                                onClicked: root.agentTaskRequested(root.recipePrompt(modelData.id))
-                            }
-                        }
-                    }
-                }
-
-                HomeCard {
-                    title: qsTr("Tools")
-                    icon: "icons/terminal.svg"
-                    accent: theme.blue
-                    cardWidth: root.cardWidth
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("%n of %1 installed", "", root.availableTools()).arg(ecosystem.tools.length)
-                        color: theme.dimText
+                    Button {
+                        text: qsTr("Git diff")
+                        flat: true
                         font.pixelSize: 9
+                        onClicked: root.commandRequested("git diff")
                     }
+                }
+
+                HomeCard {
+                    title: qsTr("Outils")
+                    icon: "icons/terminal.svg"
+                    cardWidth: root.cardWidth
 
                     Repeater {
                         model: ecosystem.tools
-
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 7
-
-                            StatusDot {
-                                color: modelData.available ? theme.green : theme.dimText
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: modelData.label
-                                color: modelData.available ? theme.text : theme.dimText
-                                font.pixelSize: 9
-                            }
-                            Text {
-                                visible: modelData.version !== ""
-                                text: modelData.version
-                                color: theme.dimText
-                                font.pixelSize: 8
-                                elide: Text.ElideRight
-                                Layout.maximumWidth: 210
-                            }
+                            StatusDot { size: 4; color: modelData.available ? theme.green : theme.dimText }
+                            Text { Layout.fillWidth: true; text: modelData.label !== undefined ? modelData.label : modelData.id; color: theme.text; font.pixelSize: 10; elide: Text.ElideRight }
+                            Text { text: modelData.version; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight; Layout.maximumWidth: 150 }
                         }
                     }
                 }
@@ -336,196 +198,66 @@ Item {
                 HomeCard {
                     title: qsTr("Skills")
                     icon: "icons/spark.svg"
-                    accent: theme.magenta
                     cardWidth: root.cardWidth
 
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("%n available", "", ecosystem.skills.length)
-                        color: theme.dimText
-                        font.pixelSize: 9
-                    }
                     Text {
                         Layout.fillWidth: true
                         visible: ecosystem.skills.length === 0
-                        text: qsTr("No skill found in ~/.agents/skills.")
-                        color: theme.mutedText
+                        text: qsTr("Aucun skill dans ~/.agents/skills.")
+                        color: theme.dimText
                         font.pixelSize: 9
                         wrapMode: Text.Wrap
                     }
 
                     Repeater {
-                        model: ecosystem.skills.slice(0, 6)
-
+                        model: ecosystem.skills
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 7
-
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 spacing: 1
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.name
-                                    color: theme.text
-                                    font.pixelSize: 10
-                                    elide: Text.ElideRight
-                                }
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.description
-                                    color: theme.dimText
-                                    font.pixelSize: 8
-                                    elide: Text.ElideRight
-                                }
+                                Text { Layout.fillWidth: true; text: modelData.name !== undefined ? modelData.name : modelData.id; color: theme.text; font.pixelSize: 10; elide: Text.ElideRight }
+                                Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
                             }
                             Button {
-                                text: qsTr("Use")
+                                text: qsTr("Confier")
                                 flat: true
                                 font.pixelSize: 9
-                                onClicked: root.useSkill(modelData)
+                                onClicked: root.sendTask(qsTr("Utilise le skill « %1 » depuis %2 pour m'aider sur ce projet. Dis-moi d'abord ce qu'il apporte et ce dont tu as besoin.").arg(modelData.name).arg(modelData.path))
                             }
                         }
                     }
                 }
 
                 HomeCard {
-                    visible: false
-                    title: qsTr("Models")
-                    icon: "icons/spark.svg"
-                    accent: theme.orange
-                    cardWidth: root.cardWidth
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: backend.currentModel !== "" ? backend.currentModel : qsTr("No model selected")
-                        color: theme.text
-                        font.family: backend.monoFont
-                        font.pixelSize: 10
-                        elide: Text.ElideMiddle
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("%n available · mode %1", "", ecosystem.models.length > 0 ? ecosystem.models.length : backend.modelOptions.length).arg(backend.currentMode)
-                        color: theme.dimText
-                        font.pixelSize: 9
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: ecosystem.providerSummary
-                        color: ecosystem.authProviders.length > 0 ? theme.green : theme.yellow
-                        font.pixelSize: 9
-                    }
-                    Repeater {
-                        model: ecosystem.authProviders.slice(0, 3)
-                        Text {
-                            Layout.fillWidth: true
-                            text: "• " + modelData.name
-                            color: theme.mutedText
-                            font.pixelSize: 8
-                            elide: Text.ElideRight
-                        }
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Connect a provider or subscribe to OpenCode Go to unlock paid models.")
-                        color: theme.dimText
-                        font.pixelSize: 8
-                        wrapMode: Text.Wrap
-                    }
-                    Button {
-                        text: qsTr("Connect a provider")
-                        flat: true
-                        font.pixelSize: 9
-                        onClicked: root.connectProvider()
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 5
-
-                        Repeater {
-                            model: (ecosystem.models.length > 0 ? ecosystem.models : backend.modelOptions).slice(0, 14)
-
-                            Button {
-                                text: modelData.free ? modelData.name + " · " + qsTr("free") : modelData.name
-                                flat: true
-                                font.pixelSize: 9
-                                enabled: backend.opencodeState === "ready"
-                                onClicked: backend.setConfigOption("model", modelData.value)
-                            }
-                        }
-                    }
-                }
-
-                HomeCard {
-                    visible: false
-                    title: qsTr("MCP and sessions")
+                    title: qsTr("Contexte et recettes")
                     icon: "icons/plug.svg"
                     accent: theme.green
                     cardWidth: root.cardWidth
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("%n MCP server(s)", "", mcp.servers.length)
+                        text: qsTr("Une tâche prête pour le harness, exécutée dans le terminal agent.")
                         color: theme.dimText
                         font.pixelSize: 9
+                        wrapMode: Text.Wrap
                     }
-                    Repeater {
-                        model: mcp.servers.slice(0, 4)
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 7
-                            StatusDot {
-                                color: root.mcpColor(modelData.status)
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: modelData.name
-                                color: theme.text
-                                font.pixelSize: 9
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                text: root.mcpStatusLabel(modelData.auth !== undefined ? modelData.auth : modelData.status)
-                                color: root.mcpColor(modelData.auth !== undefined ? modelData.auth : modelData.status)
-                                font.pixelSize: 8
-                            }
-                        }
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        Button { text: qsTr("Expliquer"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Explique l'architecture de ce projet, ses modules principaux et les flux de données. Cite les fichiers importants.")) }
+                        Button { text: qsTr("Relire"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Relis mes changements non commités : bugs, régressions, cas limites et sécurité. Propose des correctifs concrets.")) }
+                        Button { text: qsTr("Tests"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Regarde le projet et propose les tests manquants les plus utiles. Écris-les puis lance la suite.")) }
+                        Button { text: qsTr("Corriger"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Reproduis le problème que je vais décrire, trouve la cause racine, corrige et vérifie avec un vrai test.")) }
+                        Button { text: qsTr("Sécurité"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Audite la sécurité du projet : entrées non validées, secrets, permissions, dépendances et chemins d'exécution. Classe les risques.")) }
+                        Button { text: qsTr("Performance"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Trouve les goulots d'étranglement de performance. Mesure quand c'est possible, puis propose des optimisations classées par impact.")) }
                     }
                     Button {
-                        text: qsTr("Manage MCP")
+                        text: qsTr("Injecter le contexte")
                         flat: true
-                        onClicked: backend.setView("settings")
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: theme.border
-                    }
-
-                    Repeater {
-                        model: backend.sessions.slice(0, 3)
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 7
-                            Text {
-                                Layout.fillWidth: true
-                                text: backend.sessionLabel(modelData)
-                                color: theme.mutedText
-                                font.pixelSize: 9
-                                elide: Text.ElideRight
-                            }
-                            Button {
-                                text: qsTr("Open")
-                                flat: true
-                                font.pixelSize: 8
-                                onClicked: root.useSession(modelData)
-                            }
-                        }
+                        font.pixelSize: 9
+                        onClicked: root.sendTask(root.contextBrief())
                     }
                 }
             }

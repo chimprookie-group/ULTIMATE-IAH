@@ -384,6 +384,7 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 3
+                            Button { text: qsTr("Connexions"); flat: true; font.pixelSize: 9; onClicked: backend.setView("connections") }
                             Button { text: qsTr("Projet"); flat: true; font.pixelSize: 9; onClicked: backend.setView("ecosystem") }
                             Button { text: qsTr("Réglages"); flat: true; font.pixelSize: 9; onClicked: backend.setView("settings") }
                             Item { Layout.fillWidth: true }

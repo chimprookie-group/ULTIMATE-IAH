@@ -39,6 +39,7 @@ ApplicationWindow {
         if (backend.view === "mausbot") return "MausBot"
         if (backend.view === "harness") return qsTr("Harness")
         if (backend.view === "terminal") return qsTr("Terminal agent")
+        if (backend.view === "connections") return qsTr("Connexions")
         if (backend.view === "settings") return qsTr("Réglages")
         return "DeepCrasy H"
     }
@@ -97,6 +98,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Projet"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
+        add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
         add(qsTr("Navigation"), "MausBot", "Ctrl+Shift+M", "view:mausbot", "icons/mausbot.svg")
         add(qsTr("Navigation"), qsTr("Réglages"), "Ctrl+4", "view:settings", "icons/gear.svg")
@@ -158,6 +160,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
+    Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("connections") }
     Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
     Shortcut { sequence: "Ctrl+Shift+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mausbot") }
     Shortcut {
@@ -325,7 +328,7 @@ ApplicationWindow {
                     spacing: 0
                     visible: backend.view !== "settings" && backend.view !== "home"
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
-                             && backend.view !== "workspace"
+                             && backend.view !== "workspace" && backend.view !== "connections"
                              && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
@@ -352,6 +355,11 @@ ApplicationWindow {
                     onAgentTaskRequested: function (prompt) {
                         win.runAgentTask(prompt)
                     }
+                }
+
+                ConnectionsPane {
+                    anchors.fill: parent
+                    visible: backend.view === "connections"
                 }
 
                 NineRouterPane {

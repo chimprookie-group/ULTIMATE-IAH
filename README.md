@@ -5,6 +5,16 @@ connexions et votre projet — sans OpenCode.
 
 ![Cockpit Crasy Harness](assets/screenshot-home.png)
 
+## Connexions
+
+![Connexions du harness](assets/screenshot-connections.png)
+
+Le centre **Connexions** gère les providers du harness directement : clé
+DeepSeek, endpoints OpenAI-compatible, modèles et modèle par défaut. Les clés
+vont dans le credential store DSH, les routes dans un overlay `llm-pi-ai`
+consommé par le harness. 9Router et MausBot restent accessibles comme sources
+et ponts MCP.
+
 ## Le socle
 
 - **Harness** : le web UI DeepSeek Harness est embarqué, avec son logo, son

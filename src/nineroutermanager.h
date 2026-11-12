@@ -10,8 +10,7 @@ class QNetworkReply;
 class QTimer;
 
 // Runs 9Router as a local service and connects it to the two model surfaces of
-// DeepCrasy H: OpenCode (native 9Router integration endpoint) and the
-// DeepSeek Harness (llm-pi-ai provider patch + NINE_ROUTER_API_KEY).
+// DeepCrasy H's DeepSeek Harness (llm-pi-ai provider patch and local key).
 class NineRouterManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool installed READ installed NOTIFY installedChanged)
@@ -60,7 +59,6 @@ public:
     Q_INVOKABLE void start();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void login(const QString &password);
-    Q_INVOKABLE void applyToOpenCode(const QStringList &models);
     Q_INVOKABLE void applyToHarness(const QStringList &models, bool makeDefault);
     Q_INVOKABLE void disconnectHarness();
     Q_INVOKABLE void clearError();

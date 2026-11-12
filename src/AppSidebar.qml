@@ -170,6 +170,15 @@ Item {
                 SidebarItem {
                     Layout.fillWidth: true
                     compact: root.compact
+                    icon: "icons/providers.svg"
+                    label: qsTr("Connexions")
+                    hint: qsTr("Providers et MCP du harness (Ctrl+8)")
+                    active: backend.view === "connections"
+                    onClicked: backend.setView("connections")
+                }
+                SidebarItem {
+                    Layout.fillWidth: true
+                    compact: root.compact
                     icon: "icons/router.svg"
                     label: "9Router"
                     hint: qsTr("9Router (Ctrl+9)")

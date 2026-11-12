@@ -487,33 +487,6 @@ void NineRouterManager::fetchModels() {
     });
 }
 
-void NineRouterManager::applyToOpenCode(const QStringList &models) {
-    if (models.isEmpty()) {
-        setError(tr("Select at least one 9Router model."));
-        return;
-    }
-    if (m_apiKey.isEmpty()) {
-        setError(tr("9Router is not authenticated yet."));
-        return;
-    }
-    QJsonObject body{{"baseUrl", QStringLiteral("http://127.0.0.1:%1").arg(m_port)},
-                     {"apiKey", m_apiKey},
-                     {"models", QJsonArray::fromStringList(models)}};
-    send("POST", QStringLiteral("/api/cli-tools/opencode-settings"), &body, true, false,
-         [this](QNetworkReply *reply) {
-        int status = 0;
-        readJson(reply, &status);
-        if (status < 200 || status >= 300) {
-            setError(tr("OpenCode integration rejected the request."));
-            return;
-        }
-        QFile marker(m_configDir + "/nine-router.enabled");
-        if (marker.open(QIODevice::WriteOnly))
-            marker.write("enabled\n");
-        setError({});
-        emit openCodeApplied();
-    });
-}
 
 void NineRouterManager::applyToHarness(const QStringList &models, bool makeDefault) {
     if (models.isEmpty()) {

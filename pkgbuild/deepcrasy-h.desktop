@@ -8,5 +8,5 @@ Exec=deepcrasy-h %f
 Icon=deepcrasy-h
 Terminal=false
 Categories=Development;
-Keywords=ai;agent;harness;opencode;code;deepseek;
+Keywords=ai;agent;harness;terminal;code;deepseek;
 StartupWMClass=deepcrasy-h

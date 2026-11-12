@@ -6,15 +6,12 @@ TEMPLATE = app
 INCLUDEPATH += ../src
 
 HEADERS += \
-    ../src/acpclient.h \
     ../src/config.h \
     ../src/ecosystem.h \
     ../src/harnessserver.h \
-    ../src/mcpmanager.h \
-    ../src/providermanager.h \
+    ../src/harnessconnections.h \
     ../src/nineroutermanager.h \
     ../src/mausbotmanager.h \
-    ../src/messagemodel.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/workspacemodel.h \
@@ -24,17 +21,14 @@ LIBS += -lutil
 
 SOURCES += \
     deepcrasy-h_tests.cpp \
-    ../src/acpclient.cpp \
     ../src/config.cpp \
     ../src/ecosystem.cpp \
     ../src/gitstatus.cpp \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
-    ../src/mcpmanager.cpp \
-    ../src/providermanager.cpp \
+    ../src/harnessconnections.cpp \
     ../src/nineroutermanager.cpp \
     ../src/mausbotmanager.cpp \
-    ../src/messagemodel.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \
     ../src/translator.cpp

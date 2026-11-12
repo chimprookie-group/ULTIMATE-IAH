@@ -7,16 +7,13 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
-#include "acpclient.h"
 #include "config.h"
 #include "ecosystem.h"
 #include "workspacemodel.h"
 #include "gitstatus.h"
-#include "mcpmanager.h"
-#include "providermanager.h"
-#include "messagemodel.h"
 #include "terminalsession.h"
 #include "harnessserver.h"
+#include "harnessconnections.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -49,7 +46,6 @@ private slots:
         QCOMPARE(config.harnessProfile(), QString("web"));
         QVERIFY(QFileInfo(config.workspace()).isDir());
         QVERIFY(!config.dshBinary().isEmpty());
-        QVERIFY(!config.opencodeBinary().isEmpty());
     }
 
     void configPersistsEverySetting()
@@ -65,9 +61,6 @@ private slots:
             config.setLanguage("fr");
             config.setStartupView("home");
             config.setAutoStartHarness(false);
-            config.setAutoStartOpencode(false);
-            config.setSplitRatio(0.62);
-            config.setNotifyOnFinish(false);
         }
         Config reloaded(path);
         QCOMPARE(reloaded.workspace(), QFileInfo(dir.path()).absoluteFilePath());
@@ -77,9 +70,6 @@ private slots:
         QCOMPARE(reloaded.language(), QString("fr"));
         QCOMPARE(reloaded.startupView(), QString("home"));
         QCOMPARE(reloaded.autoStartHarness(), false);
-        QCOMPARE(reloaded.autoStartOpencode(), false);
-        QCOMPARE(reloaded.splitRatio(), 0.62);
-        QCOMPARE(reloaded.notifyOnFinish(), false);
     }
 
     void configRejectsMissingWorkspace()
@@ -146,102 +136,38 @@ private slots:
         QCOMPARE(skills.at(0).toMap().value("name").toString(), QString("Demo Skill"));
     }
 
-    void acpClassifiesUsageFailures()
-    {
-        QCOMPARE(AcpClient::classifyFailure(
-                     "Internal error: Free usage limit reached. Connect a provider or subscribe to OpenCode Go."),
-                 QString("usage"));
-        QCOMPARE(AcpClient::classifyFailure("No provider is connected"), QString("provider"));
-        QCOMPARE(AcpClient::classifyFailure("Authentication required: provider authentication required"), QString("provider"));
-        QCOMPARE(AcpClient::classifyFailure("Reconnect OpenCode Console to continue."), QString("provider"));
-        QCOMPARE(AcpClient::classifyFailure("Something else"), QString("error"));
-    }
 
-    void providersPersistCustomModels()
+
+
+
+    void connectionsPersistHarnessProviders()
     {
         QTemporaryDir dir;
-        const QString path = dir.path() + "/opencode.json";
-        QFile seed(path);
-        QVERIFY(seed.open(QIODevice::WriteOnly));
-        seed.write("{\"$schema\":\"https://opencode.ai/config.json\"}");
-        seed.close();
+        qputenv("DSH_HOME", dir.path().toUtf8());
+        QFile creds(dir.path() + "/.credentials.yaml");
+        QVERIFY(creds.open(QIODevice::WriteOnly));
+        creds.write("version: 1\nrefs: {}\nrecords: {}\n");
+        creds.close();
+        const QString overlay = dir.path() + "/connections.patch.yml";
 
-        ProviderManager manager(path);
-        manager.saveProvider("mock", "Mock Provider", "http://127.0.0.1:18080/v1",
-                             "secret-key", "mock-model=Mock Model\nsecond");
-        QCOMPARE(manager.providers().size(), 1);
-        const QVariantMap provider = manager.providers().at(0).toMap();
+        HarnessConnections connections(overlay);
+        connections.saveProvider("mock", "Mock", "http://127.0.0.1:18080/v1",
+                                 "secret-key", "mock-model=Mock Model", true);
+        QCOMPARE(connections.error(), QString());
+        QCOMPARE(connections.providers().size(), 1);
+        const QVariantMap provider = connections.providers().at(0).toMap();
         QCOMPARE(provider.value("id").toString(), QString("mock"));
-        QCOMPARE(provider.value("modelCount").toInt(), 2);
-        QCOMPARE(provider.value("keyMasked").toString(), QString("••••-key"));
+        QCOMPARE(provider.value("hasKey").toBool(), true);
+        QCOMPARE(connections.defaultModel(), QString("mock/mock-model"));
 
-        QFile written(path);
+        QFile written(dir.path() + "/.credentials.yaml");
         QVERIFY(written.open(QIODevice::ReadOnly));
-        const QJsonObject root = QJsonDocument::fromJson(written.readAll()).object();
+        QVERIFY(written.readAll().contains("HARNESS_MOCK_API_KEY"));
         written.close();
-        const QJsonObject entry = root.value("providers").toObject().value("mock").toObject();
-        QCOMPARE(entry.value("settings").toObject().value("baseURL").toString(),
-                 QString("http://127.0.0.1:18080/v1"));
 
-        manager.removeProvider("mock");
-        QCOMPARE(manager.providers().size(), 0);
-    }
-
-    void providerTestReportsVisibleModels()
-    {
-        QTemporaryDir dir;
-        const QString path = dir.path() + "/opencode.json";
-        QFile seed(path);
-        QVERIFY(seed.open(QIODevice::WriteOnly));
-        seed.write("{}");
-        seed.close();
-
-        QTcpServer server;
-        QVERIFY(server.listen(QHostAddress::LocalHost, 0));
-        connect(&server, &QTcpServer::newConnection, this, [&server] {
-            QTcpSocket *socket = server.nextPendingConnection();
-            connect(socket, &QTcpSocket::readyRead, socket, [socket] {
-                socket->readAll();
-                const QByteArray body = "{\"data\":[{\"id\":\"mock-model\"}]}";
-                const QByteArray response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
-                    + QByteArray::number(body.size()) + "\r\nConnection: close\r\n\r\n" + body;
-                socket->write(response);
-                socket->flush();
-                socket->disconnectFromHost();
-            });
-            connect(socket, &QTcpSocket::disconnected, socket, &QObject::deleteLater);
-        });
-
-        ProviderManager manager(path);
-        manager.saveProvider("mock", "Mock", QString("http://127.0.0.1:%1/v1").arg(server.serverPort()),
-                             "secret", "mock-model");
-        QCOMPARE(manager.error(), QString());
-        manager.testProvider("mock");
-        QTRY_VERIFY_WITH_TIMEOUT(!manager.testing(), 5000);
-        QVERIFY2(manager.testMessage().contains("Connected"), qPrintable(manager.testMessage()));
-        QVERIFY(manager.testMessage().contains("1"));
-    }
-
-    void profilesPersistAcrossRestarts()
-    {
-        QTemporaryDir dir;
-        const QString path = dir.path() + "/config.json";
-        Config config(path);
-        const QString id = config.saveProfile("Review", "openrouter/deepseek-v4.1", "plan");
-        QVERIFY(!id.isEmpty());
-        QCOMPARE(config.profiles().size(), 1);
-        QCOMPARE(config.activeProfileId(), id);
-
-        Config reloaded(path);
-        QCOMPARE(reloaded.profiles().size(), 1);
-        QCOMPARE(reloaded.activeProfileId(), id);
-        const QVariantMap profile = reloaded.profileById(id);
-        QCOMPARE(profile.value("name").toString(), QString("Review"));
-        QCOMPARE(profile.value("mode").toString(), QString("plan"));
-
-        reloaded.removeProfile(id);
-        QCOMPARE(reloaded.profiles().size(), 0);
-        QVERIFY(reloaded.activeProfileId().isEmpty());
+        connections.removeProvider("mock");
+        QCOMPARE(connections.providers().size(), 0);
+        qunsetenv("DSH_HOME");
     }
 
     void workspaceListsFiltersAndPreviewsFiles()
@@ -288,96 +214,8 @@ private slots:
         session.stop();
     }
 
-    void mcpConfigurationIsEditedSafely()
-    {
-        QTemporaryDir dir;
-        const QString path = dir.path() + "/opencode.json";
-        QFile seed(path);
-        QVERIFY(seed.open(QIODevice::WriteOnly));
-        seed.write("{\"$schema\": \"https://opencode.ai/config.json\", \"theme\": \"system\"}");
-        seed.close();
 
-        McpManager mcp(path, false);
-        QCOMPARE(mcp.servers().size(), 0);
 
-        mcp.addServer("filesystem", "local", "npx -y @modelcontextprotocol/server-filesystem /tmp", "global");
-        QCOMPARE(mcp.servers().size(), 1);
-        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("filesystem"));
-        QCOMPARE(mcp.error(), QString());
-
-        QFile written(path);
-        QVERIFY(written.open(QIODevice::ReadOnly));
-        const QJsonObject root = QJsonDocument::fromJson(written.readAll()).object();
-        written.close();
-        QCOMPARE(root.value("theme").toString(), QString("system"));
-        const QJsonObject server = root.value("mcp").toObject().value("servers").toObject()
-                                       .value("filesystem").toObject();
-        QCOMPARE(server.value("type").toString(), QString("local"));
-        QCOMPARE(server.value("command").toArray().size(), 4);
-
-        mcp.addServer("remote", "remote", "https://example.com/mcp", "global");
-        QCOMPARE(mcp.servers().size(), 2);
-
-        QTemporaryDir project;
-        mcp.setWorkspace(project.path());
-        QCOMPARE(mcp.projectConfigPath(), project.path() + "/opencode.json");
-        mcp.addServer("project-tools", "remote", "https://example.com/project", "project");
-        QCOMPARE(mcp.servers().size(), 3);
-        QFile projectConfig(project.path() + "/opencode.json");
-        QVERIFY(projectConfig.open(QIODevice::ReadOnly));
-        const QJsonObject projectRoot = QJsonDocument::fromJson(projectConfig.readAll()).object();
-        projectConfig.close();
-        QVERIFY(projectRoot.value("mcp").toObject().value("servers").toObject()
-                    .contains("project-tools"));
-
-        mcp.removeServer("filesystem", "global");
-        QCOMPARE(mcp.servers().size(), 2);
-        QCOMPARE(mcp.servers().at(0).toMap().value("name").toString(), QString("remote"));
-        mcp.removeServer("project-tools", "project");
-        QCOMPARE(mcp.servers().size(), 1);
-
-        mcp.addServer("local-only", "local", "echo", "global");
-        mcp.authenticate("local-only", "global");
-        QVERIFY(!mcp.authRunning());
-        QVERIFY(!mcp.authMessage().isEmpty());
-        mcp.logoutServer("local-only", "global");
-        QVERIFY(!mcp.authRunning());
-        QVERIFY(!mcp.authMessage().isEmpty());
-
-        mcp.addServer("bad name", "local", "echo", "global");
-        QVERIFY(!mcp.error().isEmpty());
-    }
-
-    void mcpExtractsTheAuthorizationUrl()
-    {
-        const QString output = QStringLiteral(
-            "\x1b[32mStarting\x1b[0m http://127.0.0.1:43123/callback "
-            "then https://auth.example.com/oauth/authorize?client_id=crasy.");
-        QCOMPARE(McpManager::extractAuthUrl(output),
-                 QStringLiteral("https://auth.example.com/oauth/authorize?client_id=crasy"));
-        QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("http://127.0.0.1:9000/callback")),
-                 QString());
-        QCOMPARE(McpManager::extractAuthUrl(QStringLiteral("no url here")), QString());
-    }
-
-    void messageModelUpdatesOneRowAtATime()
-    {
-        MessageListModel model;
-        QSignalSpy inserted(&model, &QAbstractItemModel::rowsInserted);
-        QSignalSpy changed(&model, &QAbstractItemModel::dataChanged);
-
-        model.append(QVariantMap{{"id", "1"}, {"role", "assistant"}, {"text", "a"}});
-        model.append(QVariantMap{{"id", "2"}, {"role", "tool"}, {"text", ""}});
-        QCOMPARE(model.rowCount(), 2);
-        QCOMPARE(inserted.count(), 2);
-        QCOMPARE(changed.count(), 0);
-
-        model.setAt(0, QVariantMap{{"id", "1"}, {"role", "assistant"}, {"text", "ab"}});
-        QCOMPARE(changed.count(), 1);
-        QCOMPARE(model.rowCount(), 2);
-        QCOMPARE(model.data(model.index(0), MessageListModel::TextRole).toString(), QString("ab"));
-        QCOMPARE(model.data(model.index(0), MessageListModel::RoleRole).toString(), QString("assistant"));
-    }
 
     void terminalRunsACommand()
     {
@@ -521,37 +359,6 @@ private slots:
         QCOMPARE(translator.translate("Main", "Settings"), QString("Réglages"));
         QCOMPARE(translator.translate("Main", "Harness"), QString("Harness"));
         QVERIFY(translator.translate("Main", "Untranslated").isNull());
-    }
-
-    // The real contract test: spawn `opencode acp`, create a session, send a
-    // prompt, and read the streamed answer back. It needs the network and a
-    // free model, so it can be skipped with DEEPCRASY_SKIP_INTEGRATION=1.
-    void opencodeAnswersOverAcp()
-    {
-        if (!qEnvironmentVariableIsEmpty("DEEPCRASY_SKIP_INTEGRATION"))
-            QSKIP("DEEPCRASY_SKIP_INTEGRATION is set");
-        const QString opencode = QStandardPaths::findExecutable("opencode");
-        if (opencode.isEmpty())
-            QSKIP("opencode is not installed");
-
-        QTemporaryDir dir;
-        AcpClient client;
-        client.start(opencode, dir.path());
-        QTRY_VERIFY_WITH_TIMEOUT(client.state() == AcpClient::Ready, 30000);
-
-        client.newSession(dir.path());
-        QTRY_VERIFY_WITH_TIMEOUT(!client.sessionId().isEmpty(), 20000);
-        QTRY_VERIFY_WITH_TIMEOUT(!client.configOptions().isEmpty(), 10000);
-
-        client.prompt("Reply with the single word pong and nothing else. Do not use any tools.");
-        QTRY_VERIFY(client.busy());
-        QTRY_VERIFY_WITH_TIMEOUT(!client.busy(), 120000);
-
-        QString transcript;
-        for (const auto &value : client.messages())
-            transcript += value.toMap().value("text").toString() + "\n";
-        QVERIFY2(transcript.contains("pong", Qt::CaseInsensitive), qPrintable(transcript));
-        QVERIFY(transcript.contains("pong", Qt::CaseInsensitive));
     }
 
 private:

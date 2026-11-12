@@ -1,15 +1,14 @@
 # Maintainer: Crasy
 pkgname=deepcrasy-h
-pkgver=0.21.0
+pkgver=0.22.0
 pkgrel=1
-pkgdesc='DeepSeek Harness and OpenCode in one Omarchy window'
+pkgdesc='Crasy Harness — DeepSeek Harness cockpit with a terminal agent'
 arch=('x86_64' 'aarch64')
 url='https://github.com/iatexplique-debug/DeepCrasy-H'
 license=('MIT')
 depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-webchannel' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme')
 optdepends=(
   'dsh: DeepSeek Harness web server (dsh web)'
-  'opencode: OpenCode agent (opencode acp)'
   'git: branch and changes in the cockpit'
   'nodejs: run the integrated 9Router service'
   'npm: install 9Router from the 9Router view'

@@ -177,7 +177,6 @@ QVariantList Ecosystem::scanTools() {
     struct Tool { const char *id; const char *label; const char *versionArg; };
     static const Tool specs[] = {
         {"dsh", "DeepSeek Harness", "--version"},
-        {"opencode", "OpenCode", "--version"},
         {"git", "Git", "--version"},
         {"node", "Node.js", "--version"},
         {"bun", "Bun", "--version"},
@@ -375,74 +374,15 @@ QVariantList Ecosystem::inspectSkills(const QString &root) {
     return skills;
 }
 
-QVariantList Ecosystem::scanModels() const {
-    const QString opencode = QStandardPaths::findExecutable(QStringLiteral("opencode"));
-    if (opencode.isEmpty())
-        return {};
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    process.start(opencode, {QStringLiteral("models")});
-    if (!process.waitForStarted(1500) || !process.waitForFinished(5000)) {
-        process.kill();
-        process.waitForFinished(100);
-        return {};
-    }
-    QVariantList models;
-    QStringList seen;
-    const QString output = QString::fromUtf8(process.readAll());
-    for (const QString &line : output.split('\n', Qt::SkipEmptyParts)) {
-        const QString value = line.trimmed();
-        if (value.isEmpty() || !value.contains('/') || seen.contains(value))
-            continue;
-        seen << value;
-        const QString provider = value.section('/', 0, 0);
-        QString name = value.section('/', 1);
-        if (name.isEmpty())
-            name = value;
-        models.append(QVariantMap{{"value", value}, {"name", name}, {"provider", provider},
-                                  {"free", value.contains("free", Qt::CaseInsensitive)}});
-    }
-    return models;
-}
 
-QVariantList Ecosystem::scanAuthProviders() const {
-    const QString opencode = QStandardPaths::findExecutable(QStringLiteral("opencode"));
-    if (opencode.isEmpty())
-        return {};
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    process.start(opencode, {QStringLiteral("auth"), QStringLiteral("list")});
-    if (!process.waitForStarted(1500) || !process.waitForFinished(4000)) {
-        process.kill();
-        process.waitForFinished(100);
-        return {};
-    }
-    QVariantList providers;
-    const QString output = QString::fromUtf8(process.readAll()).trimmed();
-    if (output.contains("No authenticated integrations"))
-        return providers;
-    for (const QString &line : output.split('\n', Qt::SkipEmptyParts)) {
-        QString clean = line.trimmed();
-        if (clean.isEmpty())
-            continue;
-        while (!clean.isEmpty() && QStringLiteral("•●-* ").contains(clean.front()))
-            clean.remove(0, 1);
-        if (clean.isEmpty())
-            continue;
-        const QString name = clean.section(' ', 0, 0);
-        providers.append(QVariantMap{{"name", name}, {"detail", clean.left(160)}});
-    }
-    return providers;
-}
 
 QVariantList Ecosystem::scanSkills() const {
     QStringList roots;
     const QString home = QDir::homePath();
     roots << home + "/.agents/skills"
-          << home + "/.config/opencode/skills"
           << home + "/.claude/skills";
     if (!m_workspace.isEmpty())
-        roots << m_workspace + "/.opencode/skills" << m_workspace + "/.agents/skills";
+        roots << m_workspace + "/.agents/skills";
 
     QVariantList all;
     QStringList seen;
@@ -472,20 +412,6 @@ void Ecosystem::refresh(const QString &workspace) {
     }
     m_project = inspectProject(m_workspace);
     m_skills = scanSkills();
-    m_models = scanModels();
-    m_authProviders = scanAuthProviders();
-    m_providerSummary = m_authProviders.isEmpty()
-        ? tr("No provider connected")
-        : tr("%n provider(s) connected", "", m_authProviders.size());
-    emit changed();
-}
-
-void Ecosystem::refreshModels() {
-    m_models = scanModels();
-    m_authProviders = scanAuthProviders();
-    m_providerSummary = m_authProviders.isEmpty()
-        ? tr("No provider connected")
-        : tr("%n provider(s) connected", "", m_authProviders.size());
     emit changed();
 }
 

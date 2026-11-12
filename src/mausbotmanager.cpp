@@ -187,19 +187,8 @@ void MausBotManager::setInstalledState() {
 
 void MausBotManager::refresh() {
     detect();
-    const bool openCode = QFileInfo::exists(openCodeConfigPath());
-    bool hasMpc = false;
-    if (openCode) {
-        QFile file(openCodeConfigPath());
-        if (file.open(QIODevice::ReadOnly)) {
-            const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-            hasMpc = root.value("mcp").toObject().value("servers").toObject()
-                         .contains(QStringLiteral("openmausbot"));
-        }
-    }
     const bool harness = QFileInfo::exists(harnessPatchPath());
-    if (hasMpc != m_mcpOpenCode || harness != m_mcpHarness) {
-        m_mcpOpenCode = hasMpc;
+    if (harness != m_mcpHarness) {
         m_mcpHarness = harness;
         emit mcpChanged();
     }
@@ -388,73 +377,11 @@ void MausBotManager::stop() {
     setDetail(tr("Stopped"));
 }
 
-QString MausBotManager::openCodeConfigPath() const {
-    const QString explicitPath = qEnvironmentVariable("OPENCODE_CONFIG");
-    if (!explicitPath.isEmpty())
-        return explicitPath;
-    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-        + "/opencode/opencode.json";
-}
-
 QString MausBotManager::harnessPatchPath() const {
     return m_configDir + "/openmausbot.patch.yml";
 }
 
-bool MausBotManager::writeOpenCodeMcp(QString *error) {
-    QFile file(openCodeConfigPath());
-    QJsonObject root;
-    if (file.exists()) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            if (error) *error = tr("The OpenCode configuration could not be read.");
-            return false;
-        }
-        root = QJsonDocument::fromJson(file.readAll()).object();
-    }
-    QJsonObject mcp = root.value("mcp").toObject();
-    QJsonObject servers = mcp.value("servers").toObject();
-    servers[QStringLiteral("openmausbot")] = QJsonObject{
-        {"type", QStringLiteral("local")},
-        {"command", QJsonArray{m_binary, QStringLiteral("mcp")}},
-        {"enabled", true},
-    };
-    mcp["servers"] = servers;
-    root["mcp"] = mcp;
 
-    QSaveFile out(openCodeConfigPath());
-    if (!out.open(QIODevice::WriteOnly)) {
-        if (error) *error = tr("The OpenCode configuration could not be written.");
-        return false;
-    }
-    out.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
-    if (!out.commit()) {
-        if (error) *error = tr("The OpenCode configuration could not be saved.");
-        return false;
-    }
-    return true;
-}
-
-bool MausBotManager::removeOpenCodeMcp(QString *error) {
-    QFile file(openCodeConfigPath());
-    if (!file.exists())
-        return true;
-    if (!file.open(QIODevice::ReadOnly)) {
-        if (error) *error = tr("The OpenCode configuration could not be read.");
-        return false;
-    }
-    QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-    QJsonObject mcp = root.value("mcp").toObject();
-    QJsonObject servers = mcp.value("servers").toObject();
-    servers.remove(QStringLiteral("openmausbot"));
-    mcp["servers"] = servers;
-    root["mcp"] = mcp;
-    QSaveFile out(openCodeConfigPath());
-    if (!out.open(QIODevice::WriteOnly) || !out.write(QJsonDocument(root).toJson(QJsonDocument::Indented))
-        || !out.commit()) {
-        if (error) *error = tr("The OpenCode configuration could not be saved.");
-        return false;
-    }
-    return true;
-}
 
 bool MausBotManager::writeHarnessPatch(QString *error) {
     const QString content =

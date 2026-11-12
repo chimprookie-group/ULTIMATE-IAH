@@ -57,12 +57,10 @@ Item {
     Connections {
         target: mausBot
         function onMcpConnected() {
-            backend.restartOpencode()
             backend.restartHarness()
             root.hostWindow.showToast(qsTr("MausBot MCP connected to the harness."))
         }
         function onMcpDisconnected() {
-            backend.restartOpencode()
             backend.restartHarness()
             root.hostWindow.showToast(qsTr("MausBot MCP disconnected."))
         }

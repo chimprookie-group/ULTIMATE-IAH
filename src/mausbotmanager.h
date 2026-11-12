@@ -10,7 +10,7 @@ class QNetworkReply;
 class QTimer;
 
 // Runs the OpenMausBot web harness locally and bridges its stdio MCP server
-// into OpenCode and the DeepSeek Harness.
+// into the DeepSeek Harness.
 class MausBotManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool installed READ installed NOTIFY installedChanged)
@@ -26,7 +26,6 @@ class MausBotManager : public QObject {
     Q_PROPERTY(QString installLog READ installLog NOTIFY installLogChanged)
     Q_PROPERTY(QString privilegedLog READ privilegedLog NOTIFY privilegedLogChanged)
     Q_PROPERTY(QString installReport READ installReport NOTIFY installReportChanged)
-    Q_PROPERTY(bool mcpOpenCode READ mcpOpenCode NOTIFY mcpChanged)
     Q_PROPERTY(bool mcpHarness READ mcpHarness NOTIFY mcpChanged)
     Q_PROPERTY(QString pairUrl READ pairUrl NOTIFY pairUrlChanged)
     Q_PROPERTY(bool pairing READ pairing NOTIFY pairingChanged)
@@ -48,7 +47,6 @@ public:
     QString installLog() const { return m_installLog; }
     QString privilegedLog() const { return m_privilegedLog; }
     QString installReport() const { return m_installReport; }
-    bool mcpOpenCode() const { return m_mcpOpenCode; }
     bool mcpHarness() const { return m_mcpHarness; }
     QString pairUrl() const { return m_pairUrl; }
     bool pairing() const { return m_pairing; }
@@ -94,10 +92,7 @@ private:
     void setRunning(bool running);
     void setStarting(bool starting);
     void setInstalledState();
-    QString openCodeConfigPath() const;
     QString harnessPatchPath() const;
-    bool writeOpenCodeMcp(QString *error);
-    bool removeOpenCodeMcp(QString *error);
     bool writeHarnessPatch(QString *error);
     void appendLog(const QString &line);
 
@@ -123,7 +118,6 @@ private:
     bool m_starting = false;
     bool m_installing = false;
     bool m_privilegedBusy = false;
-    bool m_mcpOpenCode = false;
     bool m_mcpHarness = false;
     bool m_stopping = false;
     bool m_probeBeforeStart = false;

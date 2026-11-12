@@ -5,17 +5,14 @@ TARGET = deepcrasy-h
 TEMPLATE = app
 
 HEADERS += \
-    src/acpclient.h \
     src/backend.h \
     src/config.h \
     src/ecosystem.h \
     src/gitstatus.h \
     src/harnessserver.h \
-    src/mcpmanager.h \
-    src/messagemodel.h \
+    src/harnessconnections.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
-    src/providermanager.h \
     src/nineroutermanager.h \
     src/mausbotmanager.h \
     src/terminalsession.h \
@@ -25,17 +22,14 @@ HEADERS += \
 
 SOURCES += \
     src/main.cpp \
-    src/acpclient.cpp \
     src/backend.cpp \
     src/config.cpp \
     src/ecosystem.cpp \
     src/gitstatus.cpp \
     src/harnessserver.cpp \
-    src/mcpmanager.cpp \
-    src/messagemodel.cpp \
+    src/harnessconnections.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
-    src/providermanager.cpp \
     src/nineroutermanager.cpp \
     src/mausbotmanager.cpp \
     src/terminalsession.cpp \

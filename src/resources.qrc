@@ -1,35 +1,28 @@
 <RCC>
     <qresource prefix="/">
         <file>Main.qml</file>
-        <file>RailButton.qml</file>
         <file>ThemedIcon.qml</file>
         <file>ActionButton.qml</file>
         <file>IconButton.qml</file>
         <file>StatusDot.qml</file>
         <file>HarnessPane.qml</file>
-        <file>ChatPane.qml</file>
         <file>EcosystemPane.qml</file>
-        <file>ProvidersPane.qml</file>
+        <file>ConnectionsPane.qml</file>
         <file>NineRouterPane.qml</file>
         <file>MausBotPane.qml</file>
         <file>WorkspacePane.qml</file>
-        <file>Composer.qml</file>
         <file>HomePane.qml</file>
         <file>SidebarItem.qml</file>
         <file>ServiceRow.qml</file>
         <file>AppSidebar.qml</file>
         <file>HomeCard.qml</file>
         <file>CommandPalette.qml</file>
-        <file>ChoiceMenu.qml</file>
-        <file>PickerChip.qml</file>
         <file>ToolCard.qml</file>
         <file>SettingsPane.qml</file>
         <file>SettingsSection.qml</file>
         <file>SettingsField.qml</file>
         <file>ThemeCard.qml</file>
         <file>HelpOverlay.qml</file>
-        <file>SessionsPanel.qml</file>
-        <file>PermissionDialog.qml</file>
         <file alias="assets/icon-128.png">../assets/icon-128.png</file>
         <file alias="assets/icon-256.png">../assets/icon-256.png</file>
         <file>icons/terminal.svg</file>

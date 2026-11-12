@@ -156,7 +156,8 @@ void HarnessServer::start() {
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     QStringList patches;
     for (const QString &name : {QStringLiteral("nine-router.patch.yml"),
-                                QStringLiteral("openmausbot.patch.yml")}) {
+                                QStringLiteral("openmausbot.patch.yml"),
+                                QStringLiteral("connections.patch.yml")}) {
         const QString path = configDir + "/" + name;
         if (QFileInfo::exists(path))
             patches << path;
