@@ -576,7 +576,31 @@ Item {
                         anchors.margins: 6
                         spacing: design.space1
 
-                        IconButton { Layout.alignment: Qt.AlignBottom; implicitWidth: 30; implicitHeight: 30; icon: "icons/file.svg"; hint: qsTr("Joindre une image"); onClicked: imageDialog.open() }
+                        Rectangle {
+                            id: attachButton
+                            Layout.alignment: Qt.AlignBottom
+                            implicitWidth: 38
+                            implicitHeight: 38
+                            radius: design.radiusMd
+                            color: attachMouse.containsMouse ? theme.chip : "transparent"
+                            border.width: 1
+                            border.color: attachMouse.containsMouse ? theme.borderStrong : "transparent"
+                            ThemedIcon {
+                                anchors.centerIn: parent
+                                source: "icons/paperclip.svg"
+                                width: 17
+                                height: 17
+                                color: attachMouse.containsMouse ? theme.accent : theme.mutedText
+                            }
+                            MouseArea {
+                                id: attachMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                Accessible.name: qsTr("Joindre une image")
+                                onClicked: imageDialog.open()
+                            }
+                        }
 
                         Item {
                             Layout.fillWidth: true
@@ -621,7 +645,10 @@ Item {
                             implicitHeight: 38
                             radius: design.radiusMd
                             color: ultimateAgent.busy ? theme.red : (root.canSend ? theme.accent : theme.chip)
+                            border.width: 1
+                            border.color: ultimateAgent.busy ? theme.red : (root.canSend ? theme.accent : theme.borderStrong)
                             Behavior on color { ColorAnimation { duration: design.durationFast } }
+                            Behavior on border.color { ColorAnimation { duration: design.durationFast } }
                             ThemedIcon {
                                 anchors.centerIn: parent
                                 source: ultimateAgent.busy ? "icons/stop.svg" : "icons/send.svg"
