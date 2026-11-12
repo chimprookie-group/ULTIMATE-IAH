@@ -11,6 +11,23 @@ modifier l'écosystème réel.
 - L'icône étincelle de l'en-tête ouvre le dock.
 - Le dock reste ouvert pendant que l'agent navigue vers une autre vue.
 
+## Discussions et images
+
+- Chaque discussion est indexée dans `~/.local/share/Crasy/deepcrasy-h/agent-conversations.db`.
+- La vue large affiche le rail **Discussions** ; le dock et les fenêtres compactes
+  utilisent le bouton historique.
+- Recherche, nouvelle discussion, renommage, épinglage, suppression confirmée
+  et copie du transcript sont disponibles.
+- Les images sont copiées dans `agent-attachments/`, affichées dans le fil,
+  agrandissables et transmises en `image_url` aux modèles compatibles vision.
+- Quatre images maximum par message, 12 Mo par image.
+
+## Modes et compétences
+
+- **Assistant**, **Diagnostic**, **Construction** et **Revue** modifient le prompt système.
+- Les skills installés peuvent être activés dans **Options → Compétences** ;
+  leur contenu est injecté dans le prompt de la conversation.
+
 ## Connaissance
 
 Le prompt système est reconstruit à chaque tour avec :
@@ -19,7 +36,7 @@ Le prompt système est reconstruit à chaque tour avec :
 - état du harness, binaire DSH et URL ;
 - providers, modèle par défaut et état de la clé DeepSeek ;
 - serveurs MCP personnalisés ;
-- statistiques mémoire, skills, profils d'agents et état des bots ;
+- statistiques mémoire, skills, profils d'agents, état des bots et discussion active ;
 - raccourcis, chemins de données et règles de sécurité.
 
 ## Outils

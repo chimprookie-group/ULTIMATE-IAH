@@ -4,11 +4,13 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QObject>
+#include <QUrl>
 #include <QVariantList>
 #include <QStringList>
 
 class QNetworkReply;
 class QTimer;
+class AgentConversationStore;
 
 class AgentManager;
 class BotManager;
@@ -35,6 +37,13 @@ class UltimateAgent : public QObject {
     Q_PROPERTY(QString modelLabel READ modelLabel NOTIFY endpointChanged)
     Q_PROPERTY(QString endpointLabel READ endpointLabel NOTIFY endpointChanged)
     Q_PROPERTY(QString conversationTitle READ conversationTitle NOTIFY messagesChanged)
+    Q_PROPERTY(QString conversationId READ conversationId NOTIFY conversationsChanged)
+    Q_PROPERTY(QVariantList conversations READ conversations NOTIFY conversationsChanged)
+    Q_PROPERTY(QString conversationQuery READ conversationQuery WRITE setConversationQuery NOTIFY conversationQueryChanged)
+    Q_PROPERTY(QVariantList pendingAttachments READ pendingAttachments NOTIFY attachmentsChanged)
+    Q_PROPERTY(QVariantList availableSkills READ availableSkills NOTIFY skillsChanged)
+    Q_PROPERTY(QStringList activeSkills READ activeSkills NOTIFY skillsChanged)
+    Q_PROPERTY(QString mode READ mode WRITE setMode NOTIFY modeChanged)
 
 public:
     UltimateAgent(Backend *backend, HarnessConnections *connections,
@@ -51,12 +60,33 @@ public:
     QString modelLabel() const { return m_modelLabel; }
     QString endpointLabel() const { return m_endpointLabel; }
     QString conversationTitle() const { return m_title; }
+    QString conversationId() const { return m_conversationId; }
+    QVariantList conversations() const;
+    QString conversationQuery() const { return m_conversationQuery; }
+    void setConversationQuery(const QString &query);
+    QVariantList pendingAttachments() const { return m_pendingAttachments; }
+    QVariantList availableSkills() const;
+    QStringList activeSkills() const { return m_activeSkills; }
+    QString mode() const { return m_mode; }
+    void setMode(const QString &mode);
 
     Q_INVOKABLE void sendMessage(const QString &text);
     Q_INVOKABLE void clearConversation();
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void refreshEndpoint();
     Q_INVOKABLE void toggleToolDetails(int index);
+    Q_INVOKABLE void newConversation();
+    Q_INVOKABLE void selectConversation(const QString &id);
+    Q_INVOKABLE void deleteConversation(const QString &id);
+    Q_INVOKABLE void renameConversation(const QString &id, const QString &title);
+    Q_INVOKABLE void pinConversation(const QString &id);
+    Q_INVOKABLE void archiveConversation(const QString &id);
+    Q_INVOKABLE QString conversationMarkdown(const QString &id) const;
+    Q_INVOKABLE void copyText(const QString &text);
+    Q_INVOKABLE bool addAttachment(const QUrl &url);
+    Q_INVOKABLE void removeAttachment(int index);
+    Q_INVOKABLE void clearAttachments();
+    Q_INVOKABLE void toggleSkill(const QString &id);
 
     static QJsonArray tools();
     static QString staticKnowledge();
@@ -68,6 +98,11 @@ signals:
     void errorChanged();
     void statusChanged();
     void endpointChanged();
+    void conversationsChanged();
+    void conversationQueryChanged();
+    void attachmentsChanged();
+    void skillsChanged();
+    void modeChanged();
 
 private:
     struct Endpoint {
@@ -88,9 +123,18 @@ private:
     void runRequest();
     void handleReply();
     void finishWithError(const QString &message);
-    void appendUser(const QString &text);
+    void appendUser(const QString &text, const QVariantList &images);
     void appendAssistant(const QString &text);
     void appendTool(const QString &name, const QString &detail, bool ok, const QString &payload);
+    void saveConversation();
+    bool loadConversation(const QString &id);
+    void ensureConversation();
+    void refreshConversationList();
+    QJsonValue userContent(const QString &text, const QVariantList &images) const;
+    QString attachmentDataUrl(const QString &path) const;
+    QString attachmentDirectory() const;
+    void clearPendingAttachments(bool deleteFiles);
+    void removeAttachmentsIn(const QJsonArray &ui);
     void setBusy(bool busy);
     void setStatus(const QString &status);
     void setError(const QString &error);
@@ -112,6 +156,7 @@ private:
     InstallationDoctor *m_installation = nullptr;
     ConnectionDoctor *m_connectionDoctor = nullptr;
     BotManager *m_bots = nullptr;
+    AgentConversationStore *m_conversations = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;
     QNetworkReply *m_reply = nullptr;
@@ -125,6 +170,11 @@ private:
     QString m_status;
     QString m_error;
     QString m_title;
+    QString m_conversationId;
+    QString m_conversationQuery;
+    QVariantList m_pendingAttachments;
+    QStringList m_activeSkills;
+    QString m_mode = QStringLiteral("assistant");
     bool m_busy = false;
     int m_round = 0;
     int m_requestSerial = 0;

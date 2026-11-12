@@ -54,6 +54,18 @@ latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate IAH et ag
 des outils : diagnostic, providers, DSH, MCP, mémoire, skills, missions,
 terminal, fichiers, Git, installation et réglages.
 
+- **Discussions persistantes** : historique SQLite, rail de discussions,
+  recherche, nouvel échange, renommage, épinglage, suppression confirmée et
+  export du transcript.
+- **Images dans le chat** : pièce jointe via le trombone ou glisser-déposer,
+  aperçu intégré, agrandissement et transmission au modèle compatible vision.
+- **Modes de travail** : Assistant, Diagnostic, Construction et Revue.
+- **Compétences** : activation des skills installés, injectés dans le prompt.
+- **Options de conversation** : copie, vidage et suppression depuis le panneau
+  Options.
+- Les discussions et pièces jointes restent locales :
+  `agent-conversations.db` et `agent-attachments/`.
+
 Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité.
 
 ![Ultimate Agent en dock](assets/screenshot-agent-dock.png)
@@ -154,7 +166,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.7.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.8.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

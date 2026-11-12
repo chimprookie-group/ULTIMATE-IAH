@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.7.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.8.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -351,6 +351,7 @@ int main(int argc, char *argv[]) {
     });
     MissionRunner missions(MissionRunner::defaultPath(), &agents, &memory);
     missions.setDshBinary(backend.dshBinary());
+    translator.setOverride(backend.languagePreference());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
     BotManager bots(&backend, &memory);
@@ -367,7 +368,6 @@ int main(int argc, char *argv[]) {
 
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
-    translator.setOverride(backend.languagePreference());
     QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
         autopilot.setDshBinary(backend.dshBinary());
     });

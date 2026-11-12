@@ -17,6 +17,7 @@ HEADERS += \
     src/missionrunner.h \
     src/connectiondoctor.h \
     src/installationdoctor.h \
+    src/agentconversationstore.h \
     src/ultimateagent.h \
     src/hoverservice.h \
     src/botmanager.h \
@@ -47,6 +48,7 @@ SOURCES += \
     src/missionrunner.cpp \
     src/connectiondoctor.cpp \
     src/installationdoctor.cpp \
+    src/agentconversationstore.cpp \
     src/ultimateagent.cpp \
     src/hoverservice.cpp \
     src/botmanager.cpp \

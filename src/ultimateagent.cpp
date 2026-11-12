@@ -1,5 +1,6 @@
 #include "ultimateagent.h"
 
+#include "agentconversationstore.h"
 #include "agentmanager.h"
 #include "backend.h"
 #include "botmanager.h"
@@ -13,10 +14,14 @@
 #include "terminalsession.h"
 
 #include <QDateTime>
+#include <QClipboard>
 #include <QDir>
+#include <QGuiApplication>
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QImageReader>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QNetworkReply>
@@ -27,6 +32,7 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUuid>
 #include <QUrl>
 
 namespace {
@@ -100,7 +106,28 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
         finishWithError(tr("Le modèle n'a pas répondu dans les 2 minutes."));
     });
     m_status = tr("Prêt");
-    load();
+    m_conversations = new AgentConversationStore({}, this);
+    QObject::connect(m_conversations, &AgentConversationStore::changed,
+                     this, &UltimateAgent::refreshConversationList);
+    QObject::connect(m_conversations, &AgentConversationStore::changed,
+                     this, &UltimateAgent::conversationsChanged);
+    QObject::connect(m_conversations, &AgentConversationStore::errorChanged, this, [this] {
+        if (!m_conversations->error().isEmpty())
+            setError(m_conversations->error());
+    });
+    if (m_conversations->conversations().isEmpty()) {
+        const QString legacy = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+            + QStringLiteral("/ultimate-agent.json");
+        m_conversations->importLegacy(legacy);
+    }
+    refreshConversationList();
+    QString id = m_conversations->lastConversationId();
+    if (id.isEmpty() && !m_conversations->conversations().isEmpty())
+        id = m_conversations->conversations().first().toMap().value(QStringLiteral("id")).toString();
+    if (id.isEmpty())
+        id = m_conversations->create(tr("Nouvelle discussion"), {}, {});
+    loadConversation(id);
+    QObject::connect(m_skills, &SkillManager::changed, this, &UltimateAgent::skillsChanged);
     refreshEndpoint();
 }
 
@@ -146,10 +173,43 @@ UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
 }
 
 QString UltimateAgent::systemPrompt() const {
-    return staticKnowledge() + QStringLiteral("\n\nLIVE SNAPSHOT\n")
-        + QString::fromUtf8(QJsonDocument(snapshot()).toJson(QJsonDocument::Compact))
-        + QStringLiteral("\n\nTOOLS\n")
+    QString prompt = staticKnowledge();
+    prompt += QStringLiteral("\n\nLIVE SNAPSHOT\n")
+        + QString::fromUtf8(QJsonDocument(snapshot()).toJson(QJsonDocument::Compact));
+    prompt += QStringLiteral("\n\nMODE\n");
+    if (m_mode == QLatin1String("diagnostic")) {
+        prompt += QStringLiteral("Mode diagnostic. Inspecte l'état réel, utilise les outils, "
+                                 "identifie les causes et propose des corrections vérifiables. "
+                                 "Ne modifie rien sans nécessité.");
+    } else if (m_mode == QLatin1String("build")) {
+        prompt += QStringLiteral("Mode construction. Implémente la demande dans le workspace, "
+                                 "lance les vérifications réelles et rapporte les preuves. "
+                                 "Les actions destructrices restent soumises à confirmation.");
+    } else if (m_mode == QLatin1String("review")) {
+        prompt += QStringLiteral("Mode revue. Cherche les erreurs, les régressions et les risques, "
+                                 "puis donne des constats classés par gravité avec les correctifs exacts.");
+    } else {
+        prompt += QStringLiteral("Mode assistant. Réponds, explique et agis avec les outils quand "
+                                 "cela apporte une preuve ou une correction concrète.");
+    }
+    if (!m_activeSkills.isEmpty() && m_skills) {
+        prompt += QStringLiteral("\n\nSKILLS ACTIFS\n");
+        for (const QVariant &value : m_skills->skills()) {
+            const QVariantMap skill = value.toMap();
+            if (!m_activeSkills.contains(skill.value(QStringLiteral("id")).toString()))
+                continue;
+            QFile file(skill.value(QStringLiteral("path")).toString());
+            if (!file.open(QIODevice::ReadOnly))
+                continue;
+            const QString body = QString::fromUtf8(file.readAll()).left(12000);
+            prompt += QStringLiteral("## %1 (%2)\n%3\n\n")
+                .arg(skill.value(QStringLiteral("name")).toString(),
+                     skill.value(QStringLiteral("scope")).toString(), body);
+        }
+    }
+    prompt += QStringLiteral("\n\nTOOLS\n")
         + QString::fromUtf8(QJsonDocument(tools()).toJson(QJsonDocument::Compact));
+    return prompt;
 }
 
 QJsonObject UltimateAgent::snapshot() const {
@@ -246,20 +306,26 @@ QJsonObject UltimateAgent::snapshot() const {
 void UltimateAgent::sendMessage(const QString &text) {
     if (m_busy)
         return;
-    const QString prompt = text.trimmed();
-    if (prompt.isEmpty())
+    QString prompt = text.trimmed();
+    if (prompt.isEmpty() && m_pendingAttachments.isEmpty())
         return;
+    if (prompt.isEmpty())
+        prompt = m_pendingAttachments.size() == 1
+            ? tr("Analyse cette image.") : tr("Analyse ces images.");
     refreshEndpoint();
     if (!m_endpoint.valid()) {
         setError(tr("Aucun provider utilisable. Ajoutez une clé DeepSeek dans Providers."));
         return;
     }
+    if (m_conversationId.isEmpty())
+        ensureConversation();
     m_error.clear();
     emit errorChanged();
     m_round = 0;
-    appendUser(prompt);
-    m_api.append(QJsonObject{{QStringLiteral("role"), QStringLiteral("user")},
-                             {QStringLiteral("content"), prompt}});
+    const QVariantList images = m_pendingAttachments;
+    appendUser(prompt, images);
+    m_pendingAttachments.clear();
+    emit attachmentsChanged();
     setBusy(true);
     setStatus(tr("Réflexion…"));
     save();
@@ -424,9 +490,11 @@ void UltimateAgent::toggleToolDetails(int index) {
 void UltimateAgent::clearConversation() {
     if (m_busy)
         cancel();
+    removeAttachmentsIn(QJsonArray::fromVariantList(m_ui));
+    clearPendingAttachments(true);
     m_api = QJsonArray();
     m_ui.clear();
-    m_title.clear();
+    m_title = tr("Nouvelle discussion");
     m_error.clear();
     setStatus(tr("Prêt"));
     emit messagesChanged();
@@ -434,12 +502,15 @@ void UltimateAgent::clearConversation() {
     save();
 }
 
-void UltimateAgent::appendUser(const QString &text) {
-    if (m_title.isEmpty())
-        m_title = text.simplified().left(56);
+void UltimateAgent::appendUser(const QString &text, const QVariantList &images) {
+    if (m_title.isEmpty() || m_title == tr("Nouvelle discussion"))
+        m_title = text.simplified().isEmpty() ? tr("[image]") : text.simplified().left(56);
     m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("user")},
                             {QStringLiteral("text"), text},
+                            {QStringLiteral("images"), images},
                             {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    m_api.append(QJsonObject{{QStringLiteral("role"), QStringLiteral("user")},
+                             {QStringLiteral("content"), userContent(text, images)}});
     emit messagesChanged();
 }
 
@@ -484,30 +555,358 @@ void UltimateAgent::setError(const QString &error) {
 }
 
 void UltimateAgent::save() {
-    const QString path = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-        + QStringLiteral("/ultimate-agent.json");
-    QDir().mkpath(QFileInfo(path).absolutePath());
-    QJsonObject root{{QStringLiteral("title"), m_title},
-                     {QStringLiteral("api"), m_api},
-                     {QStringLiteral("ui"), QJsonArray::fromVariantList(m_ui)}};
-    QSaveFile file(path);
-    if (!file.open(QIODevice::WriteOnly))
-        return;
-    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
-    file.commit();
-    QFile::setPermissions(path, QFile::ReadOwner | QFile::WriteOwner);
+    saveConversation();
 }
 
-void UltimateAgent::load() {
-    const QString path = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-        + QStringLiteral("/ultimate-agent.json");
+void UltimateAgent::saveConversation() {
+    if (!m_conversations || m_conversationId.isEmpty())
+        return;
+    if (!m_conversations->save(m_conversationId, m_title, m_api,
+                               QJsonArray::fromVariantList(m_ui),
+                               m_endpoint.model, m_endpoint.label))
+        setError(m_conversations->error());
+}
+
+bool UltimateAgent::loadConversation(const QString &id) {
+    if (!m_conversations || id.isEmpty())
+        return false;
+    const QJsonObject data = m_conversations->conversation(id);
+    if (data.isEmpty())
+        return false;
+    m_conversationId = id;
+    m_title = data.value(QStringLiteral("title")).toString();
+    m_api = data.value(QStringLiteral("api")).toArray();
+    m_ui = data.value(QStringLiteral("ui")).toArray().toVariantList();
+    if (m_ui.isEmpty() && (m_title.isEmpty()
+                           || m_title == QLatin1String("New discussion")
+                           || m_title == QLatin1String("Nouvelle discussion"))) {
+        m_title = tr("Nouvelle discussion");
+        if (m_conversations)
+            m_conversations->rename(id, m_title);
+    }
+    m_error.clear();
+    setStatus(tr("Prêt"));
+    emit messagesChanged();
+    emit conversationsChanged();
+    emit errorChanged();
+    return true;
+}
+
+void UltimateAgent::ensureConversation() {
+    if (!m_conversationId.isEmpty())
+        return;
+    m_conversationId = m_conversations ? m_conversations->create(tr("Nouvelle discussion"),
+                                                                  m_endpoint.model, m_endpoint.label)
+                                       : QString();
+    refreshConversationList();
+}
+
+void UltimateAgent::refreshConversationList() { emit conversationsChanged(); }
+
+QVariantList UltimateAgent::conversations() const {
+    return m_conversations ? m_conversations->conversations(m_conversationQuery) : QVariantList();
+}
+
+void UltimateAgent::setConversationQuery(const QString &query) {
+    if (m_conversationQuery == query)
+        return;
+    m_conversationQuery = query;
+    emit conversationQueryChanged();
+    emit conversationsChanged();
+}
+
+void UltimateAgent::newConversation() {
+    if (m_busy)
+        cancel();
+    if (m_conversations == nullptr)
+        return;
+    if (m_ui.isEmpty() && m_api.isEmpty()) {
+        m_title = tr("Nouvelle discussion");
+        clearPendingAttachments(true);
+        emit messagesChanged();
+        saveConversation();
+        return;
+    }
+    saveConversation();
+    const QString id = m_conversations->create(tr("Nouvelle discussion"),
+                                                m_endpoint.model, m_endpoint.label);
+    if (id.isEmpty()) {
+        setError(m_conversations->error());
+        return;
+    }
+    m_conversationId = id;
+    m_title = tr("Nouvelle discussion");
+    m_api = QJsonArray();
+    m_ui.clear();
+    m_error.clear();
+    clearPendingAttachments(true);
+    setStatus(tr("Prêt"));
+    emit messagesChanged();
+    emit errorChanged();
+    emit conversationsChanged();
+}
+
+void UltimateAgent::selectConversation(const QString &id) {
+    if (id.isEmpty() || id == m_conversationId)
+        return;
+    if (m_busy)
+        cancel();
+    saveConversation();
+    if (loadConversation(id)) {
+        clearPendingAttachments(true);
+        refreshEndpoint();
+    }
+}
+
+void UltimateAgent::deleteConversation(const QString &id) {
+    if (!m_conversations || id.isEmpty())
+        return;
+    if (m_busy && id == m_conversationId)
+        cancel();
+    const bool current = id == m_conversationId;
+    if (current)
+        clearPendingAttachments(true);
+    QJsonObject data = current ? QJsonObject{{QStringLiteral("ui"), QJsonArray::fromVariantList(m_ui)}}
+                               : m_conversations->conversation(id);
+    if (!data.isEmpty())
+        removeAttachmentsIn(data.value(QStringLiteral("ui")).toArray());
+    m_conversations->remove(id);
+    if (current) {
+        const QVariantList remaining = m_conversations->conversations();
+        QString next = m_conversations->lastConversationId();
+        if (next.isEmpty() && !remaining.isEmpty())
+            next = remaining.first().toMap().value(QStringLiteral("id")).toString();
+        if (next.isEmpty())
+            next = m_conversations->create(tr("Nouvelle discussion"), m_endpoint.model, m_endpoint.label);
+        m_conversationId.clear();
+        if (!loadConversation(next)) {
+            m_api = QJsonArray();
+            m_ui.clear();
+            m_title = tr("Nouvelle discussion");
+            emit messagesChanged();
+        }
+    }
+    emit conversationsChanged();
+}
+
+void UltimateAgent::renameConversation(const QString &id, const QString &title) {
+    if (!m_conversations || title.trimmed().isEmpty())
+        return;
+    if (!m_conversations->rename(id, title))
+        setError(m_conversations->error());
+    if (id == m_conversationId) {
+        m_title = title.trimmed().left(90);
+        emit messagesChanged();
+    }
+    emit conversationsChanged();
+}
+
+void UltimateAgent::pinConversation(const QString &id) {
+    if (!m_conversations)
+        return;
+    for (const QVariant &value : m_conversations->conversations()) {
+        const QVariantMap item = value.toMap();
+        if (item.value(QStringLiteral("id")).toString() == id) {
+            m_conversations->setPinned(id, !item.value(QStringLiteral("pinned")).toBool());
+            emit conversationsChanged();
+            return;
+        }
+    }
+}
+
+void UltimateAgent::archiveConversation(const QString &id) {
+    if (!m_conversations)
+        return;
+    m_conversations->setArchived(id, true);
+    if (id == m_conversationId)
+        deleteConversation(id);
+    else
+        emit conversationsChanged();
+}
+
+QString UltimateAgent::conversationMarkdown(const QString &id) const {
+    if (!m_conversations)
+        return {};
+    const QJsonObject data = m_conversations->conversation(id.isEmpty() ? m_conversationId : id);
+    if (data.isEmpty())
+        return {};
+    QString out = QStringLiteral("# %1\n\n").arg(data.value(QStringLiteral("title")).toString());
+    for (const QJsonValue &value : data.value(QStringLiteral("ui")).toArray()) {
+        const QJsonObject message = value.toObject();
+        const QString role = message.value(QStringLiteral("role")).toString();
+        const QString text = message.value(QStringLiteral("text")).toString();
+        if (role == QLatin1String("user")) {
+            out += QStringLiteral("## Vous\n\n%1\n\n").arg(text);
+            for (const QJsonValue &image : message.value(QStringLiteral("images")).toArray()) {
+                const QJsonObject item = image.toObject();
+                out += QStringLiteral("![%1](%2)\n\n")
+                    .arg(item.value(QStringLiteral("name")).toString(),
+                         QUrl::fromLocalFile(item.value(QStringLiteral("path")).toString()).toString());
+            }
+        } else if (role == QLatin1String("assistant")) {
+            out += QStringLiteral("## Ultimate Agent\n\n%1\n\n").arg(text);
+        } else if (role == QLatin1String("tool")) {
+            out += QStringLiteral("> Outil `%1` — %2\n\n")
+                .arg(message.value(QStringLiteral("tool")).toString(),
+                     message.value(QStringLiteral("detail")).toString());
+        }
+    }
+    return out;
+}
+
+void UltimateAgent::copyText(const QString &text) {
+    if (QGuiApplication::clipboard())
+        QGuiApplication::clipboard()->setText(text);
+}
+
+QVariantList UltimateAgent::availableSkills() const {
+    return m_skills ? m_skills->skills() : QVariantList();
+}
+
+void UltimateAgent::toggleSkill(const QString &id) {
+    if (!m_skills || id.isEmpty())
+        return;
+    bool exists = false;
+    for (const QVariant &value : m_skills->skills()) {
+        if (value.toMap().value(QStringLiteral("id")).toString() == id) {
+            exists = true;
+            break;
+        }
+    }
+    if (!exists)
+        return;
+    if (m_activeSkills.contains(id))
+        m_activeSkills.removeAll(id);
+    else
+        m_activeSkills.append(id);
+    emit skillsChanged();
+}
+
+void UltimateAgent::setMode(const QString &mode) {
+    static const QStringList allowed = {QStringLiteral("assistant"), QStringLiteral("diagnostic"),
+                                        QStringLiteral("build"), QStringLiteral("review")};
+    if (!allowed.contains(mode) || m_mode == mode)
+        return;
+    m_mode = mode;
+    emit modeChanged();
+}
+
+bool UltimateAgent::addAttachment(const QUrl &url) {
+    const QString source = url.isLocalFile() ? url.toLocalFile() : url.toString();
+    QFileInfo info(source);
+    if (!info.isFile()) {
+        setError(tr("Image introuvable."));
+        return false;
+    }
+    if (m_pendingAttachments.size() >= 4) {
+        setError(tr("Quatre images maximum par message."));
+        return false;
+    }
+    if (info.size() > 12 * 1024 * 1024) {
+        setError(tr("Image trop volumineuse (12 Mo maximum)."));
+        return false;
+    }
+    QImageReader reader(source);
+    if (!reader.canRead()) {
+        setError(tr("Ce fichier n'est pas une image lisible."));
+        return false;
+    }
+    QDir().mkpath(attachmentDirectory());
+    const QString suffix = info.suffix().toLower();
+    const QString target = attachmentDirectory() + QStringLiteral("/")
+        + QUuid::createUuid().toString(QUuid::WithoutBraces) + QStringLiteral(".") + suffix;
+    if (!QFile::copy(source, target)) {
+        setError(tr("Impossible de copier l'image."));
+        return false;
+    }
+    QFile::setPermissions(target, QFile::ReadOwner | QFile::WriteOwner);
+    const QString mime = suffix == QLatin1String("jpg") || suffix == QLatin1String("jpeg")
+        ? QStringLiteral("image/jpeg")
+        : (suffix == QLatin1String("webp") ? QStringLiteral("image/webp")
+        : (suffix == QLatin1String("gif") ? QStringLiteral("image/gif")
+        : QStringLiteral("image/png")));
+    m_pendingAttachments.append(QVariantMap{{QStringLiteral("name"), info.fileName()},
+                                             {QStringLiteral("path"), target},
+                                             {QStringLiteral("mime"), mime},
+                                             {QStringLiteral("size"), info.size()}});
+    setError({});
+    emit attachmentsChanged();
+    return true;
+}
+
+void UltimateAgent::removeAttachment(int index) {
+    if (index < 0 || index >= m_pendingAttachments.size())
+        return;
+    const QString path = m_pendingAttachments.at(index).toMap().value(QStringLiteral("path")).toString();
+    if (!path.isEmpty())
+        QFile::remove(path);
+    m_pendingAttachments.removeAt(index);
+    emit attachmentsChanged();
+}
+
+void UltimateAgent::clearAttachments() { clearPendingAttachments(true); }
+
+void UltimateAgent::clearPendingAttachments(bool deleteFiles) {
+    if (deleteFiles) {
+        for (const QVariant &value : m_pendingAttachments) {
+            const QString path = value.toMap().value(QStringLiteral("path")).toString();
+            if (!path.isEmpty())
+                QFile::remove(path);
+        }
+    }
+    if (m_pendingAttachments.isEmpty())
+        return;
+    m_pendingAttachments.clear();
+    emit attachmentsChanged();
+}
+
+QString UltimateAgent::attachmentDirectory() const {
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+        + QStringLiteral("/agent-attachments");
+}
+
+QString UltimateAgent::attachmentDataUrl(const QString &path) const {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
-        return;
-    const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-    m_title = root.value(QStringLiteral("title")).toString();
-    m_api = root.value(QStringLiteral("api")).toArray();
-    m_ui = root.value(QStringLiteral("ui")).toArray().toVariantList();
+        return {};
+    const QFileInfo info(path);
+    const QString suffix = info.suffix().toLower();
+    const QString mime = suffix == QLatin1String("jpg") || suffix == QLatin1String("jpeg")
+        ? QStringLiteral("image/jpeg")
+        : (suffix == QLatin1String("webp") ? QStringLiteral("image/webp")
+        : (suffix == QLatin1String("gif") ? QStringLiteral("image/gif")
+        : QStringLiteral("image/png")));
+    return QStringLiteral("data:%1;base64,%2")
+        .arg(mime, QString::fromLatin1(file.readAll().toBase64()));
+}
+
+QJsonValue UltimateAgent::userContent(const QString &text, const QVariantList &images) const {
+    if (images.isEmpty())
+        return QJsonValue(text);
+    QJsonArray parts;
+    parts.append(QJsonObject{{QStringLiteral("type"), QStringLiteral("text")},
+                             {QStringLiteral("text"), text}});
+    for (const QVariant &value : images) {
+        const QVariantMap image = value.toMap();
+        const QString data = attachmentDataUrl(image.value(QStringLiteral("path")).toString());
+        if (data.isEmpty())
+            continue;
+        parts.append(QJsonObject{{QStringLiteral("type"), QStringLiteral("image_url")},
+                                 {QStringLiteral("image_url"),
+                                  QJsonObject{{QStringLiteral("url"), data}}}});
+    }
+    return parts;
+}
+
+void UltimateAgent::removeAttachmentsIn(const QJsonArray &ui) {
+    for (const QJsonValue &value : ui) {
+        const QJsonObject message = value.toObject();
+        for (const QJsonValue &image : message.value(QStringLiteral("images")).toArray()) {
+            const QString path = image.toObject().value(QStringLiteral("path")).toString();
+            if (!path.isEmpty())
+                QFile::remove(path);
+        }
+    }
 }
 
 QStringList UltimateAgent::views() {

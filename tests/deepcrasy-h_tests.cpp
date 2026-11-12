@@ -22,6 +22,7 @@
 #include "missionrunner.h"
 #include "autopilot.h"
 #include "botstore.h"
+#include "agentconversationstore.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -537,6 +538,37 @@ private slots:
         QVERIFY(store.removeSchedule(schedule));
         QVERIFY(store.removeBot(id));
         QCOMPARE(store.bots().size(), 3);
+    }
+
+    void agentConversationStorePersistsSearchesAndDeletes()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        AgentConversationStore store(dir.path() + "/conversations.db");
+        QVERIFY2(store.error().isEmpty(), qPrintable(store.error()));
+        const QString first = store.create("Première discussion", "deepseek-chat", "DeepSeek");
+        QVERIFY(!first.isEmpty());
+        QCOMPARE(store.conversations().size(), 1);
+        const QJsonArray ui{{QJsonObject{{"role", "user"}, {"text", "Bonjour"}, {"time", "10:00"}}},
+                            {QJsonObject{{"role", "assistant"}, {"text", "Salut"}, {"time", "10:01"}}}};
+        const QJsonArray api{{QJsonObject{{"role", "user"}, {"content", "Bonjour"}}},
+                             {QJsonObject{{"role", "assistant"}, {"content", "Salut"}}}};
+        QVERIFY(store.save(first, "Première discussion", api, ui, "deepseek-chat", "DeepSeek"));
+        QCOMPARE(store.conversations().size(), 1);
+        const QVariantMap summary = store.conversations().first().toMap();
+        QCOMPARE(summary.value("messageCount").toInt(), 2);
+        QVERIFY(summary.value("preview").toString().contains("Salut"));
+        QVERIFY(store.rename(first, "Discussion renommée"));
+        QVERIFY(store.setPinned(first, true));
+        QCOMPARE(store.conversations().first().toMap().value("title").toString(), QString("Discussion renommée"));
+        QVERIFY(store.conversations("renommée").size() == 1);
+        QVERIFY(store.conversations("absente").isEmpty());
+        QCOMPARE(store.lastConversationId(), first);
+        const QJsonObject loaded = store.conversation(first);
+        QCOMPARE(loaded.value("ui").toArray().size(), 2);
+        QVERIFY(store.remove(first));
+        QVERIFY(store.conversations().isEmpty());
+        QVERIFY(store.lastConversationId().isEmpty());
     }
 
     void originalOneShotPolicyIsEmbedded()

@@ -17,6 +17,7 @@ HEADERS += \
     ../src/agentmanager.h \
     ../src/autopilot.h \
     ../src/botstore.h \
+    ../src/agentconversationstore.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/workspacemodel.h \
@@ -39,6 +40,7 @@ SOURCES += \
     ../src/agentmanager.cpp \
     ../src/autopilot.cpp \
     ../src/botstore.cpp \
+    ../src/agentconversationstore.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \
     ../src/translator.cpp

@@ -33,7 +33,8 @@ agent, Bots, Providers, MCP, Installation, Réglages.
 - Config : `~/.config/Crasy/deepcrasy-h/config.json` (chemin historique stable).
 - Overlays : même dossier de configuration.
 - Données : `~/.local/share/Crasy/deepcrasy-h/` (memory.db, autopilot.db,
-  missions.db, bots.db, bots_mcp.py, integrations).
+  missions.db, bots.db, bots_mcp.py, agent-conversations.db,
+  agent-attachments/, integrations).
 - API bots : `127.0.0.1:8790`, jeton `bot.token` mode 600, dashboard local.
 - Credentials : `~/.dsh/.credentials.yaml` (mode 600).
 - `agent.env` : miroir privé, mode 600.
