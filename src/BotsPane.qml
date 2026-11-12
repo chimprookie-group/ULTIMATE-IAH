@@ -77,19 +77,37 @@ Item {
     }
 
     function send() {
-        const text = composer.text.trim()
+        const text = composerField.text.trim()
         if (text === "" || root.currentId <= 0)
             return
         bots.sendMessage(root.currentId, text)
-        composer.text = ""
+        composerField.text = ""
     }
 
-    Component.onCompleted: bots.refresh()
+    function scrollMessages() {
+        Qt.callLater(function () {
+            if (bots.messages.length === 0 || !messageScroll.contentItem)
+                return
+            const flick = messageScroll.contentItem
+            flick.contentY = Math.max(0, flick.contentHeight - flick.height)
+        })
+    }
+
+    Component.onCompleted: {
+        bots.refresh()
+        Qt.callLater(function () {
+            if (root.currentId > 0)
+                composerField.forceActiveFocus()
+        })
+    }
 
     Connections {
         target: bots
-        function onMessagesChanged() { Qt.callLater(messageList.positionViewAtEnd) }
-        function onSelectionChanged() { Qt.callLater(messageList.positionViewAtEnd) }
+        function onMessagesChanged() { root.scrollMessages() }
+        function onSelectionChanged() {
+            root.scrollMessages()
+            Qt.callLater(function () { if (root.currentId > 0) composerField.forceActiveFocus() })
+        }
     }
 
     ColumnLayout {
@@ -345,47 +363,58 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
 
-                        ListView {
-                            id: messageList
+                        ScrollView {
+                            id: messageScroll
                             anchors.fill: parent
                             anchors.margins: design.space4
                             clip: true
-                            spacing: design.space3
-                            model: bots.messages
-                            boundsBehavior: Flickable.StopAtBounds
+                            contentWidth: availableWidth
+                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                             ScrollBar.vertical: AppScrollBar {
                                 policy: bots.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
                             }
 
-                            delegate: Item {
-                                width: ListView.view.width
-                                implicitHeight: bubble.implicitHeight
+                            Column {
+                                width: parent.width
+                                topPadding: design.space2
+                                bottomPadding: design.space2
+                                spacing: design.space3
 
-                                Rectangle {
-                                    id: bubble
-                                    width: Math.min(parent.width * (modelData.role === "user" ? 0.78 : 0.94),
-                                                    Math.max(220, label.implicitWidth + design.space4))
-                                    anchors.right: modelData.role === "user" ? parent.right : undefined
-                                    anchors.left: modelData.role === "assistant" ? parent.left : undefined
-                                    height: label.implicitHeight + design.space2
-                                    radius: design.radiusMd
-                                    color: modelData.role === "user"
-                                           ? Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.12)
-                                           : (modelData.kind === "error" ? Qt.rgba(theme.red.r, theme.red.g, theme.red.b, 0.10) : theme.raised)
-                                    border.width: 1
-                                    border.color: modelData.role === "user"
-                                                  ? Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.35)
-                                                  : (modelData.kind === "error" ? theme.red : theme.border)
+                                Item { width: 1; height: design.space3 }
 
-                                    Text {
-                                        id: label
-                                        anchors.fill: parent
-                                        anchors.margins: design.space2
-                                        text: modelData.content
-                                        color: theme.text
-                                        font.pixelSize: design.textCaption
-                                        wrapMode: Text.Wrap
-                                        textFormat: modelData.role === "assistant" ? Text.MarkdownText : Text.PlainText
+                                Repeater {
+                                    model: bots.messages
+                                    Item {
+                                        width: parent.width
+                                        height: bubble.height
+
+                                        Rectangle {
+                                            id: bubble
+                                            width: Math.min(parent.width, Math.max(180, parent.width * (modelData.role === "user" ? 0.78 : 0.96)))
+                                            anchors.right: modelData.role === "user" ? parent.right : undefined
+                                            anchors.left: modelData.role === "assistant" ? parent.left : undefined
+                                            height: messageText.implicitHeight + design.space3
+                                            radius: design.radiusMd
+                                            color: modelData.role === "user"
+                                                   ? Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.18)
+                                                   : (modelData.kind === "error" ? Qt.rgba(theme.red.r, theme.red.g, theme.red.b, 0.10) : theme.raised)
+                                            border.width: 1
+                                            border.color: modelData.role === "user"
+                                                          ? Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.48)
+                                                          : (modelData.kind === "error" ? theme.red : theme.border)
+
+                                            Text {
+                                                id: messageText
+                                                x: design.space2
+                                                y: design.space1
+                                                width: parent.width - design.space4
+                                                text: modelData.content
+                                                color: theme.text
+                                                font.pixelSize: design.textCaption
+                                                wrapMode: Text.Wrap
+                                                textFormat: modelData.role === "assistant" ? Text.MarkdownText : Text.PlainText
+                                            }
+                                        }
                                     }
                                 }
                             }
