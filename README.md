@@ -41,6 +41,10 @@ localement sans droits administrateur.
 
 ## Ultimate Agent
 
+La politique **one-shot** est embarquée dans le paquet et dans la mémoire
+d'origine de l'agent : reproduire, comprendre la cause partagée, corriger une
+fois, exécuter la vérification réelle et rapporter les preuves.
+
 ![Ultimate Agent](assets/screenshot-agent.png)
 
 **Ctrl+Alt+U** ouvre le dock agent, et l'entrée **Ultimate Agent** de la barre
@@ -123,7 +127,7 @@ masqué pour éviter l'ancienne icône.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.4.4-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.4.6-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

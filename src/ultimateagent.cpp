@@ -532,6 +532,10 @@ QStringList UltimateAgent::views() {
 }
 
 QString UltimateAgent::staticKnowledge() {
+    QString behavior;
+    QFile behaviorFile(QStringLiteral(":/agent/BEHAVIOR.md"));
+    if (behaviorFile.open(QIODevice::ReadOnly))
+        behavior = QString::fromUtf8(behaviorFile.readAll());
     return QStringLiteral(R"PROMPT(You are Ultimate Agent, the built-in operator and expert of Ultimate HAI, an Omarchy desktop cockpit for the DeepSeek Harness (DSH).
 
 IDENTITY AND MISSION
@@ -569,7 +573,7 @@ TOOL STRATEGY
 - Use ultimate_memory to search and remember. Use ultimate_skills to inspect or create skills.
 - Use ultimate_terminal/git/files for real project work. Prefer read-only inspection before writing.
 - Use ultimate_mission for the multi-agent Planner -> Executor -> Reviewer path.
-)PROMPT");
+)PROMPT") + QStringLiteral("\n\nORIGINAL ONE-SHOT POLICY\n") + behavior;
 }
 
 QJsonArray UltimateAgent::tools() {

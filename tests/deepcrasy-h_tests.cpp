@@ -453,6 +453,16 @@ private slots:
         QCOMPARE(themes.at(1).toMap().value("mode").toString(), QString("light"));
     }
 
+    void originalOneShotPolicyIsEmbedded()
+    {
+        QFile behavior(QStringLiteral(":/agent/BEHAVIOR.md"));
+        QVERIFY(behavior.open(QIODevice::ReadOnly));
+        const QString text = QString::fromUtf8(behavior.readAll());
+        QVERIFY(text.contains(QStringLiteral("One-shot operating policy")));
+        QVERIFY(text.contains(QStringLiteral("Read the actual output")));
+        QVERIFY(text.contains(QStringLiteral("Hover is a colour/opacity transition only")));
+    }
+
     void englishCatalogCoversFrenchCatalog()
     {
         QFile french(QStringLiteral(":/i18n/fr.json"));

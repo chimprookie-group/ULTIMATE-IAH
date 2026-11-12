@@ -18,17 +18,6 @@ Item {
     implicitHeight: 38
 
     Rectangle {
-        id: hoverBox
-        anchors.verticalCenter: parent.verticalCenter
-        x: root.compact ? Math.round((parent.width - width) / 2) : design.space2
-        width: root.compact ? 26 : 30
-        height: 28
-        radius: design.radiusSm
-        color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
-        Behavior on color { ColorAnimation { duration: design.durationFast } }
-    }
-
-    Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: design.space2
         anchors.verticalCenter: parent.verticalCenter
@@ -51,15 +40,17 @@ Item {
             source: root.icon
             width: design.iconMd
             height: design.iconMd
-            color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.mutedText)
+            color: root.active ? theme.accent : (mouse.containsMouse ? theme.brightText : theme.mutedText)
+            opacity: root.active || mouse.containsMouse ? 1 : 0.82
             Behavior on color { ColorAnimation { duration: design.durationFast } }
+            Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
         }
 
         Text {
             Layout.fillWidth: true
             visible: !root.compact
             text: root.label
-            color: root.active ? theme.brightText : theme.mutedText
+            color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
             font.pixelSize: design.textLabel
             font.weight: root.active ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight

@@ -96,6 +96,7 @@
         <file>terminal/xterm.css</file>
         <file>terminal/addon-fit.js</file>
         <file>icons/search.svg</file>
+        <file>agent/BEHAVIOR.md</file>
         <file>i18n/en.json</file>
         <file>i18n/fr.json</file>
     </qresource>

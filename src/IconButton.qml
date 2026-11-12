@@ -12,22 +12,15 @@ Item {
     implicitWidth: 28
     implicitHeight: 28
 
-    Rectangle {
-        anchors.fill: parent
-        radius: design.radiusSm
-        color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
-        border.width: root.active ? 1 : 0
-        border.color: theme.border
-        Behavior on color { ColorAnimation { duration: design.durationFast } }
-    }
-
     ThemedIcon {
         anchors.centerIn: parent
         source: root.icon
         width: design.iconMd
         height: design.iconMd
         color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
+        opacity: root.active || mouse.containsMouse ? 1 : 0.82
         Behavior on color { ColorAnimation { duration: design.durationFast } }
+        Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
     MouseArea {
