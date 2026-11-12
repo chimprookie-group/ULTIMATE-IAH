@@ -88,6 +88,17 @@ Ultimate IAH inclut un service de bots natif, persistant et sécurisé :
 
 Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue Bots. Les bots sont accessibles par **Ctrl+Alt+B**.
 
+## Recherche web native
+
+Ultimate Agent expose deux outils web réels :
+
+- **web_search** : DeepSeek Search quand la clé est disponible, sinon secours
+  DuckDuckGo ; une à quatre requêtes, huit sources maximum, snippets et URLs.
+- **web_fetch** : récupération HTTP(S), redirections limitées à la même origine,
+  texte extrait, taille plafonnée à 200 000 caractères, cache de dix minutes.
+- Les résultats sont marqués comme contenu externe non fiable.
+- Outil de diagnostic `ultimate_web` et cache visible dans Plugins.
+
 ## Notes
 
 ![Notes Ultimate IAH](assets/screenshot-notes.png)
@@ -190,7 +201,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.10.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.11.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

@@ -78,7 +78,7 @@ Item {
                 }
                 Rectangle { Layout.fillWidth: true; implicitHeight: 74; radius: design.radiusMd; color: theme.surface; border.width: 1; border.color: theme.border
                     ColumnLayout { anchors.fill: parent; anchors.margins: design.space3; spacing: 1
-                        Text { text: qsTr("Outils agent"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        Text { text: qsTr("Outils plugins"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                         Text { text: plugins.toolCount; color: theme.accent; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
                     }
                 }
@@ -144,6 +144,31 @@ Item {
                         }
                     }
                 }
+            }
+
+            SettingsSection {
+                title: qsTr("Recherche web")
+                Layout.fillWidth: true
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { Layout.fillWidth: true; text: qsTr("web_search et web_fetch sont enregistrés dans Ultimate Agent. DeepSeek Search est prioritaire ; DuckDuckGo sert de secours sans clé."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                    StatusDot { size: 5; color: web.searchReady ? theme.green : theme.orange }
+                    Text { text: web.searchReady ? qsTr("DeepSeek prêt") : qsTr("secours DuckDuckGo"); color: web.searchReady ? theme.green : theme.orange; font.pixelSize: design.textMicro }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { Layout.fillWidth: true; text: qsTr("Provider : %1 · cache : %2 entrée(s)").arg(web.searchProvider).arg(web.cacheEntries); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    Button { text: qsTr("Vider le cache"); flat: true; font.pixelSize: design.textMicro; onClicked: web.clearCache() }
+                }
+                Repeater {
+                    model: web.recentSearches
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { Layout.fillWidth: true; text: modelData.queries; color: theme.text; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                        Text { text: modelData.provider + " · " + modelData.count; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
+                    }
+                }
+                Text { Layout.fillWidth: true; visible: web.recentSearches.length === 0; text: qsTr("Aucune recherche récente."); color: theme.dimText; font.pixelSize: design.textCaption }
             }
 
             SettingsSection {

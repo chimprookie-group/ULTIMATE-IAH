@@ -40,6 +40,7 @@
 #include "missionrunner.h"
 #include "notestore.h"
 #include "pluginmanager.h"
+#include "webservice.h"
 #include "autopilot.h"
 #include "botmanager.h"
 #include "ecosystem.h"
@@ -215,7 +216,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.10.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.11.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -365,6 +366,7 @@ int main(int argc, char *argv[]) {
     skills.setWorkspace(backend.workspace());
     NoteStore noteStore;
     PluginManager plugins;
+    WebService web;
     QObject::connect(&backend, &Backend::workspaceChanged, &skills, [&backend, &skills] {
         skills.setWorkspace(backend.workspace());
     });
@@ -378,7 +380,7 @@ int main(int argc, char *argv[]) {
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
-                                &installation, &connectionDoctor, &bots, &noteStore, &plugins);
+                                &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web);
     if (agentJob) {
         if (!workspace.isEmpty())
             backend.setWorkspace(workspace);
@@ -469,6 +471,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("bots", &bots);
     engine.rootContext()->setContextProperty("noteStore", &noteStore);
     engine.rootContext()->setContextProperty("plugins", &plugins);
+    engine.rootContext()->setContextProperty("web", &web);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

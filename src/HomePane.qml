@@ -102,7 +102,8 @@ Item {
                             { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" },
                             { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" },
                             { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" },
-                            { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" }
+                            { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" },
+                            { label: qsTr("Web"), state: web.searchReady ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -476,6 +477,15 @@ Item {
                                 detail: qsTr("%n outil(s) · ArtCraft", "", plugins.toolCount)
                                 stateColor: plugins.installedCount > 0 ? theme.green : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("plugins")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Recherche web")
+                                detail: web.searchReady ? qsTr("DeepSeek Search · %1 en cache").arg(web.cacheEntries) : qsTr("DuckDuckGo · %1 en cache").arg(web.cacheEntries)
+                                stateColor: web.searchReady ? theme.green : theme.orange
+                                actionLabel: qsTr("Gérer")
                                 onAction: backend.setView("plugins")
                             }
 
