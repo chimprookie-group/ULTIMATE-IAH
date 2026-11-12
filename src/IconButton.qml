@@ -23,11 +23,29 @@ Item {
         Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
+    property bool tipVisible: false
+    Timer {
+        id: hoverDelay
+        interval: 450
+        onTriggered: root.tipVisible = mouse.containsMouse
+    }
+
     MouseArea {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        onEntered: hoverDelay.restart()
+        onExited: {
+            hoverDelay.stop()
+            root.tipVisible = false
+        }
         onClicked: root.clicked()
+    }
+
+    HoverTip {
+        anchorItem: root
+        text: root.hint
+        visible: root.tipVisible && root.hint !== ""
     }
 }
