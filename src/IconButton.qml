@@ -17,7 +17,7 @@ Item {
         source: root.icon
         width: design.iconMd
         height: design.iconMd
-        color: root.active ? theme.brightText : (mouse.containsMouse ? (theme.dark ? theme.text : theme.accent) : theme.mutedText)
+        color: root.active ? theme.brightText : (mouse.containsMouse ? theme.accent : theme.mutedText)
         opacity: root.active || mouse.containsMouse ? 1 : 0.82
         Behavior on color { ColorAnimation { duration: design.durationFast } }
         Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }

@@ -203,7 +203,7 @@ Item {
                         Layout.fillWidth: root.compact
                         source: "icons/command.svg"
                         width: design.iconSm; height: design.iconSm
-                        color: commandMouse.containsMouse ? (theme.dark ? theme.text : theme.accent) : theme.mutedText
+                        color: commandMouse.containsMouse ? theme.accent : theme.mutedText
                         Behavior on color { ColorAnimation { duration: design.durationFast } }
                     }
                     Text {

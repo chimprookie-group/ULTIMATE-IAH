@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.4.10"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.4.11"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
