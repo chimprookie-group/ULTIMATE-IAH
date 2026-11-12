@@ -3,6 +3,7 @@
 #include <QByteArrayList>
 #include <QClipboard>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QProcessEnvironment>
@@ -65,6 +66,22 @@ void TerminalSession::start(const QString &cwd) {
     environment.insert(QStringLiteral("TERM"), QStringLiteral("xterm-256color"));
     environment.insert(QStringLiteral("COLORTERM"), QStringLiteral("truecolor"));
     environment.insert(QStringLiteral("TERM_PROGRAM"), QStringLiteral("DeepCrasyH"));
+    // The DSH headless profile does not resolve credential refs. Mirror the
+    // private agent environment into the shell so any manual `dsh headless`
+    // works, not only tasks launched from the app bar.
+    QFile agentEnv(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/agent.env");
+    if (agentEnv.open(QIODevice::ReadOnly)) {
+        const QStringList lines = QString::fromUtf8(agentEnv.readAll()).split('\n', Qt::SkipEmptyParts);
+        for (const QString &line : lines) {
+            const int equals = line.indexOf('=');
+            if (equals <= 0)
+                continue;
+            const QString key = line.left(equals).trimmed();
+            const QString value = line.mid(equals + 1).trimmed();
+            if (!key.isEmpty() && !value.isEmpty() && key.at(0).isLetter())
+                environment.insert(key, value);
+        }
+    }
     QByteArrayList entries;
     for (const QString &key : environment.keys())
         entries.append(key.toUtf8() + "=" + environment.value(key).toUtf8());
