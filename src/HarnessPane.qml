@@ -204,16 +204,24 @@ Item {
         }
     }
 
-    Component.onCompleted: {
-        if (backend.harnessUrl !== "")
+    function loadHarness() {
+        if (!root.visible)
+            return
+        if (backend.harnessUrl !== "" && web.url.toString() !== backend.harnessUrl)
             web.url = backend.harnessUrl
     }
 
+    onVisibleChanged: {
+        if (!root.visible)
+            web.url = ""
+        else
+            loadHarness()
+    }
+
+    Component.onCompleted: loadHarness()
+
     Connections {
         target: backend
-        function onHarnessChanged() {
-            if (backend.harnessUrl !== "" && web.url.toString() !== backend.harnessUrl)
-                web.url = backend.harnessUrl
-        }
+        function onHarnessChanged() { loadHarness() }
     }
 }

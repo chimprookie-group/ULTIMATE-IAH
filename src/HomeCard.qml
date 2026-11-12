@@ -14,9 +14,9 @@ Rectangle {
     default property alias content: body.data
 
     width: cardWidth
-    implicitHeight: body.implicitHeight + 32
+    implicitHeight: body.implicitHeight + 36
     height: implicitHeight
-    radius: Math.min(12, theme.radius)
+    radius: Math.min(14, theme.radius)
     color: theme.raised
     border.width: 1
     border.color: hover.hovered ? theme.borderStrong : theme.border
@@ -24,9 +24,9 @@ Rectangle {
 
     ColumnLayout {
         id: body
-        x: 16
-        y: 16
-        width: parent.width - 32
+        x: 18
+        y: 17
+        width: parent.width - 36
         spacing: 10
 
         RowLayout {
@@ -35,16 +35,17 @@ Rectangle {
 
             ThemedIcon {
                 source: root.icon
-                width: 14
-                height: 14
+                width: 13
+                height: 13
                 color: root.accent
             }
             Text {
-                text: root.title.toUpperCase()
-                color: theme.mutedText
-                font.pixelSize: 9
-                font.letterSpacing: 1.2
+                Layout.fillWidth: true
+                text: root.title
+                color: theme.text
+                font.pixelSize: 12
                 font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
             Item { Layout.fillWidth: true }
         }

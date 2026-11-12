@@ -16,7 +16,7 @@ Item {
     Timer {
         interval: 3000
         repeat: true
-        running: mausBot.running && !mausBot.pairing
+        running: root.visible && mausBot.running && !mausBot.pairing
                  && (!root.pairAttempted || root.pageUrl.indexOf("/pair") >= 0)
         onTriggered: {
             if (root.pageUrl === "")
@@ -48,6 +48,8 @@ Item {
 
     function openIfNeeded() {
         mausBot.refresh()
+        if (mausBot.running && root.pageUrl === "")
+            root.pageUrl = mausBot.url
         if (mausBot.installed && !mausBot.running && !mausBot.starting)
             mausBot.start()
     }
@@ -210,7 +212,7 @@ Item {
                     profile: mausProfile
                     settings.javascriptEnabled: true
                     settings.localStorageEnabled: true
-                    url: root.pageUrl
+                    url: root.visible ? root.pageUrl : ""
 
                     onLoadingChanged: function (request) {
                         if (request.status === WebEngineView.LoadFailedStatus && mausBot.running)

@@ -50,6 +50,26 @@ environnement, pas seulement les deux moteurs.
 
 ![Écosystème](assets/screenshot-ecosystem.png)
 
+## Interface v2
+
+![Cockpit DeepCrasy H](assets/screenshot-home.png)
+
+La refonte v2 remplace la barre d'icônes étroite par une **barre latérale groupée**
+(Atelier, Agents, Intégrations), un **en-tête de contexte** et un **cockpit asymétrique** :
+un grand bloc de commande OpenCode, le projet et les sessions à gauche, une colonne de
+**services vivants** à droite. La palette de commandes reste accessible par `Ctrl+K`.
+
+La direction visuelle est documentée dans [docs/DESIGN.md](docs/DESIGN.md) :
+titres en `iA Writer Duospace`, corps Omarchy, couleurs et rayons dérivés du thème,
+aucun gradient décoratif, une seule animation d'entrée. Sous 1040 px, la barre latérale
+se replie en rail d'icônes et les services passent sous le contenu
+([capture compacte](assets/screenshot-home-compact.png)).
+
+Côté performance, les WebEngine de 9Router, MausBot et du harness ne chargent plus
+leur page lorsqu'elles sont masquées, le terminal est déjà paresseux, et le cockpit
+ne lance plus les diagnostics ni `opencode mcp list` à chaque affichage. Git et les
+sessions restent les seules lectures au retour sur l'accueil.
+
 ## 9Router : le routeur local dans l'écosystème
 
 ![9Router dans DeepCrasy H](assets/screenshot-9router.png)
@@ -277,6 +297,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
 - **Profils de travail** : modèle + mode mémorisés, appliqués au redémarrage.
 - **Erreurs actionnables** : limite d'usage, provider manquant, retry et
   connexion provider depuis la carte d'erreur.
+- **Interface v2** : barre latérale groupée, cockpit asymétrique, services vivants,
+  en-tête de contexte, responsive 720 px, WebEngine paresseux.
 - **9Router intégré** : service local, dashboard embarqué, 864 modèles,
   connexion OpenCode et harness, choix des modèles exposés.
 - **MausBot intégré** : service local, dashboard embarqué, appairage automatique,

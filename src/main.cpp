@@ -161,7 +161,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.18.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.19.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -185,6 +185,7 @@ int main(int argc, char *argv[]) {
     QString workspace;
     QString themeId;
     int windowHeight = 0;
+    int windowWidth = 0;
     int delay = 1800;
     for (int i = 0; i < arguments.size(); ++i) {
         const QString &argument = arguments.at(i);
@@ -200,6 +201,8 @@ int main(int argc, char *argv[]) {
             themeId = arguments.at(++i);
         } else if (argument == "--height" && i + 1 < arguments.size()) {
             windowHeight = arguments.at(++i).toInt();
+        } else if (argument == "--width" && i + 1 < arguments.size()) {
+            windowWidth = arguments.at(++i).toInt();
         } else if (argument == "--screenshot-delay" && i + 1 < arguments.size()) {
             delay = arguments.at(++i).toInt();
         } else if (!argument.startsWith("--") && QFileInfo(argument).isDir()) {
@@ -331,9 +334,10 @@ int main(int argc, char *argv[]) {
         }, Qt::DirectConnection);
     }
 
-    if (windowHeight > 0) {
+    if (windowHeight > 0 || windowWidth > 0) {
         if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0)))
-            window->resize(window->width(), windowHeight);
+            window->resize(windowWidth > 0 ? windowWidth : window->width(),
+                           windowHeight > 0 ? windowHeight : window->height());
     }
 
     if (!demo)

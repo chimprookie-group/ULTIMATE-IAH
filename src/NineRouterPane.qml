@@ -247,7 +247,7 @@ Item {
                     profile: nineProfile
                     settings.javascriptEnabled: true
                     settings.localStorageEnabled: true
-                    url: nineRouter.running ? nineRouter.dashboardUrl : ""
+                    url: (nineRouter.running && root.visible) ? nineRouter.dashboardUrl : ""
 
                     onLoadingChanged: function (request) {
                         if (request.status === WebEngineView.LoadFailedStatus && nineRouter.running)

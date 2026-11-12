@@ -165,6 +165,17 @@ shell n'est pas encore lancé, la commande est mémorisée et écrite dès que l
 PTY démarre ; sinon elle part immédiatement. Le brief est prérempli dans le
 composer, jamais envoyé sans validation.
 
+### Shell et performance
+
+`Main.qml` compose une barre latérale pleine hauteur (`AppSidebar`) et un contenu
+décalé de sa largeur ; sous 1040 px, elle passe en rail de 64 px. `HomePane` ne
+charge au retour que Git et les sessions ; les diagnostics et MCP sont explicites.
+Les pages WebEngine de 9Router, MausBot et du harness reçoivent une URL seulement
+lorsque leur vue est visible, et la perdent lorsqu'elles sont masquées. Le
+terminal ne charge son xterm qu'à sa première ouverture. Les titres utilisent
+`iA Writer Duospace` et le corps la police Omarchy ; la direction complète est
+dans `docs/DESIGN.md`.
+
 ### 9Router
 
 `NineRouterManager` traite 9Router comme un service local : détection de

@@ -8,9 +8,14 @@ Item {
 
     signal openSessions()
     signal openPalette()
+    signal promptRequested(string prompt)
+    signal commandRequested(string command)
+    signal modelPickerRequested()
 
-    readonly property int contentWidth: Math.max(320, Math.min(940, width - 64))
-    readonly property int cardWidth: contentWidth >= 720 ? Math.floor((contentWidth - 12) / 2) : contentWidth
+    readonly property int contentWidth: Math.max(320, Math.min(1080, width - 56))
+    readonly property bool wide: contentWidth >= 860
+
+    property real reveal: 0
 
     function stateColor(state) {
         if (state === "running" || state === "ready")
@@ -23,82 +28,48 @@ Item {
     }
 
     function stateLabel(state) {
-        if (state === "running")
-            return qsTr("Running")
-        if (state === "ready")
-            return qsTr("Ready")
+        if (state === "running" || state === "ready")
+            return qsTr("actif")
         if (state === "starting")
-            return qsTr("Starting…")
+            return qsTr("démarrage")
         if (state === "failed")
-            return qsTr("Failed")
-        return qsTr("Stopped")
+            return qsTr("erreur")
+        return qsTr("arrêté")
     }
 
-    function healthColor() {
-        if (backend.harnessHealth === "ok")
-            return theme.green
-        if (backend.harnessHealth === "failed")
-            return theme.red
-        if (backend.harnessHealth === "checking")
-            return theme.yellow
-        return theme.dimText
-    }
-
-    function healthLabel() {
-        if (backend.harnessHealth === "ok")
-            return qsTr("connected")
-        if (backend.harnessHealth === "failed")
-            return qsTr("unreachable")
-        if (backend.harnessHealth === "checking")
-            return qsTr("testing…")
-        if (backend.harnessHealth === "offline")
-            return qsTr("offline")
-        return qsTr("not tested")
-    }
-
-    function dirtyLabel() {
-        if (!backend.gitAvailable)
-            return ""
-        if (backend.gitDirtyCount === 0)
-            return qsTr("clean")
-        return qsTr("%n change(s)", "", backend.gitDirtyCount)
-    }
-
-    function usageLabel() {
-        const usage = backend.usage
-        if (usage.used === undefined)
-            return ""
-        const used = usage.used >= 1000 ? (usage.used / 1000).toFixed(1) + "k" : usage.used
-        const size = usage.size ? (usage.size >= 1000 ? Math.round(usage.size / 1000) + "k" : usage.size) : ""
-        return size ? qsTr("%1 / %2 tokens").arg(used).arg(size) : qsTr("%1 tokens").arg(used)
+    function sendPrompt() {
+        const text = promptInput.text.trim()
+        if (text === "")
+            return
+        root.promptRequested(text)
+        promptInput.text = ""
     }
 
     function refresh() {
         backend.refreshGit()
-        backend.runDiagnostics()
-        mcp.refresh()
         if (backend.opencodeState === "ready")
             backend.refreshSessions()
     }
 
-    Component.onCompleted: if (visible) Qt.callLater(refresh)
-    onVisibleChanged: if (visible) refresh()
-
-    Connections {
-        target: backend
-
-        function onHarnessChanged() {
-            if (visible)
-                backend.runDiagnostics()
+    Component.onCompleted: {
+        if (visible) {
+            reveal = 1
+            Qt.callLater(refresh)
         }
-
-        function onOpencodeChanged() {
-            if (!visible)
-                return
-            backend.runDiagnostics()
-            if (backend.opencodeState === "ready" && backend.sessions.length === 0)
-                backend.refreshSessions()
+    }
+    onVisibleChanged: {
+        if (visible) {
+            reveal = 1
+            refresh()
         }
+    }
+
+    NumberAnimation on reveal {
+        from: 0
+        to: 1
+        duration: 180
+        easing.type: Easing.OutCubic
+        running: true
     }
 
     ScrollView {
@@ -108,584 +79,416 @@ Item {
         contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-        Column {
+        ColumnLayout {
             id: content
             width: root.contentWidth
-            x: Math.max(24, (scroll.availableWidth - width) / 2)
-            topPadding: 26
-            bottomPadding: 32
-            spacing: 14
+            x: Math.max(20, (scroll.availableWidth - width) / 2)
+            spacing: 18
+            opacity: root.reveal
+            transform: Translate { y: (1 - root.reveal) * 8 }
 
-            // ── hero ─────────────────────────────────────────────────────
+            // Header
             RowLayout {
-                width: parent.width
+                Layout.fillWidth: true
+                Layout.topMargin: 26
                 spacing: 16
-
-                Item {
-                    width: 74
-                    height: 74
-                    Layout.alignment: Qt.AlignTop
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 96
-                        height: 96
-                        radius: 48
-                        color: theme.accent
-                        opacity: theme.dark ? 0.13 : 0.07
-                    }
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 74
-                        height: 74
-                        radius: 37
-                        color: theme.cyan
-                        opacity: 0.05
-                    }
-                    Image {
-                        anchors.centerIn: parent
-                        source: "assets/icon-256.png"
-                        sourceSize.width: 62
-                        sourceSize.height: 62
-                    }
-                }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 3
-
+                    spacing: 2
                     Text {
-                        text: qsTr("Crasy Harness")
+                        text: qsTr("Cockpit")
                         color: theme.brightText
-                        font.pixelSize: 26
+                        font.family: "iA Writer Duospace"
+                        font.pixelSize: 31
                         font.weight: Font.Bold
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("DeepSeek Harness × OpenCode") + " · " + backend.workspaceName
+                        text: qsTr("Vos agents, votre projet et vos intégrations dans un seul geste.")
                         color: theme.mutedText
-                        font.pixelSize: 12
-                        elide: Text.ElideRight
+                        font.pixelSize: 11
+                        wrapMode: Text.Wrap
                     }
+                }
 
-                    RowLayout {
-                        spacing: 14
-
+                Row {
+                    spacing: 8
+                    Repeater {
+                        model: [
+                            { label: qsTr("Harness"), state: backend.harnessState },
+                            { label: "OpenCode", state: backend.opencodeState },
+                            { label: "9Router", state: nineRouter.running ? "running" : (nineRouter.starting ? "starting" : "stopped") },
+                            { label: "MausBot", state: mausBot.running ? "running" : (mausBot.starting ? "starting" : "stopped") }
+                        ]
                         Row {
-                            spacing: 6
-                            StatusDot {
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: root.stateColor(backend.harnessState)
-                            }
-                            Text {
-                                text: qsTr("Harness")
-                                color: theme.mutedText
-                                font.pixelSize: 10
-                            }
-                        }
-                        Row {
-                            spacing: 6
-                            StatusDot {
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: root.stateColor(backend.opencodeState)
-                            }
-                            Text {
-                                text: qsTr("OpenCode")
-                                color: theme.mutedText
-                                font.pixelSize: 10
-                            }
-                        }
-                        Rectangle {
-                            visible: backend.currentModel !== ""
-                            implicitWidth: modelLabel.implicitWidth + 14
-                            height: 18
-                            radius: 9
-                            color: theme.chip
-                            border.width: 1
-                            border.color: theme.border
-                            Text {
-                                id: modelLabel
-                                anchors.centerIn: parent
-                                text: backend.currentModel
-                                color: theme.mutedText
-                                font.family: backend.monoFont
-                                font.pixelSize: 8
-                            }
+                            spacing: 4
+                            StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 5; color: root.stateColor(modelData.state) }
+                            Text { visible: root.wide; text: modelData.label; color: theme.dimText; font.pixelSize: 9 }
                         }
                     }
                 }
+            }
+
+            // Command deck
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: commandBody.implicitHeight + 32
+                radius: Math.min(14, theme.radius)
+                color: theme.raised
+                border.width: 1
+                border.color: promptInput.activeFocus ? theme.borderStrong : theme.border
 
                 ColumnLayout {
-                    spacing: 6
-                    Layout.alignment: Qt.AlignTop
-
-                    ActionButton {
-                        text: qsTr("New session")
-                        onClicked: {
-                            backend.newSession()
-                            backend.setView("opencode")
-                        }
-                    }
-                    Button {
-                        text: qsTr("Command palette")
-                        flat: true
-                        onClicked: root.openPalette()
-                    }
-                }
-            }
-
-            // ── quick actions ────────────────────────────────────────────
-            Flow {
-                width: parent.width
-                spacing: 8
-
-                Button {
-                    text: qsTr("Open the harness")
-                    flat: true
-                    onClicked: backend.setView("harness")
-                }
-                Button {
-                    text: qsTr("Split view")
-                    flat: true
-                    onClicked: backend.setView("split")
-                }
-                Button {
-                    text: qsTr("Ecosystem")
-                    flat: true
-                    onClicked: backend.setView("ecosystem")
-                }
-                Button {
-                    text: qsTr("Terminal")
-                    flat: true
-                    onClicked: backend.setView("terminal")
-                }
-                Button {
-                    text: qsTr("Change workspace")
-                    flat: true
-                    onClicked: backend.pickWorkspace()
-                }
-                Button {
-                    text: qsTr("Run diagnostics")
-                    flat: true
-                    onClicked: backend.runDiagnostics()
-                }
-            }
-
-            // ── cards ────────────────────────────────────────────────────
-            Flow {
-                width: parent.width
-                spacing: 12
-
-                HomeCard {
-                    title: qsTr("Workspace")
-                    icon: "icons/branch.svg"
-                    cardWidth: root.cardWidth
+                    id: commandBody
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 10
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: 8
 
-                        ThemedIcon {
-                            source: "icons/folder.svg"
-                            width: 12
-                            height: 12
-                            color: theme.mutedText
+                        Rectangle {
+                            width: 7
+                            height: 7
+                            radius: 4
+                            color: root.stateColor(backend.opencodeState)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+                        Text {
+                            text: "OPENCODE"
+                            color: theme.dimText
+                            font.pixelSize: 8
+                            font.letterSpacing: 1
+                            font.weight: Font.DemiBold
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: backend.workspace
-                            color: theme.text
-                            font.family: backend.monoFont
-                            font.pixelSize: 10
-                            elide: Text.ElideMiddle
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 7
-
-                        ThemedIcon {
-                            source: "icons/branch.svg"
-                            width: 11
-                            height: 11
-                            color: !backend.gitAvailable ? theme.dimText
-                                 : (backend.gitDirtyCount > 0 ? theme.orange : theme.green)
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: backend.gitAvailable
-                                  ? (backend.gitBranch !== "" ? backend.gitBranch : qsTr("repository"))
-                                  : qsTr("not a git repository")
+                            text: backend.currentModel !== "" ? backend.currentModel : qsTr("aucun modèle")
+                                  + "  ·  " + (backend.currentMode !== "" ? backend.currentMode : qsTr("aucun mode"))
                             color: theme.mutedText
                             font.family: backend.monoFont
-                            font.pixelSize: 10
+                            font.pixelSize: 8
                             elide: Text.ElideRight
                         }
                         Text {
-                            visible: text !== ""
-                            text: root.dirtyLabel()
-                            color: backend.gitDirtyCount > 0 ? theme.orange : theme.green
-                            font.pixelSize: 9
+                            text: backend.sessionTitle !== "" ? backend.sessionTitle : qsTr("Nouvelle session")
+                            color: theme.dimText
+                            font.pixelSize: 8
+                            elide: Text.ElideRight
+                            Layout.maximumWidth: 220
                         }
                     }
 
-                    RowLayout {
+                    Item {
                         Layout.fillWidth: true
-                        spacing: 6
+                        Layout.preferredHeight: 58
 
-                        Button {
-                            text: qsTr("Change")
-                            flat: true
-                            onClicked: backend.pickWorkspace()
-                        }
-                        Button {
-                            text: qsTr("Open folder")
-                            flat: true
-                            onClicked: Qt.openUrlExternally("file://" + backend.workspace)
-                        }
-                        Item { Layout.fillWidth: true }
-                    }
-                }
-
-                HomeCard {
-                    title: qsTr("DeepSeek Harness")
-                    icon: "icons/terminal.svg"
-                    accent: theme.blue
-                    cardWidth: root.cardWidth
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 7
-
-                        StatusDot {
-                            color: root.stateColor(backend.harnessState)
-                        }
                         Text {
-                            text: root.stateLabel(backend.harnessState)
-                            color: theme.text
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.topMargin: 2
+                            visible: promptInput.text === ""
+                            text: qsTr("Demandez à OpenCode…")
+                            color: theme.dimText
+                            font.pixelSize: 13
+                            wrapMode: Text.Wrap
                         }
-                        Item { Layout.fillWidth: true }
 
-                        Rectangle {
-                            implicitWidth: healthText.implicitWidth + 14
-                            height: 18
-                            radius: 9
-                            color: theme.chip
-                            border.width: 1
-                            border.color: root.healthColor()
-                            Text {
-                                id: healthText
-                                anchors.centerIn: parent
-                                text: root.healthLabel()
-                                color: root.healthColor()
-                                font.pixelSize: 8
+                        TextArea {
+                            id: promptInput
+                            anchors.fill: parent
+                            color: theme.text
+                            placeholderText: ""
+                            font.pixelSize: 13
+                            wrapMode: TextArea.Wrap
+                            background: null
+                            selectByMouse: true
+                            Keys.onPressed: function (event) {
+                                if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
+                                    root.sendPrompt()
+                                    event.accepted = true
+                                }
                             }
                         }
                     }
 
-                    Text {
-                        Layout.fillWidth: true
-                        text: backend.harnessProfile + " · " + backend.harnessDetail
-                        color: theme.mutedText
-                        font.pixelSize: 9
-                        elide: Text.ElideRight
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: backend.harnessAddress
-                        color: theme.dimText
-                        font.family: backend.monoFont
-                        font.pixelSize: 9
-                        elide: Text.ElideRight
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 6
-
-                        Button {
-                            text: qsTr("Open")
-                            flat: true
-                            onClicked: backend.setView("harness")
-                        }
-                        Button {
-                            text: qsTr("Test")
-                            flat: true
-                            onClicked: backend.testHarness()
-                        }
-                        Button {
-                            text: qsTr("Restart")
-                            flat: true
-                            onClicked: backend.restartHarness()
-                        }
-                        Button {
-                            text: qsTr("Browser")
-                            flat: true
-                            enabled: backend.harnessUrl !== ""
-                            onClicked: Qt.openUrlExternally(backend.harnessUrl)
-                        }
-                    }
-                }
-
-                HomeCard {
-                    title: qsTr("OpenCode")
-                    icon: "icons/chat.svg"
-                    accent: theme.cyan
-                    cardWidth: root.cardWidth
-
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: 5
 
-                        StatusDot {
-                            color: root.stateColor(backend.opencodeState)
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: backend.sessionTitle !== "" ? backend.sessionTitle : root.stateLabel(backend.opencodeState)
-                            color: theme.text
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                            elide: Text.ElideRight
-                        }
-                        Text {
-                            visible: backend.busy
-                            text: qsTr("working…")
-                            color: theme.yellow
+                        Button {
+                            text: qsTr("Nouvelle session")
+                            flat: true
                             font.pixelSize: 9
-                        }
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: (backend.currentModel !== "" ? backend.currentModel : qsTr("no model"))
-                              + " · " + (backend.currentMode !== "" ? backend.currentMode : qsTr("no mode"))
-                        color: theme.mutedText
-                        font.pixelSize: 9
-                        elide: Text.ElideRight
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: root.usageLabel()
-                        visible: text !== ""
-                        color: theme.dimText
-                        font.family: backend.monoFont
-                        font.pixelSize: 9
-                    }
-
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 6
-
-                        Button {
-                            text: qsTr("Chat")
-                            flat: true
-                            onClicked: backend.setView("opencode")
-                        }
-                        Button {
-                            text: qsTr("New")
-                            flat: true
                             onClicked: {
                                 backend.newSession()
                                 backend.setView("opencode")
                             }
                         }
                         Button {
-                            text: qsTr("History")
+                            text: qsTr("Changer de modèle")
                             flat: true
-                            onClicked: root.openSessions()
-                        }
-                    }
-                }
-
-                HomeCard {
-                    title: qsTr("Connections")
-                    icon: "icons/plug.svg"
-                    accent: theme.green
-                    cardWidth: root.cardWidth
-
-                    Repeater {
-                        model: backend.diagnostics
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 7
-                            visible: index < 6
-
-                            StatusDot {
-                                size: 4
-                                color: modelData.ok ? theme.green : theme.red
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: modelData.label
-                                color: theme.text
-                                font.pixelSize: 10
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                Layout.maximumWidth: 180
-                                text: modelData.detail
-                                color: theme.dimText
-                                font.pixelSize: 8
-                                elide: Text.ElideRight
-                            }
-                        }
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        visible: backend.diagnostics.length === 0
-                        text: qsTr("Run the diagnostic to check both engines, the portal, and the workspace.")
-                        color: theme.mutedText
-                        font.pixelSize: 9
-                        wrapMode: Text.Wrap
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 7
-
-                        ThemedIcon {
-                            source: "icons/plug.svg"
-                            width: 11
-                            height: 11
-                            color: theme.magenta
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: "MCP"
-                            color: theme.text
-                            font.pixelSize: 10
-                        }
-                        Text {
-                            text: mcp.servers.length === 0
-                                  ? qsTr("none")
-                                  : qsTr("%n server(s)", "", mcp.servers.length)
-                            color: theme.dimText
-                            font.pixelSize: 8
+                            font.pixelSize: 9
+                            onClicked: root.modelPickerRequested()
                         }
                         Button {
-                            text: qsTr("Manage")
+                            text: qsTr("Session complète")
                             flat: true
-                            onClicked: backend.setView("settings")
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 6
-
-                        Button {
-                            text: backend.diagnosticsRunning ? qsTr("Checking…") : qsTr("Run diagnostic")
-                            flat: true
-                            enabled: !backend.diagnosticsRunning
-                            onClicked: backend.runDiagnostics()
+                            font.pixelSize: 9
+                            onClicked: backend.setView("opencode")
                         }
                         Item { Layout.fillWidth: true }
                         Text {
-                            text: qsTr("%1 checks").arg(backend.diagnostics.length)
-                            color: theme.dimText
+                            visible: backend.busy
+                            text: qsTr("OpenCode travaille…")
+                            color: theme.yellow
                             font.pixelSize: 8
                         }
+                        ActionButton {
+                            text: qsTr("Envoyer")
+                            onClicked: root.sendPrompt()
+                        }
                     }
                 }
             }
 
-            // ── resume ───────────────────────────────────────────────────
-            HomeCard {
-                title: qsTr("Resume")
-                icon: "icons/history.svg"
-                accent: theme.magenta
-                cardWidth: root.contentWidth
+            // Asymmetric workspace
+            GridLayout {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 26
+                columns: root.wide ? 2 : 1
+                columnSpacing: 26
+                rowSpacing: 18
 
-                Repeater {
-                    model: backend.sessions
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+                    spacing: 18
 
-                    Rectangle {
+                    // Project
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        height: 42
-                        visible: index < 3
-                        radius: Math.min(8, theme.radius)
-                        color: sessionMouse.containsMouse ? theme.chip : "transparent"
+                        spacing: 7
 
                         RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            spacing: 8
-
+                            Layout.fillWidth: true
                             Text {
-                                Layout.fillWidth: true
-                                text: backend.sessionLabel(modelData)
-                                color: theme.text
-                                font.pixelSize: 11
-                                elide: Text.ElideRight
+                                text: qsTr("Projet")
+                                color: theme.brightText
+                                font.family: "iA Writer Duospace"
+                                font.pixelSize: 16
+                                font.weight: Font.Bold
                             }
+                            Item { Layout.fillWidth: true }
                             Text {
-                                text: modelData.updatedAt !== undefined
-                                      ? Qt.formatDateTime(new Date(modelData.updatedAt), "d MMM · HH:mm")
-                                      : ""
-                                color: theme.dimText
+                                text: backend.gitAvailable
+                                      ? (backend.gitBranch + "  ·  " + (backend.gitDirtyCount === 0 ? qsTr("propre") : qsTr("%n changement(s)", "", backend.gitDirtyCount)))
+                                      : qsTr("hors dépôt git")
+                                color: backend.gitDirtyCount > 0 ? theme.orange : theme.dimText
+                                font.family: backend.monoFont
                                 font.pixelSize: 8
                             }
-                            ThemedIcon {
-                                source: "icons/chevron.svg"
-                                width: 9
-                                height: 9
-                                rotation: -90
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: theme.border
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: backend.workspace
+                            color: theme.mutedText
+                            font.family: backend.monoFont
+                            font.pixelSize: 9
+                            elide: Text.ElideMiddle
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            Button { text: qsTr("Écosystème"); flat: true; font.pixelSize: 9; onClicked: backend.setView("ecosystem") }
+                            Button { text: qsTr("Fichiers"); flat: true; font.pixelSize: 9; onClicked: backend.setView("workspace") }
+                            Button { text: "Git diff"; flat: true; font.pixelSize: 9; onClicked: root.commandRequested("git diff") }
+                            Button { text: qsTr("Changer"); flat: true; font.pixelSize: 9; onClicked: backend.pickWorkspace() }
+                        }
+                    }
+
+                    // Sessions
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: qsTr("Sessions récentes")
+                                color: theme.brightText
+                                font.family: "iA Writer Duospace"
+                                font.pixelSize: 16
+                                font.weight: Font.Bold
+                            }
+                            Item { Layout.fillWidth: true }
+                            Button { text: qsTr("Tout voir"); flat: true; font.pixelSize: 9; onClicked: root.openSessions() }
+                        }
+                        Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+
+                        Repeater {
+                            model: backend.sessions
+                            delegate: Rectangle {
+                                Layout.fillWidth: true
+                                visible: index < 3
+                                height: 38
+                                radius: Math.min(8, theme.radius)
+                                color: sessionHover.hovered ? theme.chip : "transparent"
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 6
+                                    anchors.rightMargin: 6
+                                    spacing: 8
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: backend.sessionLabel(modelData)
+                                        color: theme.text
+                                        font.pixelSize: 10
+                                        elide: Text.ElideRight
+                                    }
+                                    Text {
+                                        text: modelData.updatedAt !== undefined ? Qt.formatDateTime(new Date(modelData.updatedAt), "d MMM · HH:mm") : ""
+                                        color: theme.dimText
+                                        font.pixelSize: 8
+                                    }
+                                }
+                                HoverHandler { id: sessionHover }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        backend.loadSession(modelData.sessionId)
+                                        backend.setView("opencode")
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: backend.sessions.length === 0
+                            text: backend.opencodeState === "ready" ? qsTr("Aucune session pour ce projet.") : qsTr("OpenCode démarre pour charger les sessions.")
+                            color: theme.dimText
+                            font.pixelSize: 9
+                        }
+                    }
+                }
+
+                // Services spine
+                Rectangle {
+                    Layout.preferredWidth: root.wide ? 316 : root.contentWidth
+                    Layout.fillWidth: !root.wide
+                    Layout.alignment: Qt.AlignTop
+                    implicitHeight: servicesBody.implicitHeight + 28
+                    radius: Math.min(14, theme.radius)
+                    color: theme.surface
+                    border.width: 1
+                    border.color: theme.border
+
+                    ColumnLayout {
+                        id: servicesBody
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 2
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: 8
+                            Text {
+                                text: qsTr("Services")
+                                color: theme.brightText
+                                font.family: "iA Writer Duospace"
+                                font.pixelSize: 16
+                                font.weight: Font.Bold
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: qsTr("LOCAL")
                                 color: theme.dimText
+                                font.pixelSize: 7
+                                font.letterSpacing: 1
                             }
                         }
 
-                        MouseArea {
-                            id: sessionMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                backend.loadSession(modelData.sessionId)
-                                backend.setView("opencode")
+                        ServiceRow {
+                            Layout.fillWidth: true
+                            name: qsTr("Harness")
+                            detail: backend.harnessDetail
+                            stateColor: root.stateColor(backend.harnessState)
+                            actionLabel: backend.harnessState === "running" ? qsTr("Ouvrir") : qsTr("Démarrer")
+                            actionEnabled: backend.harnessState !== "starting"
+                            onAction: {
+                                if (backend.harnessState === "running")
+                                    backend.setView("harness")
+                                else
+                                    backend.restartHarness()
                             }
+                        }
+                        ServiceRow {
+                            Layout.fillWidth: true
+                            name: "OpenCode"
+                            detail: backend.opencodeState === "ready" ? (backend.currentModel !== "" ? backend.currentModel : qsTr("prêt")) : backend.opencodeDetail
+                            stateColor: root.stateColor(backend.opencodeState)
+                            actionLabel: backend.opencodeState === "ready" ? qsTr("Ouvrir") : qsTr("Démarrer")
+                            actionEnabled: backend.opencodeState !== "starting"
+                            onAction: {
+                                if (backend.opencodeState === "ready")
+                                    backend.setView("opencode")
+                                else
+                                    backend.restartOpencode()
+                            }
+                        }
+                        ServiceRow {
+                            Layout.fillWidth: true
+                            name: "9Router"
+                            detail: nineRouter.running ? nineRouter.detail : (nineRouter.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
+                            stateColor: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText)
+                            actionLabel: nineRouter.running ? qsTr("Ouvrir") : qsTr("Démarrer")
+                            actionEnabled: !nineRouter.starting && !nineRouter.installing
+                            onAction: {
+                                backend.setView("ninerouter")
+                                if (!nineRouter.running)
+                                    nineRouter.start()
+                            }
+                        }
+                        ServiceRow {
+                            Layout.fillWidth: true
+                            name: "MausBot"
+                            detail: mausBot.running ? mausBot.detail : (mausBot.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
+                            stateColor: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText)
+                            actionLabel: mausBot.running ? qsTr("Ouvrir") : qsTr("Démarrer")
+                            actionEnabled: !mausBot.starting && !mausBot.installing
+                            onAction: {
+                                backend.setView("mausbot")
+                                if (!mausBot.running)
+                                    mausBot.start()
+                            }
+                        }
+
+                        Rectangle { Layout.fillWidth: true; Layout.topMargin: 8; Layout.bottomMargin: 6; height: 1; color: theme.border }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 3
+                            Button { text: qsTr("Providers"); flat: true; font.pixelSize: 9; onClicked: backend.setView("providers") }
+                            Button { text: qsTr("Terminal"); flat: true; font.pixelSize: 9; onClicked: backend.setView("terminal") }
+                            Item { Layout.fillWidth: true }
+                            Button { text: qsTr("Palette"); flat: true; font.pixelSize: 9; onClicked: root.openPalette() }
                         }
                     }
                 }
-
-                Text {
-                    Layout.fillWidth: true
-                    visible: backend.sessions.length === 0
-                    text: backend.loadingSessions ? qsTr("Loading sessions…") : qsTr("No sessions in this workspace yet.")
-                    color: theme.mutedText
-                    font.pixelSize: 9
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-
-                    Button {
-                        text: qsTr("Refresh")
-                        flat: true
-                        onClicked: backend.refreshSessions()
-                    }
-                    Button {
-                        text: qsTr("All sessions")
-                        flat: true
-                        onClicked: root.openSessions()
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-            }
-
-            Text {
-                width: parent.width
-                text: qsTr("Ctrl+K opens the command palette · Ctrl+1/2/3 switch views")
-                color: theme.dimText
-                font.pixelSize: 9
-                horizontalAlignment: Text.AlignHCenter
             }
         }
     }

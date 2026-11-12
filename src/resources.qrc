@@ -15,6 +15,9 @@
         <file>WorkspacePane.qml</file>
         <file>Composer.qml</file>
         <file>HomePane.qml</file>
+        <file>SidebarItem.qml</file>
+        <file>ServiceRow.qml</file>
+        <file>AppSidebar.qml</file>
         <file>HomeCard.qml</file>
         <file>CommandPalette.qml</file>
         <file>ChoiceMenu.qml</file>

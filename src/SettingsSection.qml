@@ -10,25 +10,24 @@ Rectangle {
     default property alias content: column.data
 
     Layout.fillWidth: true
-    implicitHeight: column.implicitHeight + 36
+    implicitHeight: column.implicitHeight + 40
     color: theme.raised
-    radius: Math.min(10, theme.radius)
+    radius: Math.min(12, theme.radius)
     border.width: 1
     border.color: theme.border
 
     ColumnLayout {
         id: column
-        x: 16
-        y: 16
-        width: parent.width - 32
+        x: 18
+        y: 17
+        width: parent.width - 36
         spacing: 10
 
         Text {
-            text: root.title.toUpperCase()
-            font.pixelSize: 9
-            font.letterSpacing: 1.3
+            text: root.title
+            font.pixelSize: 12
             font.weight: Font.DemiBold
-            color: theme.mutedText
+            color: theme.text
         }
         Rectangle {
             Layout.fillWidth: true

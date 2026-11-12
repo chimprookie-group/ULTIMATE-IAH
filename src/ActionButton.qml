@@ -10,13 +10,13 @@ Button {
     property bool filled: true
     property bool danger: false
 
-    implicitHeight: 32
+    implicitHeight: 34
     implicitWidth: Math.max(88, label.implicitWidth + 30)
     padding: 0
     focusPolicy: Qt.StrongFocus
 
     background: Rectangle {
-        radius: Math.min(8, theme.radius)
+        radius: Math.min(9, theme.radius)
         color: control.filled
              ? (control.danger ? theme.red : (control.down ? Qt.darker(theme.accent, 1.1)
                                                              : (control.hovered ? Qt.lighter(theme.accent, 1.08) : theme.accent)))

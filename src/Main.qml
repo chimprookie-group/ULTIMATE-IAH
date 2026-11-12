@@ -28,6 +28,23 @@ ApplicationWindow {
     Material.accent: theme.accent
     Material.roundedScale: theme.radius
 
+    property bool sidebarUserCollapsed: false
+    readonly property bool sidebarCompact: sidebarUserCollapsed || width < 1040
+    readonly property real contentWidth: width - (sidebarCompact ? 64 : 212)
+    readonly property string viewTitle: {
+        if (backend.view === "home") return qsTr("Cockpit")
+        if (backend.view === "ecosystem") return qsTr("Projet")
+        if (backend.view === "workspace") return qsTr("Fichiers")
+        if (backend.view === "providers") return qsTr("Providers")
+        if (backend.view === "ninerouter") return "9Router"
+        if (backend.view === "mausbot") return "MausBot"
+        if (backend.view === "harness") return qsTr("Harness")
+        if (backend.view === "opencode") return "OpenCode"
+        if (backend.view === "split") return qsTr("Split")
+        if (backend.view === "terminal") return qsTr("Terminal")
+        if (backend.view === "settings") return qsTr("Réglages")
+        return "DeepCrasy H"
+    }
     property bool helpVisible: false
     property bool quitConfirm: false
     property string toastText: ""
@@ -270,114 +287,70 @@ ApplicationWindow {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 16
+                anchors.leftMargin: (win.sidebarCompact ? 64 : 212) + 20
                 anchors.rightMargin: 12
-                spacing: 12
-
-                Item {
-                    width: 30
-                    height: 30
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 44
-                        height: 44
-                        radius: 22
-                        color: theme.accent
-                        opacity: theme.dark ? 0.13 : 0.07
-                    }
-                    Image {
-                        anchors.centerIn: parent
-                        source: "assets/icon-128.png"
-                        sourceSize.width: 27
-                        sourceSize.height: 27
-                    }
-                }
+                spacing: 10
 
                 ColumnLayout {
-                    spacing: 0
-                    RowLayout {
-                        spacing: 4
-                        Text {
-                            text: "DeepCrasy"
-                            font.pixelSize: 15
-                            font.weight: Font.DemiBold
-                            color: theme.text
-                        }
-                        Text {
-                            text: "H"
-                            font.pixelSize: 15
-                            font.weight: Font.Bold
-                            color: theme.cyan
-                        }
+                    spacing: 1
+                    Text {
+                        text: backend.workspaceName
+                        color: theme.brightText
+                        font.family: "iA Writer Duospace"
+                        font.pixelSize: 14
+                        font.weight: Font.Bold
                     }
                     Text {
-                        text: qsTr("HARNESS × OPENCODE")
-                        font.pixelSize: 8
-                        font.letterSpacing: 1.5
+                        Layout.maximumWidth: 300
+                        text: win.viewTitle + "  ·  " + qsTr("espace de travail")
                         color: theme.dimText
+                        font.pixelSize: 8
+                        elide: Text.ElideRight
                     }
-                }
-
-                Rectangle {
-                    Layout.leftMargin: 4
-                    Layout.rightMargin: 4
-                    width: 1
-                    height: 22
-                    color: theme.border
-                }
-
-                Rectangle {
-                    id: workspaceChip
-                    Layout.preferredHeight: 28
-                    implicitWidth: chipRow.implicitWidth + 18
-                    color: chipMouse.containsMouse ? theme.raisedHover : theme.raised
-                    border.width: 1
-                    border.color: theme.border
-                    radius: Math.min(7, theme.radius)
-
-                    Row {
-                        id: chipRow
-                        anchors.centerIn: parent
-                        spacing: 7
-                        ThemedIcon {
-                            source: "icons/folder.svg"
-                            width: 13
-                            height: 13
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: theme.mutedText
-                        }
-                        Text {
-                            text: backend.workspaceName
-                            font.pixelSize: 12
-                            color: theme.text
-                            width: Math.min(implicitWidth, 200)
-                            elide: Text.ElideRight
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        ThemedIcon {
-                            source: "icons/chevron.svg"
-                            width: 11
-                            height: 11
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: theme.dimText
-                        }
-                    }
-
-                    MouseArea {
-                        id: chipMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: backend.pickWorkspace()
-                    }
-                    ToolTip.visible: chipMouse.containsMouse
-                    ToolTip.text: backend.workspace
-                    ToolTip.delay: 600
                 }
 
                 Item { Layout.fillWidth: true }
 
+                Rectangle {
+                    visible: win.width >= 920
+                    Layout.preferredWidth: Math.min(300, Math.max(180, win.width * 0.22))
+                    Layout.preferredHeight: 30
+                    radius: Math.min(8, theme.radius)
+                    color: searchMouse.containsMouse ? theme.raisedHover : theme.raised
+                    border.width: 1
+                    border.color: searchMouse.containsMouse ? theme.borderStrong : theme.border
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 9
+                        anchors.rightMargin: 8
+                        spacing: 7
+                        ThemedIcon { source: "icons/search.svg"; width: 12; height: 12; color: theme.dimText }
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Rechercher ou exécuter…")
+                            color: theme.dimText
+                            font.pixelSize: 9
+                            elide: Text.ElideRight
+                        }
+                        Text {
+                            text: "Ctrl K"
+                            color: theme.dimText
+                            font.family: backend.monoFont
+                            font.pixelSize: 7
+                        }
+                    }
+                    MouseArea {
+                        id: searchMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: commandPalette.open()
+                    }
+                }
+
                 IconButton {
+                    visible: win.width < 920
                     icon: "icons/search.svg"
                     hint: qsTr("Command palette (Ctrl+K)")
                     onClicked: commandPalette.open()
@@ -408,120 +381,10 @@ ApplicationWindow {
             Layout.fillHeight: true
             spacing: 0
 
-            Rectangle {
-                Layout.preferredWidth: 58
-                Layout.fillHeight: true
-                color: theme.surface
-
-                Rectangle {
-                    anchors.right: parent.right
-                    width: 1
-                    height: parent.height
-                    color: theme.border
-                }
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 2
-
-                    RailButton {
-                        icon: "icons/home.svg"
-                        label: qsTr("Home")
-                        hint: qsTr("Crasy Harness (Ctrl+0)")
-                        active: backend.view === "home"
-                        onClicked: backend.setView("home")
-                    }
-                    RailButton {
-                        icon: "icons/ecosystem.svg"
-                        label: qsTr("Ecosystem")
-                        hint: qsTr("Project ecosystem (Ctrl+6)")
-                        active: backend.view === "ecosystem"
-                        onClicked: backend.setView("ecosystem")
-                    }
-
-                    RailButton {
-                        icon: "icons/files.svg"
-                        label: qsTr("Files")
-                        hint: qsTr("Files and diffs (Ctrl+7)")
-                        active: backend.view === "workspace"
-                        onClicked: backend.setView("workspace")
-                    }
-
-                    RailButton {
-                        icon: "icons/providers.svg"
-                        label: qsTr("Providers")
-                        hint: qsTr("Providers (Ctrl+8)")
-                        active: backend.view === "providers"
-                        onClicked: backend.setView("providers")
-                    }
-
-                    RailButton {
-                        icon: "icons/router.svg"
-                        label: "9Router"
-                        hint: qsTr("9Router (Ctrl+9)")
-                        active: backend.view === "ninerouter"
-                        onClicked: backend.setView("ninerouter")
-                    }
-
-                    RailButton {
-                        icon: "icons/mausbot.svg"
-                        label: "MausBot"
-                        hint: qsTr("MausBot (Ctrl+Shift+M)")
-                        active: backend.view === "mausbot"
-                        onClicked: backend.setView("mausbot")
-                    }
-
-                    RailButton {
-                        icon: "icons/harness.svg"
-                        label: qsTr("Harness")
-                        hint: qsTr("DeepSeek Harness (Ctrl+1)")
-                        active: backend.view === "harness"
-                        onClicked: backend.setView("harness")
-                    }
-                    RailButton {
-                        icon: "icons/chat.svg"
-                        label: qsTr("OpenCode")
-                        hint: qsTr("OpenCode chat (Ctrl+2)")
-                        active: backend.view === "opencode"
-                        onClicked: backend.setView("opencode")
-                    }
-                    RailButton {
-                        icon: "icons/terminal.svg"
-                        label: qsTr("Terminal")
-                        hint: qsTr("Terminal (Ctrl+5)")
-                        active: backend.view === "terminal"
-                        onClicked: backend.setView("terminal")
-                    }
-                    RailButton {
-                        icon: "icons/split.svg"
-                        label: qsTr("Split")
-                        hint: qsTr("Both panes (Ctrl+3)")
-                        active: backend.view === "split"
-                        onClicked: {
-                            if (win.compact) {
-                                win.showToast(qsTr("Split view needs a window at least 1180 px wide."))
-                                return
-                            }
-                            backend.setView("split")
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    RailButton {
-                        icon: "icons/gear.svg"
-                        label: qsTr("Settings")
-                        hint: qsTr("Workspace and engines (Ctrl+4)")
-                        active: backend.view === "settings"
-                        onClicked: backend.setView("settings")
-                    }
-                }
-            }
-
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.leftMargin: win.sidebarCompact ? 64 : 212
 
                 RowLayout {
                     anchors.fill: parent
@@ -536,7 +399,7 @@ ApplicationWindow {
                         visible: backend.view === "harness" || backend.view === "split"
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: backend.view === "split" ? win.width * backend.splitRatio : win.width
+                        Layout.preferredWidth: backend.view === "split" ? win.contentWidth * backend.splitRatio : win.contentWidth
                     }
 
                     Rectangle {
@@ -551,7 +414,7 @@ ApplicationWindow {
                         visible: backend.view === "opencode" || backend.view === "split"
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: backend.view === "split" ? win.width * (1 - backend.splitRatio) : win.width
+                        Layout.preferredWidth: backend.view === "split" ? win.contentWidth * (1 - backend.splitRatio) : win.contentWidth
                         onOpenSessions: sessionsPanel.open()
                         onChangeModelRequested: chatPane.openModelPicker()
                         onConnectProviderRequested: backend.setView("providers")
@@ -610,6 +473,18 @@ ApplicationWindow {
                     visible: backend.view === "home"
                     onOpenSessions: sessionsPanel.open()
                     onOpenPalette: commandPalette.open()
+                    onPromptRequested: function (prompt) {
+                        backend.setView("opencode")
+                        Qt.callLater(function () { chatPane.suggest(prompt) })
+                    }
+                    onCommandRequested: function (command) {
+                        terminal.run(command)
+                        backend.setView("terminal")
+                    }
+                    onModelPickerRequested: {
+                        backend.setView("opencode")
+                        Qt.callLater(function () { chatPane.openModelPicker() })
+                    }
                 }
 
                 SettingsPane {
@@ -622,7 +497,7 @@ ApplicationWindow {
         // ── status bar ────────────────────────────────────────────────────
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 27
+            Layout.preferredHeight: 28
             color: theme.surface
 
             Rectangle {
@@ -634,56 +509,69 @@ ApplicationWindow {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
-                spacing: 14
+                anchors.leftMargin: (win.sidebarCompact ? 64 : 212) + 14
+                anchors.rightMargin: 14
+                spacing: 10
 
                 Text {
-                    Layout.fillWidth: true
                     text: backend.workspace
                     font.family: backend.monoFont
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                     color: theme.dimText
                     elide: Text.ElideMiddle
+                    Layout.maximumWidth: win.width * 0.42
                 }
 
+                Rectangle {
+                    visible: backend.gitAvailable
+                    width: 1
+                    height: 12
+                    color: theme.border
+                }
                 Row {
-                    spacing: 5
-                    StatusDot {
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: win.stateColor(backend.harnessState)
-                    }
-                    Text {
-                        text: qsTr("Harness")
-                        font.pixelSize: 10
-                        color: theme.mutedText
-                    }
+                    spacing: 4
+                    visible: backend.gitAvailable
+                    ThemedIcon { source: "icons/branch.svg"; width: 10; height: 10; anchors.verticalCenter: parent.verticalCenter; color: backend.gitDirtyCount > 0 ? theme.orange : theme.green }
+                    Text { text: backend.gitBranch; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 9 }
                 }
 
-                Row {
-                    spacing: 5
-                    StatusDot {
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: win.stateColor(backend.opencodeState)
-                    }
-                    Text {
-                        text: qsTr("OpenCode")
-                        font.pixelSize: 10
-                        color: theme.mutedText
+                Item { Layout.fillWidth: true }
+
+                Repeater {
+                    model: [
+                        { label: "Harness", color: win.stateColor(backend.harnessState) },
+                        { label: "OpenCode", color: win.stateColor(backend.opencodeState) },
+                        { label: "9Router", color: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText) },
+                        { label: "MausBot", color: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText) }
+                    ]
+                    Row {
+                        spacing: 5
+                        StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 4; color: modelData.color }
+                        Text { visible: win.width >= 900; text: modelData.label; color: theme.dimText; font.pixelSize: 9 }
                     }
                 }
 
                 Text {
-                    visible: backend.currentModel !== ""
-                    Layout.maximumWidth: 220
+                    visible: backend.currentModel !== "" && win.width >= 900
                     text: backend.currentModel
+                    color: theme.mutedText
                     font.family: backend.monoFont
-                    font.pixelSize: 10
-                    color: theme.dimText
+                    font.pixelSize: 9
                     elide: Text.ElideRight
+                    Layout.maximumWidth: 220
                 }
             }
         }
+    }
+
+    AppSidebar {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: win.sidebarCompact ? 64 : 212
+        compact: win.sidebarCompact
+        z: 40
+        onToggleCompact: win.sidebarUserCollapsed = !win.sidebarUserCollapsed
     }
 
     Timer {
