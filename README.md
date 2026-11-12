@@ -172,7 +172,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.9.3-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.9.6-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

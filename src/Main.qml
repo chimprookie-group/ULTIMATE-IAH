@@ -510,8 +510,15 @@ ApplicationWindow {
                 anchors.rightMargin: design.space4
                 spacing: design.space3
 
-                ThemedIcon { source: "icons/folder.svg"; width: design.iconSm; height: design.iconSm; color: theme.dimText }
+                ThemedIcon {
+                    Layout.alignment: Qt.AlignVCenter
+                    source: "icons/folder.svg"
+                    width: design.iconSm
+                    height: design.iconSm
+                    color: theme.dimText
+                }
                 Text {
+                    Layout.alignment: Qt.AlignVCenter
                     text: backend.workspace
                     font.family: backend.monoFont
                     font.pixelSize: design.textMicro
@@ -520,31 +527,56 @@ ApplicationWindow {
                     Layout.maximumWidth: win.width * 0.38
                 }
 
-                Rectangle { visible: backend.gitAvailable; width: 1; height: 12; color: theme.border }
-                Row {
+                Rectangle {
+                    Layout.alignment: Qt.AlignVCenter
+                    visible: backend.gitAvailable
+                    width: 1
+                    height: 12
+                    color: theme.border
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignVCenter
                     spacing: design.space1
                     visible: backend.gitAvailable
-                    ThemedIcon { source: "icons/branch.svg"; width: 11; height: 11; anchors.verticalCenter: parent.verticalCenter; color: backend.gitDirtyCount > 0 ? theme.orange : theme.green }
-                    Text { text: backend.gitBranch; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    ThemedIcon {
+                        Layout.alignment: Qt.AlignVCenter
+                        source: "icons/branch.svg"
+                        width: 11
+                        height: 11
+                        color: backend.gitDirtyCount > 0 ? theme.orange : theme.green
+                    }
+                    Text {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: backend.gitBranch
+                        color: theme.mutedText
+                        font.family: backend.monoFont
+                        font.pixelSize: design.textMicro
+                    }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                Repeater {
-                    model: [
-                        { label: "Agent", color: theme.green },
-                        { label: "Terminal", color: terminal.running ? theme.green : theme.dimText },
-                        { label: "Agent", color: connections.deepseekConfigured ? theme.green : theme.dimText }
-                    ]
-                    Row {
-                        spacing: design.space2
-                        StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 4; color: modelData.color }
-                        Text {
-                            visible: win.width >= 1000
-                            text: modelData.label
-                            color: theme.dimText
-                            font.family: backend.monoFont
-                            font.pixelSize: design.textMicro
+                RowLayout {
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: design.space3
+                    Repeater {
+                        model: [
+                            { label: qsTr("Agent"), color: ultimateAgent.busy ? theme.yellow : theme.green },
+                            { label: qsTr("Terminal"), color: terminal.running ? theme.green : theme.dimText },
+                            { label: qsTr("API"), color: connections.deepseekConfigured ? theme.green : theme.orange }
+                        ]
+                        RowLayout {
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: design.space1
+                            StatusDot { Layout.alignment: Qt.AlignVCenter; size: 4; color: modelData.color }
+                            Text {
+                                Layout.alignment: Qt.AlignVCenter
+                                visible: win.width >= 600
+                                text: modelData.label
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
                         }
                     }
                 }

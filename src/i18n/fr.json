@@ -1132,5 +1132,6 @@
   "Ultimate Agent, son terminal, les agents et votre espace de travail.": "Ultimate Agent, son terminal, les agents et votre espace de travail.",
   "Vérifie les providers, MCP, le workspace et les composants d'Ultimate IAH. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.": "Vérifie les providers, MCP, le workspace et les composants d'Ultimate IAH. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.",
   "Vérifiez la clé DeepSeek, les providers, MCP et le workspace.": "Vérifiez la clé DeepSeek, les providers, MCP et le workspace.",
-  "\\nLe moteur agent est introuvable.\\n": "\\nLe moteur agent est introuvable.\\n"
+  "\\nLe moteur agent est introuvable.\\n": "\\nLe moteur agent est introuvable.\\n",
+  "API": "API"
 }
