@@ -2,6 +2,7 @@
 
 #include "agentmanager.h"
 #include "backend.h"
+#include "botmanager.h"
 #include "connectiondoctor.h"
 #include "harnessconnections.h"
 #include "installationdoctor.h"
@@ -84,12 +85,12 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
                              McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                              AgentManager *agents, MissionRunner *missions,
                              TerminalSession *terminal, InstallationDoctor *installation,
-                             ConnectionDoctor *connectionDoctor, QObject *parent)
+                             ConnectionDoctor *connectionDoctor, BotManager *bots, QObject *parent)
     : QObject(parent), m_backend(backend), m_connections(connections),
       m_mcp(mcp), m_memory(memory),
       m_skills(skills), m_agents(agents), m_missions(missions), m_terminal(terminal),
       m_installation(installation), m_connectionDoctor(connectionDoctor),
-      m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
+      m_bots(bots), m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
     m_timeout->setSingleShot(true);
     m_timeout->setInterval(120000);
     QObject::connect(m_timeout, &QTimer::timeout, this, [this] {
@@ -184,6 +185,22 @@ QJsonObject UltimateAgent::snapshot() const {
                                 {QStringLiteral("defaultModel"), m_connections->defaultModel()},
                                 {QStringLiteral("deepseekConfigured"), m_connections->deepseekConfigured()},
                                 {QStringLiteral("envPath"), m_connections->envPath()}});
+    }
+    if (m_bots) {
+        QJsonArray bots;
+        for (const QVariant &value : m_bots->bots()) {
+            const QVariantMap map = value.toMap();
+            bots.append(QJsonObject{{QStringLiteral("id"), map.value(QStringLiteral("id")).toInt()},
+                                    {QStringLiteral("name"), map.value(QStringLiteral("name")).toString()},
+                                    {QStringLiteral("permission"), map.value(QStringLiteral("permission")).toString()},
+                                    {QStringLiteral("enabled"), map.value(QStringLiteral("enabled")).toBool()}});
+        }
+        root.insert(QStringLiteral("bots"),
+                    QJsonObject{{QStringLiteral("serverRunning"), m_bots->serverRunning()},
+                                {QStringLiteral("serverUrl"), m_bots->serverUrl()},
+                                {QStringLiteral("running"), m_bots->running()},
+                                {QStringLiteral("queue"), m_bots->queueCount()},
+                                {QStringLiteral("items"), bots}});
     }
     if (m_mcp) {
         QJsonArray servers;
@@ -498,7 +515,7 @@ QStringList UltimateAgent::views() {
             QStringLiteral("workspace"), QStringLiteral("harness"), QStringLiteral("terminal"),
             QStringLiteral("connects"), QStringLiteral("connections"), QStringLiteral("memory"),
             QStringLiteral("autopilot"), QStringLiteral("mcp"), QStringLiteral("agents"),
-            QStringLiteral("installation"), QStringLiteral("settings")};
+            QStringLiteral("installation"), QStringLiteral("bots"), QStringLiteral("settings")};
 }
 
 QString UltimateAgent::staticKnowledge() {
@@ -510,7 +527,7 @@ QString UltimateAgent::staticKnowledge() {
 
 IDENTITY AND MISSION
 - You are not a generic chatbot. You know this exact application, its local ecosystem, its files and its live state.
-- You can operate the application through tools: navigation, providers/connections, DSH harness, MCP, persistent memory, skills, missions, terminal, workspace files, Git, installation and settings.
+- You can operate the application through tools: navigation, providers/connections, DSH harness, MCP, persistent memory, skills, missions, bots, terminal, workspace files, Git, installation and settings.
 - Answer in the user's language (French by default) and keep the tone direct, technical and useful.
 - Be concise by default, but be complete when diagnosing or changing configuration. Use Markdown and short code blocks.
 
@@ -520,8 +537,9 @@ SYSTEM MAP
 - Harness: dsh web, patched with connections.patch.yml, mcp-memory.patch.yml and mcp-servers.patch.yml.
 - Providers: connections.patch.yml + ~/.dsh/.credentials.yaml. The DeepSeek key is the single source and is propagated to agent.env.
 - Memory: SQLite/FTS5 via the memory MCP server. Skills: ~/.agents/skills and project skills.
-- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, installation, settings.
-- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
+- Bots: persistent native operators in SQLite, executed through dsh headless, exposed on a loopback HTTP API and through the ultimate-iah-bots MCP bridge.
+- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, bots, installation, settings.
+- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+B Bots, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
 
 ACTION RULES
 - Use tools for actions and facts. Never claim a command, configuration change or service start succeeded without a successful tool result.
@@ -538,6 +556,7 @@ TOOL STRATEGY
 - Use ultimate_diagnose for connection/installation problems.
 - Use ultimate_connections for DeepSeek/provider/default/restart.
 - Use ultimate_services for the harness lifecycle.
+- Use ultimate_bots to inspect, create, run, schedule or remove native bots.
 - Use ultimate_install for setup and dependency gaps.
 - Use ultimate_memory to search and remember. Use ultimate_skills to inspect or create skills.
 - Use ultimate_terminal/git/files for real project work. Prefer read-only inspection before writing.
@@ -548,7 +567,7 @@ TOOL STRATEGY
 QJsonArray UltimateAgent::tools() {
     QJsonArray out;
     out.append(tool(QStringLiteral("ultimate_status"),
-                    QStringLiteral("Return live Ultimate IAH state: app, workspace, Git, harness, providers, MCP, memory, skills, agents."),
+                    QStringLiteral("Return live Ultimate IAH state: app, workspace, Git, harness, providers, MCP, memory, skills, agents and bots."),
                     {}));
     out.append(tool(QStringLiteral("ultimate_diagnose"),
                     QStringLiteral("Run the real connection diagnostics and the full installation audit, and return every check with its result."),
@@ -674,6 +693,25 @@ QJsonArray UltimateAgent::tools() {
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("audit"), QStringLiteral("system"),
                                                QStringLiteral("install_dsh")})}}),
+                    {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_bots"),
+                    QStringLiteral("Inspect, create, run, schedule or remove native Ultimate IAH bots; control their local API."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("list"), QStringLiteral("status"), QStringLiteral("send"),
+                                               QStringLiteral("create"), QStringLiteral("remove"),
+                                               QStringLiteral("schedule"), QStringLiteral("start_server"),
+                                               QStringLiteral("stop_server")})},
+                                {QStringLiteral("botId"), agentProperty(QStringLiteral("integer"), QStringLiteral("Bot id."))},
+                                {QStringLiteral("text"), agentProperty(QStringLiteral("string"), QStringLiteral("Task to delegate."))},
+                                {QStringLiteral("name"), agentProperty(QStringLiteral("string"), QStringLiteral("Bot name."))},
+                                {QStringLiteral("description"), agentProperty(QStringLiteral("string"), QStringLiteral("Short role."))},
+                                {QStringLiteral("instructions"), agentProperty(QStringLiteral("string"), QStringLiteral("Bot instructions."))},
+                                {QStringLiteral("permission"), enumProperty(QStringLiteral("Bot permission."),
+                                                                           {QStringLiteral("read-only"), QStringLiteral("workspace-write")})},
+                                {QStringLiteral("title"), agentProperty(QStringLiteral("string"), QStringLiteral("Schedule title."))},
+                                {QStringLiteral("intervalMinutes"), agentProperty(QStringLiteral("integer"), QStringLiteral("Schedule interval in minutes."))},
+                                {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to remove a bot."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_settings"),
                     QStringLiteral("Read or change app theme, language, startup view and harness autostart."),
@@ -1057,6 +1095,61 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         return okResult({{QStringLiteral("started"), true}, {QStringLiteral("action"), action}});
     }
 
+    if (name == QLatin1String("ultimate_bots")) {
+        if (!m_bots)
+            return errorResult(tr("Le service de bots est indisponible."));
+        if (action == QLatin1String("list") || action.isEmpty()) {
+            return okResult({{QStringLiteral("bots"), m_bots->botsJson()},
+                             {QStringLiteral("status"), m_bots->statusJson()}});
+        }
+        if (action == QLatin1String("status")) {
+            return okResult({{QStringLiteral("status"), m_bots->statusJson()},
+                             {QStringLiteral("error"), m_bots->error()}});
+        }
+        if (action == QLatin1String("send")) {
+            const int botId = arguments.value(QStringLiteral("botId")).toInt();
+            const QString text = arguments.value(QStringLiteral("text")).toString();
+            const QJsonObject result = m_bots->sendBotMessage(botId, text, QStringLiteral("agent"));
+            return result.contains(QStringLiteral("error"))
+                ? errorResult(result.value(QStringLiteral("error")).toString())
+                : okResult({{QStringLiteral("run"), result}});
+        }
+        if (action == QLatin1String("create")) {
+            const int id = m_bots->createBot(
+                arguments.value(QStringLiteral("name")).toString(),
+                arguments.value(QStringLiteral("description")).toString(),
+                arguments.value(QStringLiteral("instructions")).toString(),
+                arguments.value(QStringLiteral("permission")).toString(QStringLiteral("read-only")));
+            return id > 0 ? okResult({{QStringLiteral("bot"), m_bots->botJson(id)}})
+                          : errorResult(m_bots->error());
+        }
+        if (action == QLatin1String("remove")) {
+            if (auto error = confirmOrError(tr("supprimer ce bot")); !error.isEmpty()) return error;
+            const int botId = arguments.value(QStringLiteral("botId")).toInt();
+            return m_bots->removeBot(botId) ? okResult({{QStringLiteral("removed"), botId}})
+                                            : errorResult(m_bots->error());
+        }
+        if (action == QLatin1String("schedule")) {
+            const int id = m_bots->createSchedule(
+                arguments.value(QStringLiteral("botId")).toInt(),
+                arguments.value(QStringLiteral("title")).toString(),
+                arguments.value(QStringLiteral("text")).toString(),
+                arguments.value(QStringLiteral("intervalMinutes")).toInt());
+            return id > 0 ? okResult({{QStringLiteral("scheduleId"), id}})
+                          : errorResult(m_bots->error());
+        }
+        if (action == QLatin1String("start_server")) {
+            m_bots->startServer();
+            return okResult({{QStringLiteral("server"), m_bots->statusJson()}});
+        }
+        if (action == QLatin1String("stop_server")) {
+            if (auto error = confirmOrError(tr("arrêter l'API des bots")); !error.isEmpty()) return error;
+            m_bots->stopServer();
+            return okResult({{QStringLiteral("server"), m_bots->statusJson()}});
+        }
+        return errorResult(tr("Action de bots inconnue : %1").arg(action));
+    }
+
     if (name == QLatin1String("ultimate_settings")) {
         if (action == QLatin1String("get") || action.isEmpty()) {
             return okResult({{QStringLiteral("theme"), m_backend ? m_backend->activeTheme() : QString()},
@@ -1137,6 +1230,8 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
         return tr("Git · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_install"))
         return tr("Installation · %1").arg(arguments.value(QStringLiteral("action")).toString());
+    if (name == QLatin1String("ultimate_bots"))
+        return tr("Bots · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_settings"))
         return tr("Réglages · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_agents"))

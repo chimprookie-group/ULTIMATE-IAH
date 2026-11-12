@@ -21,6 +21,7 @@
 #include "skillmanager.h"
 #include "missionrunner.h"
 #include "autopilot.h"
+#include "botstore.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -472,6 +473,38 @@ private slots:
             QVERIFY2(!text.contains(retiredRouter, Qt::CaseInsensitive), qPrintable(path));
             QVERIFY2(!text.contains(retiredAgent, Qt::CaseInsensitive), qPrintable(path));
         }
+    }
+
+    void botStorePersistsRegistryRunsAndSchedules()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        BotStore store(dir.path() + "/bots.db");
+        QVERIFY2(store.error().isEmpty(), qPrintable(store.error()));
+        QCOMPARE(store.bots().size(), 3);
+
+        const int id = store.createBot("Scout", "Veille et synthèse", "Tu explores et tu résumes.", "read-only");
+        QVERIFY(id > 0);
+        QCOMPARE(store.selectedBotId(), id);
+        QVERIFY(store.messages().isEmpty());
+
+        const int message = store.appendMessage(id, "user", "Analyse le workspace", "chat");
+        QVERIFY(message > 0);
+        QCOMPARE(store.messages().size(), 1);
+        const int run = store.createRun(id, "Analyse le workspace");
+        QVERIFY(run > 0);
+        QVERIFY(store.updateRun(run, "done", "Résultat vérifié", "", 0));
+        const QVariantMap finished = store.runById(run);
+        QCOMPARE(finished.value("status").toString(), QString("done"));
+        QCOMPARE(finished.value("output").toString(), QString("Résultat vérifié"));
+
+        const int schedule = store.createSchedule(id, "Veille", "Vérifie le workspace", 30);
+        QVERIFY(schedule > 0);
+        QCOMPARE(store.schedules().size(), 1);
+        QVERIFY(store.toggleSchedule(schedule, false));
+        QVERIFY(store.removeSchedule(schedule));
+        QVERIFY(store.removeBot(id));
+        QCOMPARE(store.bots().size(), 3);
     }
 
     void originalOneShotPolicyIsEmbedded()

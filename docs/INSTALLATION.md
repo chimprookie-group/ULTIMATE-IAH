@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.5.13-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.6.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
@@ -34,7 +34,7 @@ passe polkit n'est jamais lu ni stocké.
 
 **Installation** vérifie les composants actifs : DSH, Node, npm, Python, PyYAML,
 QtWebEngine, Git, portail fichiers, dossiers de configuration/données, MCP
-mémoire et entrées de bureau.
+mémoire, registre des bots, pont MCP bots et entrées de bureau.
 
 ## Poste vierge
 

@@ -11,6 +11,7 @@ class QNetworkReply;
 class QTimer;
 
 class AgentManager;
+class BotManager;
 class Backend;
 class ConnectionDoctor;
 class HarnessConnections;
@@ -40,7 +41,8 @@ public:
                   McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                   AgentManager *agents, MissionRunner *missions,
                   TerminalSession *terminal, InstallationDoctor *installation,
-                  ConnectionDoctor *connectionDoctor, QObject *parent = nullptr);
+                  ConnectionDoctor *connectionDoctor, BotManager *bots,
+                  QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
     bool busy() const { return m_busy; }
@@ -109,6 +111,7 @@ private:
     TerminalSession *m_terminal = nullptr;
     InstallationDoctor *m_installation = nullptr;
     ConnectionDoctor *m_connectionDoctor = nullptr;
+    BotManager *m_bots = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;
     QNetworkReply *m_reply = nullptr;

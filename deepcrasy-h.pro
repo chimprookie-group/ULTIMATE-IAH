@@ -19,6 +19,10 @@ HEADERS += \
     src/installationdoctor.h \
     src/ultimateagent.h \
     src/hoverservice.h \
+    src/botmanager.h \
+    src/botserver.h \
+    src/botrunner.h \
+    src/botstore.h \
     src/mcpmanager.h \
     src/skillmanager.h \
     src/agentmanager.h \
@@ -45,6 +49,10 @@ SOURCES += \
     src/installationdoctor.cpp \
     src/ultimateagent.cpp \
     src/hoverservice.cpp \
+    src/botmanager.cpp \
+    src/botserver.cpp \
+    src/botrunner.cpp \
+    src/botstore.cpp \
     src/mcpmanager.cpp \
     src/skillmanager.cpp \
     src/agentmanager.cpp \

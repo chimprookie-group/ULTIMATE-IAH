@@ -95,6 +95,13 @@ void InstallationDoctor::check() {
             && QFileInfo::exists(data + "/memory_mcp.py")
             && m_memory && QFileInfo::exists(m_memory->databasePath()),
         tr("patch, serveur et base"));
+    add(tr("Bots"), tr("Registre des bots"),
+        QFileInfo::exists(data + "/bots.db"),
+        QFileInfo::exists(data + "/bots.db") ? tr("base SQLite présente") : tr("registre absent"));
+    add(tr("Bots"), tr("Pont MCP"),
+        QFileInfo::exists(data + "/bots_mcp.py") && QFileInfo::exists(config + "/mcp-bots.patch.yml"),
+        tr("serveur et patch MCP"));
+
     add(tr("Système"), tr("Entrée de bureau"),
         QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-hai.desktop")),
         tr("ultimate-hai.desktop"));

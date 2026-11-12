@@ -88,6 +88,7 @@ Item {
                             { name: "MCP", detail: mcpManager.builtins.length > 0 ? qsTr("Mémoire intégrée · %n serveur(s) personnalisé(s)", "", mcpManager.servers.length) : qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length), ok: mcpManager.builtins.length > 0 || mcpManager.servers.length > 0, view: "mcp", action: qsTr("Ouvrir") },
                             { name: qsTr("Mémoire persistante"), detail: qsTr("%n entrée(s)", "", memory.stats.total !== undefined ? memory.stats.total : 0), ok: memory.stats.total !== undefined && memory.stats.total > 0, view: "memory", action: qsTr("Ouvrir") },
                             { name: qsTr("Skills"), detail: qsTr("%n skill(s) disponible(s)", "", ecosystem.skills.length), ok: ecosystem.skills.length > 0, view: "ecosystem", action: qsTr("Ouvrir") },
+                            { name: qsTr("Bots"), detail: bots.serverRunning ? qsTr("%n bot(s) · API locale", "", bots.bots.length) : qsTr("service arrêté"), ok: bots.serverRunning && bots.bots.length > 0, view: "bots", action: qsTr("Ouvrir") },
                             { name: qsTr("Installation"), detail: installation.summary !== "" ? installation.summary : qsTr("audit disponible"), ok: installation.failed === 0, view: "installation", action: qsTr("Vérifier") }
                         ]
                         ColumnLayout {

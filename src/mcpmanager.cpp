@@ -182,6 +182,13 @@ bool McpManager::writePatch() {
 void McpManager::rebuildBuiltins() {
     QVariantList builtins;
     builtins.append(QVariantMap{
+        {"name", "ultimate-iah-bots"},
+        {"label", tr("Bots Ultimate IAH")},
+        {"detail", tr("Délégation vers les bots locaux via MCP")},
+        {"transport", "stdio"},
+        {"active", QFileInfo::exists(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/mcp-bots.patch.yml")},
+    });
+    builtins.append(QVariantMap{
         {"name", "ultimate-hai-memory"},
         {"label", tr("Mémoire Ultimate IAH")},
         {"detail", tr("Outils memory_search, memory_remember, memory_recent")},

@@ -37,6 +37,7 @@ ApplicationWindow {
         if (backend.view === "mcp") return "MCP"
         if (backend.view === "agents") return qsTr("Agents")
         if (backend.view === "agent") return qsTr("Ultimate Agent")
+        if (backend.view === "bots") return qsTr("Bots")
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
@@ -109,6 +110,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
         add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
         add(qsTr("Agent"), qsTr("Ultimate Agent"), "Ctrl+Alt+U", "view:agent", "icons/spark.svg")
+        add(qsTr("Agent"), qsTr("Bots"), "Ctrl+Alt+B", "view:bots", "icons/agents.svg")
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
@@ -188,6 +190,7 @@ ApplicationWindow {
         }
     }
     Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
+    Shortcut { sequence: "Ctrl+Alt+B"; context: Qt.ApplicationShortcut; onActivated: backend.setView("bots") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
     Shortcut {
@@ -424,6 +427,7 @@ ApplicationWindow {
                              && backend.view !== "memory" && backend.view !== "autopilot"
                              && backend.view !== "mcp" && backend.view !== "agents"
                              && backend.view !== "installation" && backend.view !== "agent"
+                             && backend.view !== "bots"
 
                     HarnessPane {
                         id: harnessPane
@@ -464,6 +468,11 @@ ApplicationWindow {
                 UltimateAgentPane {
                     anchors.fill: parent
                     visible: backend.view === "agent"
+                }
+
+                BotsPane {
+                    anchors.fill: parent
+                    visible: backend.view === "bots"
                 }
 
                 AgentsPane {

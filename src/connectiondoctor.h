@@ -4,6 +4,7 @@
 #include <QVariantList>
 
 class Backend;
+class BotManager;
 class HarnessConnections;
 class MemoryStore;
 class McpManager;
@@ -20,7 +21,8 @@ class ConnectionDoctor : public QObject {
 
 public:
     ConnectionDoctor(Backend *backend, HarnessConnections *connections,
-                     McpManager *mcp, MemoryStore *memory, QObject *parent = nullptr);
+                     McpManager *mcp, MemoryStore *memory, BotManager *bots,
+                     QObject *parent = nullptr);
 
     QVariantList checks() const { return m_checks; }
     int passed() const { return m_passed; }
@@ -43,6 +45,7 @@ private:
     HarnessConnections *m_connections = nullptr;
     McpManager *m_mcp = nullptr;
     MemoryStore *m_memory = nullptr;
+    BotManager *m_bots = nullptr;
     QVariantList m_checks;
     int m_passed = 0;
     int m_failed = 0;

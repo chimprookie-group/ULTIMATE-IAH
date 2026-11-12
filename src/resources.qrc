@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file alias="mcp/bots_mcp.py">mcp/bots_mcp.py</file>
         <file alias="mcp/memory_mcp.py">mcp/memory_mcp.py</file>
         <file>Main.qml</file>
         <file>ThemedIcon.qml</file>
@@ -8,6 +9,7 @@
         <file>StatusDot.qml</file>
         <file>HarnessPane.qml</file>
         <file>EcosystemPane.qml</file>
+        <file>BotsPane.qml</file>
         <file>ConnectionsPane.qml</file>
         <file>McpPane.qml</file>
         <file>PageHeader.qml</file>
@@ -71,6 +73,7 @@
         <file>icons/logout.svg</file>
         <file>icons/trash.svg</file>
         <file>icons/globe.svg</file>
+        <file alias="bot/dashboard.html">bot/dashboard.html</file>
         <file>icons/alert.svg</file>
         <file>icons/sliders.svg</file>
         <file>icons/skill.svg</file>

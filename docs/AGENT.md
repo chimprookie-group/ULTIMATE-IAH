@@ -19,7 +19,7 @@ Le prompt système est reconstruit à chaque tour avec :
 - état du harness, binaire DSH et URL ;
 - providers, modèle par défaut et état de la clé DeepSeek ;
 - serveurs MCP personnalisés ;
-- statistiques mémoire, skills et profils d'agents ;
+- statistiques mémoire, skills, profils d'agents et état des bots ;
 - raccourcis, chemins de données et règles de sécurité.
 
 ## Outils
@@ -31,6 +31,7 @@ Le prompt système est reconstruit à chaque tour avec :
 | `ultimate_navigate` | Ouvrir une vue |
 | `ultimate_connections` | Providers, clé DeepSeek, défaut, redémarrage |
 | `ultimate_services` | Cycle de vie du harness |
+| `ultimate_bots` | Lister, créer, exécuter, planifier et supprimer les bots |
 | `ultimate_mcp` | Serveurs MCP |
 | `ultimate_memory` | Rechercher/enregistrer la mémoire |
 | `ultimate_skills` | Lister/lire/créer/supprimer un skill |
@@ -41,6 +42,12 @@ Le prompt système est reconstruit à chaque tour avec :
 | `ultimate_install` | Audit et installations |
 | `ultimate_settings` | Thème, langue, démarrage |
 | `ultimate_agents` | Profils de rôles |
+
+## Bots
+
+Ultimate Agent peut inspecter le service de bots, déléguer une tâche, créer un
+bot, planifier une exécution ou arrêter l’API. Les actions destructrices
+(suppression, arrêt du service) demandent `confirm: true`.
 
 ## Sécurité
 

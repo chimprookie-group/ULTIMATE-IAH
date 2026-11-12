@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultimate IAH — Bots</title>
+<style>
+:root{color-scheme:dark;--bg:#0c0c10;--panel:#14141a;--raised:#1c1c24;--line:#2c2c37;--text:#eeeef3;--muted:#9292a0;--accent:#ffd24a;--green:#62d6a0;--red:#f06a7a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 ui-sans-serif,system-ui,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--line);background:var(--panel)}
+header b{font-size:18px;letter-spacing:-.02em}header .sp{flex:1}.pill{border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);font:11px ui-monospace,monospace}
+main{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;max-width:1320px;margin:0 auto;padding:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;padding:13px 16px;border-bottom:1px solid var(--line)}
+#login{max-width:520px;margin:10vh auto;padding:24px}#login p{color:var(--muted)}input,textarea,button{font:inherit;color:var(--text)}
+input,textarea{width:100%;background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:10px 11px;outline:none}input:focus,textarea:focus{border-color:var(--accent)}
+button{background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:9px 13px;cursor:pointer}button:hover{border-color:#4a4a59}button.primary{background:var(--accent);color:#141414;border-color:var(--accent);font-weight:650}
+.row{display:flex;gap:8px;align-items:center}.stack{display:grid;gap:10px}.muted{color:var(--muted)}.tiny{font-size:11px}
+#bots{padding:8px}.bot{padding:10px 11px;border-radius:9px;cursor:pointer}.bot:hover,.bot.active{background:var(--raised)}.bot b{display:block}.bot small{color:var(--muted)}
+#chat{display:flex;flex-direction:column;min-height:66vh;max-height:calc(100vh - 190px)}
+#messages{flex:1;overflow:auto;padding:18px;display:grid;gap:12px;align-content:start}.msg{max-width:84%;padding:10px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word}.msg.user{justify-self:end;background:#272733;border:1px solid #3b3b4a}.msg.assistant{justify-self:start;background:var(--raised);border:1px solid var(--line)}.msg.error{border-color:#7d3646;color:#ffb3bf}
+#composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}#composer textarea{resize:vertical;min-height:44px;max-height:140px}
+#meta{padding:10px 16px;border-top:1px solid var(--line);color:var(--muted);font:11px ui-monospace,monospace;display:flex;gap:14px;flex-wrap:wrap}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(520px,92vw)}dialog::backdrop{background:#0009}label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+@media(max-width:820px){main{grid-template-columns:1fr}#chat{max-height:none}}
+</style>
+</head>
+<body>
+<header><b>Ultimate IAH <span style="color:var(--accent)">Bots</span></b><span class="pill">API locale</span><span class="sp"></span><span id="state" class="pill">hors ligne</span></header>
+<main>
+  <section class="card">
+    <h2>Bots</h2>
+    <div id="bots"></div>
+    <div style="padding:10px"><button id="new" style="width:100%">+ Nouveau bot</button></div>
+  </section>
+  <section class="card">
+    <div id="bothead" style="padding:14px 16px;border-bottom:1px solid var(--line)"><b id="botname">Aucun bot</b><div id="botrole" class="muted tiny"></div></div>
+    <div id="chat"><div id="messages"></div><div id="composer"><textarea id="text" placeholder="Confier une tâche à ce bot…"></textarea><button class="primary" id="send">Envoyer</button></div></div>
+    <div id="meta"><span id="runmeta">aucun run</span><span id="queued"></span></div>
+  </section>
+</main>
+
+<dialog id="login"><h2 style="margin-top:0">Connexion à l’API locale</h2><p>Collez le jeton affiché dans Ultimate IAH → Bots.</p><div class="stack"><input id="token" type="password" placeholder="Jeton d’API"><button class="primary" id="connect">Se connecter</button><div id="loginerr" class="tiny" style="color:var(--red)"></div></div></dialog>
+<dialog id="create"><h2 style="margin-top:0">Nouveau bot</h2><label>Nom</label><input id="cname" placeholder="Ex. Scout"><label>Description</label><input id="cdesc" placeholder="Rôle court"><label>Instructions</label><textarea id="cinst" rows="4"></textarea><label>Permission</label><select id="cperm" style="width:100%;padding:10px;background:var(--raised);border:1px solid var(--line);border-radius:9px;color:var(--text)"><option value="read-only">Lecture seule</option><option value="workspace-write">Écriture workspace</option></select><div class="row" style="justify-content:flex-end;margin-top:16px"><button id="ccancel">Annuler</button><button class="primary" id="ccreate">Créer</button></div></dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+let token = sessionStorage.getItem('iah-bot-token') || '';
+let bots = [], current = null, poll = null;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(path, opts={}) {
+  const r = await fetch(path, {...opts, headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})}});
+  const data = await r.json().catch(()=>({error:'réponse invalide'}));
+  if (!r.ok) throw new Error(data.error || ('HTTP '+r.status));
+  return data;
+}
+async function connect() {
+  $('#loginerr').textContent = '';
+  try { const s = await api('/api/status'); $('#state').textContent = s.running ? 'en cours' : 'prêt'; $('#state').style.color='var(--green)'; await loadBots(); $('#login').close(); }
+  catch(e) { $('#loginerr').textContent = e.message; }
+}
+async function loadBots() {
+  bots = await api('/api/bots');
+  $('#bots').innerHTML = bots.map(b => `<div class="bot ${current&&current.id===b.id?'active':''}" data-id="${b.id}"><b>${esc(b.name)}</b><small>${esc(b.description)} · ${esc(b.permission)}</small></div>`).join('') || '<div class="muted" style="padding:12px">Aucun bot.</div>';
+  document.querySelectorAll('.bot').forEach(el => el.onclick = () => selectBot(+el.dataset.id));
+  if (!current && bots.length) await selectBot(bots[0].id);
+}
+async function selectBot(id) {
+  current = bots.find(b => b.id === id) || null; if (!current) return;
+  $('#botname').textContent = current.name; $('#botrole').textContent = current.description + ' · ' + current.permission;
+  await loadBots(); await loadMessages();
+}
+async function loadMessages() {
+  if (!current) return;
+  const msgs = await api(`/api/bots/${current.id}/messages`);
+  $('#messages').innerHTML = msgs.map(m => `<div class="msg ${esc(m.role)} ${m.kind==='error'?'error':''}">${esc(m.content)}</div>`).join('') || '<div class="muted">Aucun message. Confiez une première tâche.</div>';
+  $('#messages').scrollTop = $('#messages').scrollHeight;
+}
+async function send() {
+  if (!current) return;
+  const text = $('#text').value.trim(); if (!text) return;
+  $('#text').value = ''; $('#send').disabled = true;
+  try { const r = await api(`/api/bots/${current.id}/messages`, {method:'POST',body:JSON.stringify({text})}); $('#runmeta').textContent = 'run #'+r.runId+' · '+r.status; await loadMessages(); pollRun(r.runId); }
+  catch(e) { alert(e.message); } finally { $('#send').disabled = false; }
+}
+async function pollRun(id) {
+  clearInterval(poll);
+  poll = setInterval(async () => {
+    try { const r = await api('/api/runs/'+id); $('#runmeta').textContent = 'run #'+r.id+' · '+r.status; if (['done','failed','cancelled'].includes(r.status)) { clearInterval(poll); await loadMessages(); } } catch(e) { clearInterval(poll); }
+  }, 1500);
+}
+$('#connect').onclick = () => { token = $('#token').value.trim(); sessionStorage.setItem('iah-bot-token', token); connect(); };
+$('#send').onclick = send; $('#text').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+$('#new').onclick = () => { $('#cname').value=''; $('#cdesc').value=''; $('#cinst').value=''; $('#create').showModal(); };
+$('#ccancel').onclick = () => $('#create').close();
+$('#ccreate').onclick = async () => { try { const b = await api('/api/bots',{method:'POST',body:JSON.stringify({name:$('#cname').value,description:$('#cdesc').value,instructions:$('#cinst').value,permission:$('#cperm').value})}); $('#create').close(); current=null; await loadBots(); await selectBot(b.id); } catch(e) { alert(e.message); } };
+if (!token) $('#login').showModal(); else connect().catch(()=>{ $('#login').showModal(); });
+</script>
+</body>
+</html>

@@ -140,7 +140,7 @@ void Backend::applyStartupView() {
         && start != "terminal"
         && start != "connections" && start != "memory" && start != "autopilot"
         && start != "mcp" && start != "agents" && start != "installation"
-        && start != "agent" && start != "settings")
+        && start != "agent" && start != "bots" && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -202,7 +202,7 @@ void Backend::setView(const QString &view) {
         && view != "harness" && view != "terminal" && view != "connections"
         && view != "memory" && view != "autopilot" && view != "mcp"
         && view != "agents" && view != "installation" && view != "agent"
-        && view != "settings")
+        && view != "bots" && view != "settings")
         return;
     if (view == m_view)
         return;

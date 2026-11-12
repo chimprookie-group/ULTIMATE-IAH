@@ -1,6 +1,7 @@
 #include "connectiondoctor.h"
 
 #include "backend.h"
+#include "botmanager.h"
 #include "harnessconnections.h"
 #include "mcpmanager.h"
 #include "memorystore.h"
@@ -11,12 +12,14 @@
 #include <QStandardPaths>
 
 ConnectionDoctor::ConnectionDoctor(Backend *backend, HarnessConnections *connections,
-                                   McpManager *mcp, MemoryStore *memory, QObject *parent)
+                                   McpManager *mcp, MemoryStore *memory, BotManager *bots,
+                                   QObject *parent)
     : QObject(parent),
       m_backend(backend),
       m_connections(connections),
       m_mcp(mcp),
-      m_memory(memory) {}
+      m_memory(memory),
+      m_bots(bots) {}
 
 void ConnectionDoctor::add(const QString &layer, const QString &label, bool ok,
                            const QString &detail, const QString &hint) {
@@ -76,6 +79,15 @@ void ConnectionDoctor::run() {
         m_connections && !m_connections->defaultModel().isEmpty(),
         m_connections ? (m_connections->defaultModel().isEmpty() ? tr("aucun") : m_connections->defaultModel())
                       : tr("indisponible"));
+    if (m_bots) {
+        add(tr("Bots"), tr("Service local"), m_bots->serverRunning(),
+            m_bots->serverRunning() ? m_bots->serverUrl() : tr("API arrêtée"));
+        add(tr("Bots"), tr("Registre"), !m_bots->bots().isEmpty(),
+            tr("%n bot(s) enregistré(s)", "", m_bots->bots().size()));
+        add(tr("Bots"), tr("Planificateur"), true,
+            tr("%n planification(s) active(s)", "", m_bots->schedules().size()));
+    }
+
     const QFileInfo memoryPatch(config + "/mcp-memory.patch.yml");
     const QFileInfo memoryScript(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/memory_mcp.py");
     const QString memoryDb = m_memory ? m_memory->databasePath() : QString();

@@ -37,6 +37,7 @@
 #include "skillmanager.h"
 #include "missionrunner.h"
 #include "autopilot.h"
+#include "botmanager.h"
 #include "ecosystem.h"
 #include "iconprovider.h"
 #include "harnessconnections.h"
@@ -213,7 +214,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.13"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.6.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -352,11 +353,12 @@ int main(int argc, char *argv[]) {
     missions.setDshBinary(backend.dshBinary());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
-    ConnectionDoctor connectionDoctor(&backend, &connections, &mcpManager, &memory);
+    BotManager bots(&backend, &memory);
+    ConnectionDoctor connectionDoctor(&backend, &connections, &mcpManager, &memory, &bots);
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
-                                &installation, &connectionDoctor);
+                                &installation, &connectionDoctor, &bots);
     autopilot.setDshBinary(backend.dshBinary());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
@@ -371,6 +373,9 @@ int main(int argc, char *argv[]) {
     });
     QObject::connect(&backend, &Backend::dshBinaryChanged, &missions, [&backend, &missions] {
         missions.setDshBinary(backend.dshBinary());
+    });
+    QObject::connect(&backend, &Backend::dshBinaryChanged, &bots, [&backend, &bots] {
+        bots.setDshBinary(backend.dshBinary());
     });
     QObject::connect(&backend, &Backend::languageChanged, &translator, [&backend, &translator] {
         translator.setOverride(backend.languagePreference());
@@ -394,6 +399,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("skills", &skills);
     engine.rootContext()->setContextProperty("missions", &missions);
     engine.rootContext()->setContextProperty("autopilot", &autopilot);
+    engine.rootContext()->setContextProperty("bots", &bots);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

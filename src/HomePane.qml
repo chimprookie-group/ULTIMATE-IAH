@@ -99,7 +99,8 @@ Item {
                             { label: qsTr("Harness"), state: backend.harnessState },
                             { label: qsTr("Terminal"), state: terminal.running ? "running" : "stopped" },
                             { label: "DeepSeek", state: connections.deepseekConfigured ? "running" : "stopped" },
-                            { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" }
+                            { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" },
+                            { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -454,6 +455,17 @@ Item {
                                 stateColor: (mcpManager.builtins.length > 0 || mcpManager.servers.length > 0) ? theme.green : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("mcp")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Bots")
+                                detail: bots.serverRunning
+                                        ? qsTr("%n bot(s) · service local", "", bots.bots.length)
+                                        : qsTr("service arrêté")
+                                stateColor: bots.serverRunning ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("bots")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }

@@ -37,7 +37,7 @@ la baleine blanche et un discret trait d'accent.
 
 La vue **Installation** (`Ctrl+Alt+I`) audite et installe l'écosystème complet :
 runtime DSH, Node, npm, Python, PyYAML, QtWebEngine, Git, portail fichiers,
-MCP mémoire et entrées de bureau. Le runtime DSH système
+MCP mémoire, service de bots et entrées de bureau. Le runtime DSH système
 (`/usr/lib/crasy/dsh`) est utilisé en priorité ; sinon DSH peut être installé
 localement sans droits administrateur.
 
@@ -63,6 +63,25 @@ Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité
 Le paquet installe aussi un lanceur **DeepSeek Harness** qui ouvre directement la
 vue harness d'Ultimate IAH, avec le nouveau logo. L'ancien lanceur Crasy reste
 masqué pour éviter l'ancienne icône.
+
+## Bots
+
+![Bots Ultimate IAH](assets/screenshot-bots.png)
+
+Ultimate IAH inclut un service de bots natif, persistant et sécurisé :
+
+- trois bots fournis : **Atlas** (coordination), **Forge** (construction) et **Sentry** (audit) ;
+- création, édition, activation et suppression ;
+- permissions **lecture seule** ou **écriture workspace** ;
+- chat et délégation via `dsh headless` ;
+- file d’exécution, annulation et timeout ;
+- planifications récurrentes ;
+- API HTTP locale sur `127.0.0.1:8790`, protégée par un jeton privé ;
+- dashboard web local ;
+- pont MCP `ultimate-iah-bots` pour les agents DSH ;
+- mémoire, runs et conversations dans SQLite.
+
+Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue Bots. Les bots sont accessibles par **Ctrl+Alt+B**.
 
 ## Connexions et MCP
 
@@ -113,6 +132,8 @@ masqué pour éviter l'ancienne icône.
 | `Ctrl+6` | Écosystème |
 | `Ctrl+7` | Fichiers |
 | `Ctrl+8` | Connexions |
+| `Ctrl+Alt+U` | Ultimate Agent |
+| `Ctrl+Alt+B` | Bots |
 | `Ctrl+Alt+A` | Autopilote |
 | `Ctrl+Alt+C` | MCP |
 | `Ctrl+Alt+G` | Agents et missions |
@@ -126,7 +147,7 @@ masqué pour éviter l'ancienne icône.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.5.13-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.6.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

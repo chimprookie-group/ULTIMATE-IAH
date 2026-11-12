@@ -136,6 +136,12 @@ Item {
 
                 SidebarGroup { title: qsTr("AGENT"); compact: root.compact }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/spark.svg"; label: qsTr("Ultimate Agent"); hint: qsTr("Ultimate Agent (Ctrl+Alt+U)"); active: backend.view === "agent"; onClicked: backend.setView("agent") }
+                SidebarItem {
+                    Layout.fillWidth: true; compact: root.compact; icon: "icons/agents.svg"; label: qsTr("Bots"); hint: qsTr("Bots de l'écosystème (Ctrl+Alt+B)")
+                    active: backend.view === "bots"
+                    statusColor: bots.serverRunning ? theme.green : theme.dimText
+                    onClicked: backend.setView("bots")
+                }
 
                 SidebarGroup { title: qsTr("INTELLIGENCE"); compact: root.compact }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/memory.svg"; label: qsTr("Mémoire"); hint: qsTr("Mémoire persistante (Ctrl+Alt+M)"); active: backend.view === "memory"; onClicked: backend.setView("memory") }

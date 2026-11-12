@@ -15,6 +15,9 @@ Application Qt 6 / QML Harness-only pour Omarchy.
 - **McpManager** : serveurs MCP stdio/HTTP, config JSON privée compilée en
   `mcp-servers.patch.yml`.
 - **MemoryStore** : SQLite WAL + FTS5, sauvegarde et intégrité.
+- **BotStore / BotRunner / BotManager / BotServer** : registre SQLite des bots,
+  exécution `dsh headless`, file d’attente, planificateur, API loopback à jeton
+  et pont MCP `ultimate-iah-bots`.
 - **AgentManager** : rôles intégrés et profils personnalisés.
 - **MissionRunner** : Plan → Exécution → Revue via `dsh headless`, permissions
   read-only/workspace-write, sorties persistées.
@@ -23,14 +26,15 @@ Application Qt 6 / QML Harness-only pour Omarchy.
 ## Vues
 
 Cockpit, Écosystème, Fichiers, Mémoire, Autopilote, Harness, Agents, Terminal
-agent, Connexions, MCP, Installation, Réglages.
+agent, Bots, Connexions, MCP, Installation, Réglages.
 
 ## Données
 
 - Config : `~/.config/Crasy/deepcrasy-h/config.json` (chemin historique stable).
 - Overlays : même dossier de configuration.
 - Données : `~/.local/share/Crasy/deepcrasy-h/` (memory.db, autopilot.db,
-  missions.db, integrations).
+  missions.db, bots.db, bots_mcp.py, integrations).
+- API bots : `127.0.0.1:8790`, jeton `bot.token` mode 600, dashboard local.
 - Credentials : `~/.dsh/.credentials.yaml` (mode 600).
 - `agent.env` : miroir privé, mode 600.
 
