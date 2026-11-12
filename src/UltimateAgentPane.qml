@@ -166,7 +166,7 @@ Item {
                 ScrollBar.vertical: AppScrollBar {}
 
                 delegate: Item {
-                    width: ListView.view.width
+                    width: ListView.view.width - design.space5
                     implicitHeight: messageBody.implicitHeight
 
                     ColumnLayout {
