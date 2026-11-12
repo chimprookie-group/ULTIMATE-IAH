@@ -11,6 +11,18 @@ Item {
     property string pageUrl: ""
     property bool pairAttempted: false
     property bool pairClicked: false
+
+    function openExternal(url) {
+        const value = String(url)
+        if (value === "" || value.startsWith("about:"))
+            return
+        if (value.indexOf("http://127.0.0.1") === 0 || value.indexOf("http://localhost") === 0) {
+            root.setPageUrl(value)
+            return
+        }
+        Qt.openUrlExternally(value)
+        root.hostWindow.showToast(qsTr("Lien ouvert dans le navigateur."))
+    }
     property bool armed: false
     property var profile: null
     readonly property var hostWindow: Window.window
@@ -247,6 +259,24 @@ Item {
                         settings.localStorageEnabled: true
                         url: root.visible ? root.pageUrl : ""
 
+                        onNewWindowRequested: function (request) {
+                            const value = String(request.requestedUrl)
+                            if (value.indexOf("http://127.0.0.1") === 0 || value.indexOf("http://localhost") === 0)
+                                request.openIn(web)
+                            else
+                                root.openExternal(request.requestedUrl)
+                        }
+                        onNavigationRequested: function (request) {
+                            const value = String(request.url)
+                            if (request.isMainFrame && value.indexOf("http") === 0
+                                    && value.indexOf("http://127.0.0.1") !== 0
+                                    && value.indexOf("http://localhost") !== 0) {
+                                Qt.openUrlExternally(request.url)
+                                request.reject()
+                            } else {
+                                request.accept()
+                            }
+                        }
                         onLoadingChanged: function (request) {
                             if (request.status === WebEngineView.LoadFailedStatus && mausBot.running)
                                 root.hostWindow.showToast(qsTr("The MausBot page did not load."))

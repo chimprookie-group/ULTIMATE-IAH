@@ -155,8 +155,7 @@ void HarnessServer::start() {
     // --profile, before the app arguments; `dsh web --patch p` rejects it.
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     QStringList patches;
-    for (const QString &name : {QStringLiteral("nine-router.patch.yml"),
-                                QStringLiteral("openmausbot.patch.yml"),
+    for (const QString &name : {QStringLiteral("openmausbot.patch.yml"),
                                 QStringLiteral("connections.patch.yml"),
                                 QStringLiteral("mcp-memory.patch.yml"),
                                 QStringLiteral("mcp-servers.patch.yml")}) {

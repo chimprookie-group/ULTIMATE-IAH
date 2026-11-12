@@ -15,6 +15,7 @@ HEADERS += \
     src/harnessconnections.h \
     src/memorystore.h \
     src/missionrunner.h \
+    src/connectiondoctor.h \
     src/mcpmanager.h \
     src/skillmanager.h \
     src/agentmanager.h \
@@ -39,6 +40,7 @@ SOURCES += \
     src/harnessconnections.cpp \
     src/memorystore.cpp \
     src/missionrunner.cpp \
+    src/connectiondoctor.cpp \
     src/mcpmanager.cpp \
     src/skillmanager.cpp \
     src/agentmanager.cpp \

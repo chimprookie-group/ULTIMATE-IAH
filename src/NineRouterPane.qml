@@ -20,8 +20,22 @@ Item {
     readonly property var web: dashboardLoader.item
 
     function ensureProfile() {
-        if (!profile)
+        if (!profile) {
             profile = profileComponent.createObject(root)
+        }
+    }
+
+    function openLink(url) {
+        const value = String(url)
+        if (value === "" || value.startsWith("about:"))
+            return
+        if (value.indexOf("http://127.0.0.1") === 0 || value.indexOf("http://localhost") === 0) {
+            if (dashboard)
+                dashboard.url = value
+            return
+        }
+        Qt.openUrlExternally(value)
+        root.hostWindow.showToast(qsTr("Lien ouvert dans le navigateur."))
     }
 
     Component {
@@ -131,18 +145,25 @@ Item {
         function onModelsChanged() { root.ensureSelection() }
 
         function onHarnessApplied() {
+            connections.refresh()
             backend.restartHarness()
-            root.hostWindow.showToast(qsTr("9Router is now available in the harness."))
+            root.hostWindow.showToast(qsTr("9Router est maintenant disponible dans le harness."))
         }
 
         function onHarnessDisconnected() {
+            connections.refresh()
             backend.restartHarness()
-            root.hostWindow.showToast(qsTr("9Router removed from the harness."))
+            root.hostWindow.showToast(qsTr("9Router retiré du harness."))
         }
 
         function onErrorChanged() {
             if (nineRouter.error !== "")
                 root.hostWindow.showToast(nineRouter.error)
+        }
+
+        function onAuthRequiredChanged() {
+            if (nineRouter.authRequired && nineRouter.running)
+                root.integrationOpen = true
         }
     }
 
@@ -278,6 +299,24 @@ Item {
                         onLoadingChanged: function (request) {
                             if (request.status === WebEngineView.LoadFailedStatus && nineRouter.running)
                                 root.hostWindow.showToast(qsTr("The 9Router dashboard did not load."))
+                        }
+                        onNewWindowRequested: function (request) {
+                            const value = String(request.requestedUrl)
+                            if (value.indexOf("http://127.0.0.1") === 0 || value.indexOf("http://localhost") === 0)
+                                request.openIn(dashboard)
+                            else
+                                root.openLink(request.requestedUrl)
+                        }
+                        onNavigationRequested: function (request) {
+                            const value = String(request.url)
+                            if (request.isMainFrame && value.indexOf("http") === 0
+                                    && value.indexOf("http://127.0.0.1") !== 0
+                                    && value.indexOf("http://localhost") !== 0) {
+                                Qt.openUrlExternally(request.url)
+                                request.reject()
+                            } else {
+                                request.accept()
+                            }
                         }
                     }
                 }

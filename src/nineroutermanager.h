@@ -54,6 +54,7 @@ public:
     QVariantList models() const { return m_models; }
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE void probe();
     Q_INVOKABLE void install();
     Q_INVOKABLE void installDependencies();
     Q_INVOKABLE void start();
@@ -62,6 +63,7 @@ public:
     Q_INVOKABLE void applyToHarness(const QStringList &models, bool makeDefault);
     Q_INVOKABLE void disconnectHarness();
     Q_INVOKABLE void clearError();
+    Q_INVOKABLE void adoptSessionCookie(const QString &cookie);
 
 signals:
     void installedChanged();
@@ -99,6 +101,7 @@ private:
     bool verifyDependencies(QString *error);
     void cleanupInstallArtifacts();
     void probeHealth();
+    bool adoptDashboardSession();
     void authenticate();
     void authenticateWith(const QString &password);
     void loadKeyAndModels();
@@ -108,7 +111,8 @@ private:
     QJsonObject readJson(QNetworkReply *reply, int *status = nullptr) const;
     QString harnessProfile() const;
     QString profilePatchPath() const;
-    bool writeHarnessFiles(const QStringList &models, bool makeDefault, QString *error);
+    bool writeHarnessFiles(const QStringList &models, bool makeDefault, QString *error,
+                           bool remove = false);
     QString pythonHelper() const;
 
     QNetworkAccessManager *m_network = nullptr;

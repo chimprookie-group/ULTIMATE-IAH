@@ -95,7 +95,7 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.1.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.2.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

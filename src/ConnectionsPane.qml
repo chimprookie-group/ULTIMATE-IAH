@@ -41,8 +41,20 @@ Item {
         }
     }
 
-    Component.onCompleted: if (visible) connections.refresh()
-    onVisibleChanged: if (visible) connections.refresh()
+    function refreshAll() {
+        connections.refresh()
+        nineRouter.probe()
+        doctorRefresh.restart()
+    }
+
+    Component.onCompleted: if (visible) root.refreshAll()
+    onVisibleChanged: if (visible) root.refreshAll()
+
+    Timer {
+        id: doctorRefresh
+        interval: 1100
+        onTriggered: connectionDoctor.run()
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -73,6 +85,78 @@ Item {
                 color: theme.red
                 font.pixelSize: 9
                 wrapMode: Text.Wrap
+            }
+
+            SettingsSection {
+                title: qsTr("Diagnostic des liaisons")
+                Layout.fillWidth: true
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text {
+                        Layout.fillWidth: true
+                        text: connectionDoctor.summary !== "" ? connectionDoctor.summary
+                              : qsTr("Vérifiez chaque maillon : DSH, credentials, providers, 9Router, MausBot, MCP et workspace.")
+                        color: connectionDoctor.failed > 0 ? theme.orange : theme.mutedText
+                        font.pixelSize: design.textCaption
+                        wrapMode: Text.Wrap
+                    }
+                    ActionButton {
+                        text: connectionDoctor.running ? qsTr("Vérification…") : qsTr("Vérifier")
+                        enabled: !connectionDoctor.running
+                        onClicked: { nineRouter.probe(); doctorRefresh.restart() }
+                    }
+                }
+
+                Repeater {
+                    model: connectionDoctor.checks
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: checkBody.implicitHeight + design.space3
+                        radius: design.radiusSm
+                        color: modelData.ok ? theme.background : Qt.rgba(theme.orange.r, theme.orange.g, theme.orange.b, 0.07)
+                        border.width: 1
+                        border.color: modelData.ok ? theme.border : theme.orange
+                        RowLayout {
+                            id: checkBody
+                            anchors.fill: parent
+                            anchors.margins: design.space2
+                            spacing: design.space2
+                            StatusDot { color: modelData.ok ? theme.green : theme.orange }
+                            Text {
+                                Layout.preferredWidth: 82
+                                text: modelData.layer
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.label
+                                    color: theme.text
+                                    font.pixelSize: design.textCaption
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.hint !== "" ? modelData.hint : modelData.detail
+                                    color: theme.dimText
+                                    font.pixelSize: design.textMicro
+                                    elide: Text.ElideRight
+                                }
+                            }
+                            Text {
+                                text: modelData.ok ? qsTr("ok") : qsTr("à corriger")
+                                color: modelData.ok ? theme.green : theme.orange
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
+                        }
+                    }
+                }
             }
 
             SettingsSection {
@@ -135,6 +219,86 @@ Item {
                             flat: true
                             font.pixelSize: 8
                             onClicked: root.applyPreset(modelData)
+                        }
+                    }
+                }
+            }
+
+            SettingsSection {
+                title: "9Router"
+                Layout.fillWidth: true
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    StatusDot {
+                        color: nineRouter.running ? (nineRouter.authRequired ? theme.yellow : theme.green) : theme.dimText
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            Layout.fillWidth: true
+                            text: nineRouter.installed ? qsTr("Routeur local · %1").arg(nineRouter.detail) : qsTr("9Router non installé")
+                            color: theme.text
+                            font.pixelSize: design.textLabel
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: nineRouter.authRequired
+                                  ? qsTr("Connectez-vous dans le dashboard 9Router pour activer la session.")
+                                  : (nineRouter.keyMasked !== "" ? qsTr("Clé %1 · %2 modèle(s)").arg(nineRouter.keyMasked).arg(nineRouter.models.length)
+                                                                 : qsTr("Aucune clé locale pour le moment."))
+                            color: nineRouter.authRequired ? theme.yellow : theme.dimText
+                            font.pixelSize: design.textCaption
+                            wrapMode: Text.Wrap
+                        }
+                    }
+                    Button { text: qsTr("Ouvrir 9Router"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("ninerouter") }
+                    Button {
+                        text: qsTr("Dashboard")
+                        flat: true
+                        font.pixelSize: design.textCaption
+                        enabled: nineRouter.running
+                        onClicked: Qt.openUrlExternally(nineRouter.dashboardUrl)
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Applique les modèles 9Router au provider unique du harness, avec le modèle par défaut.")
+                        color: theme.dimText
+                        font.pixelSize: design.textMicro
+                        wrapMode: Text.Wrap
+                    }
+                    ActionButton {
+                        text: qsTr("Appliquer les modèles")
+                        enabled: nineRouter.running && !nineRouter.authRequired && nineRouter.models.length > 0
+                        onClicked: {
+                            const ids = []
+                            for (let i = 0; i < nineRouter.models.length; ++i)
+                                ids.push(nineRouter.models[i].id)
+                            nineRouter.applyToHarness(ids, false)
+                            if (nineRouter.error === "") {
+                                connections.refresh()
+                                backend.restartHarness()
+                                doctorRefresh.restart()
+                            }
+                        }
+                    }
+                    Button {
+                        visible: nineRouter.keyMasked !== ""
+                        text: qsTr("Retirer du harness")
+                        flat: true
+                        font.pixelSize: design.textCaption
+                        onClicked: {
+                            nineRouter.disconnectHarness()
+                            connections.refresh()
+                            backend.restartHarness()
+                            doctorRefresh.restart()
                         }
                     }
                 }

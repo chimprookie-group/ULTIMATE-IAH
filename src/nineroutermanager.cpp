@@ -142,8 +142,12 @@ NineRouterManager::NineRouterManager(QObject *parent)
     });
 
     detect();
-    if (installed() && (QFileInfo::exists(m_configDir + "/nine-router.patch.yml")
-                        || QFileInfo::exists(m_configDir + "/nine-router.enabled")))
+    // The old per-service provider overlay is retired: providers now live in
+    // the single connections overlay shared with native connections.
+    QFile::remove(m_configDir + "/nine-router.patch.yml");
+    // Adopt a router that is already serving the port, without starting one.
+    QTimer::singleShot(500, this, &NineRouterManager::probe);
+    if (installed() && QFileInfo::exists(m_configDir + "/nine-router.enabled"))
         QTimer::singleShot(900, this, &NineRouterManager::start);
 }
 
@@ -339,6 +343,14 @@ void NineRouterManager::refresh() {
         start();
 }
 
+void NineRouterManager::probe() {
+    detect();
+    if (!installed() || m_running || m_starting)
+        return;
+    m_probeBeforeStart = false;
+    probeHealth();
+}
+
 void NineRouterManager::probeHealth() {
     send("GET", QStringLiteral("/api/health"), nullptr, false, false, [this](QNetworkReply *reply) {
         int status = 0;
@@ -348,16 +360,22 @@ void NineRouterManager::probeHealth() {
             if (m_probeBeforeStart) {
                 m_probeBeforeStart = false;
                 launchProcess();
+            } else if (m_running) {
+                m_healthTimer->stop();
+                setRunning(false);
+                setStarting(false);
+                setDetail(tr("9Router stopped"));
             }
             return;
         }
         m_probeBeforeStart = false;
         if (!m_running) {
-            m_healthTimer->stop();
             m_startTimer->stop();
             setRunning(true);
             setStarting(false);
             setDetail(tr("Running on 127.0.0.1:%1").arg(m_port));
+            if (m_process.state() == QProcess::NotRunning)
+                m_healthTimer->start();
             send("GET", QStringLiteral("/api/version"), nullptr, false, false, [this](QNetworkReply *reply) {
                 const QJsonObject root = readJson(reply);
                 const QString version = root.value("currentVersion").toString();
@@ -371,20 +389,63 @@ void NineRouterManager::probeHealth() {
     });
 }
 
+bool NineRouterManager::adoptDashboardSession() {
+    const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+        + "/QtWebEngine/nine-router/Cookies";
+    if (!QFileInfo::exists(path))
+        return false;
+
+    const QString python = QStandardPaths::findExecutable(QStringLiteral("python3"));
+    if (python.isEmpty())
+        return false;
+
+    const QString script = QStringLiteral(
+        "import sqlite3, sys\n"
+        "try:\n"
+        "    c = sqlite3.connect('file:' + sys.argv[1] + '?mode=ro', uri=True, timeout=2)\n"
+        "    r = c.execute(\"select value from cookies where host_key='127.0.0.1' "
+        "and name='auth_token' and value<>'' limit 1\").fetchone()\n"
+        "    print(r[0] if r else '')\n"
+        "except Exception:\n"
+        "    print('')\n");
+
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start(python, {QStringLiteral("-c"), script, path});
+    if (!process.waitForStarted(1500))
+        return false;
+    if (!process.waitForFinished(3000)) {
+        process.kill();
+        process.waitForFinished(100);
+        return false;
+    }
+    const QString value = QString::fromUtf8(process.readAll()).trimmed();
+    if (value.isEmpty())
+        return false;
+    const QString cookie = QStringLiteral("auth_token=") + value;
+    if (cookie == m_cookie)
+        return false;
+    m_cookie = cookie;
+    return true;
+}
+
 void NineRouterManager::authenticate() {
-    send("GET", QStringLiteral("/api/auth/status"), nullptr, false, false, [this](QNetworkReply *reply) {
+    adoptDashboardSession();
+    send("GET", QStringLiteral("/api/auth/status"), nullptr, true, false, [this](QNetworkReply *reply) {
         int status = 0;
         const QJsonObject root = readJson(reply, &status);
         if (status < 200 || status >= 300)
             return;
         const bool hasPassword = root.value("hasPassword").toBool();
-        if (!hasPassword || root.value("authenticated").toBool()) {
-            if (!hasPassword)
-                authenticateWith(QStringLiteral("123456"));
-            else
-                loadKeyAndModels();
-        } else {
+        if (root.value("authenticated").toBool()) {
+            loadKeyAndModels();
+        } else if (!hasPassword) {
+            // A fresh 9Router can be initialized once with its documented
+            // bootstrap password. A user-set password is never guessed.
             authenticateWith(QStringLiteral("123456"));
+        } else {
+            setAuthRequired(true);
+            setDetail(tr("Dashboard login required"));
         }
     });
 }
@@ -510,9 +571,20 @@ void NineRouterManager::applyToHarness(const QStringList &models, bool makeDefau
 }
 
 void NineRouterManager::disconnectHarness() {
-    QFile::remove(m_configDir + "/nine-router.patch.yml");
-    QFile::remove(m_configDir + "/nine-router.env");
+    QString error;
+    if (!writeHarnessFiles({}, false, &error, true)) {
+        setError(error);
+        return;
+    }
+    QFile::remove(m_configDir + "/nine-router.enabled");
     emit harnessDisconnected();
+}
+
+void NineRouterManager::adoptSessionCookie(const QString &cookie) {
+    if (cookie.isEmpty() || cookie == m_cookie)
+        return;
+    m_cookie = cookie;
+    authenticate();
 }
 
 QString NineRouterManager::harnessProfile() const {
@@ -532,49 +604,123 @@ QString NineRouterManager::profilePatchPath() const {
 QString NineRouterManager::pythonHelper() const {
     return QStringLiteral(R"PY(
 import sys, json, os, yaml
+
 class Loader(yaml.SafeLoader):
     pass
 Loader.add_constructor("!js", lambda loader, node: loader.construct_scalar(node))
 Loader.add_constructor("tag:yaml.org,2002:js", lambda loader, node: loader.construct_scalar(node))
+
 data = json.load(sys.stdin)
-providers = {}
 profile_patch = data.get("profilePatch")
-if profile_patch and os.path.exists(profile_patch):
-    with open(profile_patch, encoding="utf-8") as handle:
-        entries = yaml.load(handle, Loader=Loader) or []
-    for entry in entries:
-        if isinstance(entry, dict) and entry.get("id") == "llm-pi-ai":
+overlay_path = data["overlay"]
+credentials_path = data["credentials"]
+agent_env_path = data["agentEnv"]
+
+providers = {}
+default_provider = ""
+default_model = ""
+
+def load(path):
+    if not path or not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8") as handle:
+        return yaml.load(handle, Loader=Loader) or []
+
+for path in (profile_patch, overlay_path):
+    for entry in load(path):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("id") == "llm-pi-ai":
             providers.update(((entry.get("config") or {}).get("providers") or {}))
-models = [{"id": item["id"], "name": item.get("name") or item["id"]} for item in data.get("models", [])]
-providers["nine-router"] = {
-    "displayName": "9Router",
-    "apiKeyEnv": "NINE_ROUTER_API_KEY",
-    "api": "openai-completions",
-    "baseURL": data["baseURL"],
-    "models": models,
-}
+        elif entry.get("id") == "agent-default-model":
+            cfg = entry.get("config") or {}
+            default_provider = cfg.get("provider", default_provider)
+            default_model = cfg.get("model", default_model)
+
+creds = {}
+if os.path.exists(credentials_path):
+    with open(credentials_path, encoding="utf-8") as handle:
+        try:
+            creds = yaml.safe_load(handle) or {}
+        except Exception:
+            creds = {}
+if not isinstance(creds, dict):
+    creds = {}
+creds.setdefault("version", 1)
+refs = creds.get("refs") if isinstance(creds.get("refs"), dict) else {}
+creds["refs"] = refs
+records = creds.get("records") if isinstance(creds.get("records"), dict) else {}
+creds["records"] = records
+
+if data.get("remove"):
+    providers.pop("nine-router", None)
+    refs.pop("NINE_ROUTER_API_KEY", None)
+    if default_provider == "nine-router":
+        default_provider = ""
+        default_model = ""
+        for pid, entry in sorted(providers.items()):
+            models = (entry or {}).get("models") or []
+            if models:
+                first = models[0]
+                default_provider = pid
+                default_model = first.get("id", "") if isinstance(first, dict) else str(first)
+                break
+else:
+    key = data.get("apiKey", "")
+    if key:
+        refs["NINE_ROUTER_API_KEY"] = key
+    models = [{"id": item["id"], "name": item.get("name") or item["id"]} for item in data.get("models", [])]
+    providers["nine-router"] = {
+        "displayName": "9Router",
+        "apiKeyEnv": "NINE_ROUTER_API_KEY",
+        "api": "openai-completions",
+        "baseURL": data["baseURL"],
+        "models": models,
+    }
+    if data.get("defaultModel"):
+        default_provider = "nine-router"
+        default_model = data["defaultModel"]
+
 overlay = [{"id": "llm-pi-ai", "name": "@deepseek-ai/dsh-llm-pi-ai",
             "config": {"providers": providers}}]
-if data.get("defaultModel"):
+if default_provider and default_model:
     overlay.append({"id": "agent-default-model",
-                    "config": {"provider": "nine-router", "model": data["defaultModel"]}})
-os.makedirs(os.path.dirname(data["out"]), exist_ok=True)
-with open(data["out"], "w", encoding="utf-8") as handle:
+                    "config": {"provider": default_provider, "model": default_model}})
+
+os.makedirs(os.path.dirname(overlay_path), exist_ok=True)
+with open(overlay_path, "w", encoding="utf-8") as handle:
     yaml.safe_dump(overlay, handle, sort_keys=False, allow_unicode=True)
+os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+with open(credentials_path, "w", encoding="utf-8") as handle:
+    yaml.safe_dump(creds, handle, sort_keys=False, allow_unicode=True)
+os.chmod(credentials_path, 0o600)
+os.makedirs(os.path.dirname(agent_env_path), exist_ok=True)
+with open(agent_env_path, "w", encoding="utf-8") as handle:
+    for name, value in refs.items():
+        if isinstance(name, str) and isinstance(value, str) and "\n" not in value:
+            handle.write(name + "=" + value + "\n")
+os.chmod(agent_env_path, 0o600)
 print("ok")
 )PY");
 }
 
-bool NineRouterManager::writeHarnessFiles(const QStringList &models, bool makeDefault, QString *error) {
+bool NineRouterManager::writeHarnessFiles(const QStringList &models, bool makeDefault,
+                                         QString *error, bool remove) {
     QJsonArray modelArray;
     for (const QString &id : models)
         modelArray.append(QJsonObject{{"id", id}, {"name", id}});
-    const QString patch = m_configDir + "/nine-router.patch.yml";
+    const QString overlay = m_configDir + "/connections.patch.yml";
+    const QString credentials = qEnvironmentVariable("DSH_HOME", QDir::homePath() + "/.dsh")
+        + "/.credentials.yaml";
     QJsonObject payload{{"profilePatch", profilePatchPath()},
-                        {"out", patch},
+                        {"overlay", overlay},
+                        {"credentials", credentials},
+                        {"agentEnv", m_configDir + "/agent.env"},
                         {"baseURL", QStringLiteral("http://127.0.0.1:%1/v1").arg(m_port)},
                         {"models", modelArray},
-                        {"defaultModel", makeDefault ? models.first() : QString()}};
+                        {"apiKey", m_apiKey},
+                        {"defaultModel", makeDefault ? models.value(0) : QString()},
+                        {"remove", remove}};
 
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);
@@ -582,7 +728,7 @@ bool NineRouterManager::writeHarnessFiles(const QStringList &models, bool makeDe
                   {QStringLiteral("-c"), pythonHelper()});
     if (!process.waitForStarted(2000)) {
         if (error)
-            *error = tr("Python 3 is required to write the harness patch.");
+            *error = tr("Python 3 is required to write the harness provider.");
         return false;
     }
     process.write(QJsonDocument(payload).toJson(QJsonDocument::Compact));
@@ -595,11 +741,16 @@ bool NineRouterManager::writeHarnessFiles(const QStringList &models, bool makeDe
     }
     if (process.exitCode() != 0) {
         if (error)
-            *error = tr("The harness patch could not be generated: %1")
+            *error = tr("The harness provider could not be written: %1")
                          .arg(QString::fromUtf8(process.readAll()).trimmed().left(300));
         return false;
     }
+    QFile::remove(m_configDir + "/nine-router.patch.yml");
 
+    if (remove) {
+        QFile::remove(m_configDir + "/nine-router.env");
+        return true;
+    }
     QSaveFile envFile(m_configDir + "/nine-router.env");
     if (!envFile.open(QIODevice::WriteOnly)) {
         if (error)

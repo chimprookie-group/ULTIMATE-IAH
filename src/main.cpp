@@ -30,6 +30,7 @@
 #include "designtokens.h"
 #include "memorystore.h"
 #include "mcpmanager.h"
+#include "connectiondoctor.h"
 #include "agentmanager.h"
 #include "skillmanager.h"
 #include "missionrunner.h"
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.1.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.2.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -294,6 +295,8 @@ int main(int argc, char *argv[]) {
     missions.setDshBinary(backend.dshBinary());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
+    ConnectionDoctor connectionDoctor(&backend, &connections, &nineRouter,
+                                      &mausBot, &mcpManager, &memory);
     autopilot.setDshBinary(backend.dshBinary());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
@@ -325,6 +328,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("connections", &connections);
     engine.rootContext()->setContextProperty("memory", &memory);
     engine.rootContext()->setContextProperty("mcpManager", &mcpManager);
+    engine.rootContext()->setContextProperty("connectionDoctor", &connectionDoctor);
     engine.rootContext()->setContextProperty("agents", &agents);
     engine.rootContext()->setContextProperty("skills", &skills);
     engine.rootContext()->setContextProperty("missions", &missions);
