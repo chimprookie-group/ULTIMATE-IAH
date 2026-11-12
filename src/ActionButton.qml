@@ -20,6 +20,7 @@ Button {
              : (control.hovered ? theme.chip : "transparent")
         border.width: control.activeFocus ? 2 : (control.filled ? 0 : 1)
         border.color: control.activeFocus ? theme.brightText : (control.danger ? theme.red : theme.border)
+        Behavior on color { ColorAnimation { duration: design.durationFast } }
     }
 
     contentItem: Text {

@@ -49,6 +49,9 @@ Item {
             width: design.iconMd
             height: design.iconMd
             color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.mutedText)
+            scale: mouse.containsMouse ? 1.08 : 1.0
+            Behavior on color { ColorAnimation { duration: design.durationFast } }
+            Behavior on scale { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
         }
 
         Text {
@@ -59,6 +62,7 @@ Item {
             font.pixelSize: design.textLabel
             font.weight: root.active ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
+            Behavior on color { ColorAnimation { duration: design.durationFast } }
         }
 
         Rectangle {

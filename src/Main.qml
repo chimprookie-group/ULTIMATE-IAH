@@ -312,6 +312,7 @@ ApplicationWindow {
                     Layout.preferredHeight: design.controlHeight
                     radius: design.radiusSm
                     color: searchMouse.containsMouse ? theme.raised : theme.chip
+                    Behavior on color { ColorAnimation { duration: design.durationFast } }
                     border.width: 1
                     border.color: searchMouse.containsMouse ? theme.borderStrong : theme.border
 
@@ -356,6 +357,7 @@ ApplicationWindow {
                     width: liveRow.implicitWidth + design.space3 * 2
                     radius: design.radiusSm
                     color: theme.chip
+                    Behavior on color { ColorAnimation { duration: design.durationFast } }
                     border.width: 1
                     border.color: theme.border
                     RowLayout {

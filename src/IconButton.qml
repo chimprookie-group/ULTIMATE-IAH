@@ -17,6 +17,7 @@ Item {
         color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
         border.width: root.active ? 1 : 0
         border.color: theme.border
+        Behavior on color { ColorAnimation { duration: design.durationFast } }
     }
 
     ThemedIcon {
@@ -25,6 +26,9 @@ Item {
         width: design.iconMd
         height: design.iconMd
         color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
+        scale: mouse.containsMouse ? 1.08 : 1.0
+        Behavior on color { ColorAnimation { duration: design.durationFast } }
+        Behavior on scale { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
     MouseArea {

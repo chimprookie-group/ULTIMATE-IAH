@@ -344,11 +344,15 @@ Item {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 46
+                    Layout.preferredHeight: 42
 
                     TextArea {
                         id: composerField
                         anchors.fill: parent
+                        topPadding: 10
+                        bottomPadding: 8
+                        leftPadding: 6
+                        rightPadding: 6
                         color: theme.text
                         font.pixelSize: design.textBody
                         wrapMode: TextArea.Wrap
@@ -366,7 +370,7 @@ Item {
                         anchors.left: parent.left
                         anchors.top: parent.top
                         anchors.right: parent.right
-                        anchors.topMargin: 8
+                        anchors.topMargin: 12
                         visible: composerField.text === ""
                         text: qsTr("Demandez n'importe quoi sur Ultimate HAI…")
                         color: theme.dimText
