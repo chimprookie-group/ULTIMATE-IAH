@@ -134,6 +134,9 @@ Item {
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/branch.svg"; label: qsTr("Projet"); hint: qsTr("Projet (Ctrl+6)"); active: backend.view === "ecosystem"; onClicked: backend.setView("ecosystem") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/files.svg"; label: qsTr("Fichiers"); hint: qsTr("Fichiers et diffs (Ctrl+7)"); active: backend.view === "workspace"; onClicked: backend.setView("workspace") }
 
+                SidebarGroup { title: qsTr("AGENT"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/spark.svg"; label: qsTr("Ultimate Agent"); hint: qsTr("Ultimate Agent (Ctrl+Alt+U)"); active: backend.view === "agent"; onClicked: backend.setView("agent") }
+
                 SidebarGroup { title: qsTr("INTELLIGENCE"); compact: root.compact }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/memory.svg"; label: qsTr("Mémoire"); hint: qsTr("Mémoire persistante (Ctrl+Alt+M)"); active: backend.view === "memory"; onClicked: backend.setView("memory") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/autopilot.svg"; label: qsTr("Autopilote"); hint: qsTr("Tâches autonomes (Ctrl+Alt+A)"); active: backend.view === "autopilot"; onClicked: backend.setView("autopilot") }

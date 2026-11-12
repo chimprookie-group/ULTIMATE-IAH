@@ -138,6 +138,7 @@ Item {
                             { "id": "autopilot", "label": qsTr("Autopilote") },
                             { "id": "mcp", "label": "MCP" },
                             { "id": "agents", "label": qsTr("Agents") },
+                            { "id": "agent", "label": qsTr("Ultimate Agent") },
                             { "id": "installation", "label": qsTr("Installation") }
                         ]
                         Rectangle {
@@ -288,6 +289,7 @@ Item {
                     spacing: 6
                     Button { text: qsTr("Connexions du harness"); flat: true; onClicked: backend.setView("connections") }
                     Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
+                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
                     Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
                     Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
                     Button { text: "9Router"; flat: true; onClicked: backend.setView("ninerouter") }

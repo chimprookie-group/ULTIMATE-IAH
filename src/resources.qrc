@@ -15,6 +15,8 @@
         <file>SidebarGroup.qml</file>
         <file>AgentsPane.qml</file>
         <file>InstallationPane.qml</file>
+        <file>UltimateAgentPane.qml</file>
+        <file>UltimateAgentDock.qml</file>
         <file>MemoryPane.qml</file>
         <file>AutopilotPane.qml</file>
         <file>NineRouterPane.qml</file>

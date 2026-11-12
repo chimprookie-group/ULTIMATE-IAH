@@ -140,7 +140,7 @@ void Backend::applyStartupView() {
         && start != "terminal" && start != "ninerouter" && start != "mausbot"
         && start != "connections" && start != "memory" && start != "autopilot"
         && start != "mcp" && start != "agents" && start != "installation"
-        && start != "settings")
+        && start != "agent" && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -186,7 +186,7 @@ void Backend::setStartupView(const QString &view) {
         && view != "workspace" && view != "ninerouter" && view != "mausbot"
         && view != "connections" && view != "memory" && view != "autopilot"
         && view != "mcp" && view != "agents" && view != "installation"
-        && view != "settings")
+        && view != "agent" && view != "settings")
         return;
     m_config->setStartupView(view);
     emit optionsChanged();
@@ -202,7 +202,8 @@ void Backend::setView(const QString &view) {
         && view != "ninerouter" && view != "mausbot"
         && view != "harness" && view != "terminal" && view != "connections"
         && view != "memory" && view != "autopilot" && view != "mcp"
-        && view != "agents" && view != "installation" && view != "settings")
+        && view != "agents" && view != "installation" && view != "agent"
+        && view != "settings")
         return;
     if (view == m_view)
         return;

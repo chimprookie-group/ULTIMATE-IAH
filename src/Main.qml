@@ -22,6 +22,7 @@ ApplicationWindow {
     Material.roundedScale: theme.radius
 
     property bool sidebarUserCollapsed: false
+    property bool agentDockOpen: false
     readonly property bool sidebarCompact: sidebarUserCollapsed || width < 1120
     readonly property real sidebarWidth: sidebarCompact ? design.sidebarCompactWidth : design.sidebarWidth
     readonly property real contentWidth: width - sidebarWidth
@@ -37,6 +38,7 @@ ApplicationWindow {
         if (backend.view === "memory") return qsTr("Mémoire")
         if (backend.view === "mcp") return "MCP"
         if (backend.view === "agents") return qsTr("Agents")
+        if (backend.view === "agent") return qsTr("Ultimate Agent")
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
@@ -106,6 +108,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
         add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
+        add(qsTr("Agent"), qsTr("Ultimate Agent"), "Ctrl+Alt+U", "view:agent", "icons/spark.svg")
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
@@ -173,6 +176,19 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("connections") }
     Shortcut { sequence: "Ctrl+Alt+C"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mcp") }
     Shortcut { sequence: "Ctrl+Alt+G"; context: Qt.ApplicationShortcut; onActivated: backend.setView("agents") }
+    Shortcut {
+        sequence: "Ctrl+Alt+U"
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            if (win.agentDockOpen) {
+                win.agentDockOpen = false
+            } else {
+                if (backend.view === "agent")
+                    backend.setView("home")
+                win.agentDockOpen = true
+            }
+        }
+    }
     Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
@@ -220,6 +236,14 @@ ApplicationWindow {
                 win.helpVisible = false
             else if (win.quitConfirm)
                 win.quitConfirm = false
+        }
+    }
+
+    Connections {
+        target: ultimateAgent
+        function onBusyChanged() {
+            if (ultimateAgent.busy)
+                win.agentDockOpen = true
         }
     }
 
@@ -360,6 +384,19 @@ ApplicationWindow {
                     onClicked: commandPalette.open()
                 }
                 IconButton {
+                    icon: "icons/spark.svg"
+                    hint: qsTr("Ultimate Agent (Ctrl+Alt+U)")
+                    onClicked: {
+                        if (win.agentDockOpen) {
+                            win.agentDockOpen = false
+                        } else {
+                            if (backend.view === "agent")
+                                backend.setView("home")
+                            win.agentDockOpen = true
+                        }
+                    }
+                }
+                IconButton {
                     icon: "icons/help.svg"
                     hint: qsTr("Raccourcis clavier (?)")
                     onClicked: win.helpVisible = true
@@ -377,6 +414,8 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.leftMargin: win.sidebarWidth
+                Layout.rightMargin: win.agentDockOpen && backend.view !== "agent"
+                                     && win.width >= 1280 ? agentDock.width : 0
 
                 RowLayout {
                     anchors.fill: parent
@@ -386,7 +425,7 @@ ApplicationWindow {
                              && backend.view !== "workspace" && backend.view !== "connections"
                              && backend.view !== "memory" && backend.view !== "autopilot"
                              && backend.view !== "mcp" && backend.view !== "agents"
-                             && backend.view !== "installation"
+                             && backend.view !== "installation" && backend.view !== "agent"
                              && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
@@ -423,6 +462,11 @@ ApplicationWindow {
                 McpPane {
                     anchors.fill: parent
                     visible: backend.view === "mcp"
+                }
+
+                UltimateAgentPane {
+                    anchors.fill: parent
+                    visible: backend.view === "agent"
                 }
 
                 AgentsPane {
@@ -566,6 +610,23 @@ ApplicationWindow {
         target: backend
         function onToast(message) { win.showToast(message) }
 
+    }
+
+    UltimateAgentDock {
+        id: agentDock
+        visible: win.agentDockOpen && backend.view !== "agent"
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.topMargin: design.headerHeight
+        anchors.bottomMargin: design.statusHeight
+        width: Math.min(380, win.width - win.sidebarWidth - 24)
+        z: 90
+        onCloseRequested: win.agentDockOpen = false
+        onOpenRequested: {
+            win.agentDockOpen = false
+            backend.setView("agent")
+        }
     }
 
     HelpOverlay {

@@ -32,6 +32,7 @@
 #include "mcpmanager.h"
 #include "connectiondoctor.h"
 #include "installationdoctor.h"
+#include "ultimateagent.h"
 #include "agentmanager.h"
 #include "skillmanager.h"
 #include "missionrunner.h"
@@ -213,7 +214,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.3.8"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.4.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -232,10 +233,12 @@ int main(int argc, char *argv[]) {
         arguments.removeFirst();
 
     bool demo = false;
+    bool agentDock = false;
     QString screenshot;
     QString view;
     QString workspace;
     QString themeId;
+    QString agentPrompt;
     int windowHeight = 0;
     int windowWidth = 0;
     int delay = 1800;
@@ -243,6 +246,8 @@ int main(int argc, char *argv[]) {
         const QString &argument = arguments.at(i);
         if (argument == "--demo") {
             demo = true;
+        } else if (argument == "--agent-dock") {
+            agentDock = true;
         } else if (argument == "--screenshot" && i + 1 < arguments.size()) {
             screenshot = arguments.at(++i);
         } else if (argument == "--view" && i + 1 < arguments.size()) {
@@ -251,6 +256,8 @@ int main(int argc, char *argv[]) {
             workspace = arguments.at(++i);
         } else if (argument == "--theme" && i + 1 < arguments.size()) {
             themeId = arguments.at(++i);
+        } else if (argument == "--agent-prompt" && i + 1 < arguments.size()) {
+            agentPrompt = arguments.at(++i);
         } else if (argument == "--height" && i + 1 < arguments.size()) {
             windowHeight = arguments.at(++i).toInt();
         } else if (argument == "--width" && i + 1 < arguments.size()) {
@@ -350,6 +357,9 @@ int main(int argc, char *argv[]) {
     ConnectionDoctor connectionDoctor(&backend, &connections, &nineRouter,
                                       &mausBot, &mcpManager, &memory);
     InstallationDoctor installation(&backend, &nineRouter, &mausBot, &memory);
+    UltimateAgent ultimateAgent(&backend, &connections, &nineRouter, &mausBot,
+                                &mcpManager, &memory, &skills, &agents, &missions,
+                                &terminal, &installation, &connectionDoctor);
     autopilot.setDshBinary(backend.dshBinary());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
@@ -385,6 +395,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("mcpManager", &mcpManager);
     engine.rootContext()->setContextProperty("connectionDoctor", &connectionDoctor);
     engine.rootContext()->setContextProperty("installation", &installation);
+    engine.rootContext()->setContextProperty("ultimateAgent", &ultimateAgent);
     engine.rootContext()->setContextProperty("agents", &agents);
     engine.rootContext()->setContextProperty("skills", &skills);
     engine.rootContext()->setContextProperty("missions", &missions);
@@ -422,8 +433,20 @@ int main(int argc, char *argv[]) {
                            windowHeight > 0 ? windowHeight : window->height());
     }
 
+    if (agentDock) {
+        if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0)))
+            window->setProperty("agentDockOpen", true);
+    }
+
     if (!demo)
         backend.boot();
+
+    if (!agentPrompt.isEmpty()) {
+        QTimer::singleShot(700, &app, [&backend, &ultimateAgent, agentPrompt, agentDock] {
+            backend.setView(agentDock ? "home" : "agent");
+            ultimateAgent.sendMessage(agentPrompt);
+        });
+    }
 
     if (!screenshot.isEmpty()) {
         QTimer::singleShot(delay, &app, [&engine, screenshot] {

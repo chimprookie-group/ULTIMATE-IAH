@@ -39,6 +39,19 @@ runtime DSH, Node, npm, Python, PyYAML, QtWebEngine, Git, portail fichiers,
 (`/usr/lib/crasy/dsh`) est utilisé en priorité ; sinon DSH peut être installé
 localement sans droits administrateur.
 
+## Ultimate Agent
+
+![Ultimate Agent](assets/screenshot-agent.png)
+
+**Ctrl+Alt+U** ouvre le dock agent, et l'entrée **Ultimate Agent** de la barre
+latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate HAI et agit via
+des outils : diagnostic, providers, DSH, 9Router, MausBot, MCP, mémoire, skills,
+missions, terminal, fichiers, Git, installation et réglages.
+
+Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité.
+
+![Ultimate Agent en dock](assets/screenshot-agent-dock.png)
+
 ## Connexions et MCP
 
 ![Connexions](assets/screenshot-connections.png)
@@ -104,7 +117,7 @@ localement sans droits administrateur.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.3.8-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.4.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

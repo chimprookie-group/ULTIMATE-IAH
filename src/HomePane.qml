@@ -11,7 +11,7 @@ Item {
     signal agentTaskRequested(string prompt)
 
     readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
-    readonly property bool wide: contentWidth >= 860
+    readonly property bool wide: contentWidth >= 760
     property real reveal: 0
 
     function stateColor(state) {
@@ -205,6 +205,7 @@ Item {
                         spacing: design.space2
                         Button { text: qsTr("Ouvrir le harness"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("harness") }
                         Button { text: qsTr("Terminal agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
+                        Button { text: qsTr("Ultimate Agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("agent") }
                         Item { Layout.fillWidth: true }
                         Text {
                             visible: root.wide

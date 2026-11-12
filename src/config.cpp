@@ -16,7 +16,7 @@ const QStringList kViews = {
     QStringLiteral("mausbot"), QStringLiteral("connections"),
     QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
     QStringLiteral("agents"), QStringLiteral("installation"),
-    QStringLiteral("settings")
+    QStringLiteral("agent"), QStringLiteral("settings")
 };
 }
 
