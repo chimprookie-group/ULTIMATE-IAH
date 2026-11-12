@@ -453,6 +453,36 @@ private slots:
         QCOMPARE(themes.at(1).toMap().value("mode").toString(), QString("light"));
     }
 
+    void englishCatalogCoversFrenchCatalog()
+    {
+        QFile french(QStringLiteral(":/i18n/fr.json"));
+        QFile english(QStringLiteral(":/i18n/en.json"));
+        QVERIFY(french.open(QIODevice::ReadOnly));
+        QVERIFY(english.open(QIODevice::ReadOnly));
+        const QJsonObject fr = QJsonDocument::fromJson(french.readAll()).object();
+        const QJsonObject en = QJsonDocument::fromJson(english.readAll()).object();
+        QVERIFY(fr.size() > 600);
+        for (auto it = fr.begin(); it != fr.end(); ++it)
+            QVERIFY2(en.contains(it.key()), qPrintable(it.key()));
+        QVERIFY(en.value(QStringLiteral("%n file(s)")).isObject());
+        QCOMPARE(en.value(QStringLiteral("%n file(s)")).toObject().value("one").toString(),
+                 QStringLiteral("%n file"));
+        QCOMPARE(en.value(QStringLiteral("%n file(s)")).toObject().value("other").toString(),
+                 QStringLiteral("%n files"));
+    }
+
+    void translationSwitchesBetweenEnglishAndFrench()
+    {
+        Translator translator(QString(), QStringLiteral(":/i18n"));
+        translator.setOverride("fr");
+        QCOMPARE(translator.translate("Main", "Réglages"), QString("Réglages"));
+        QCOMPARE(translator.translate("Main", "Aucune tâche autonome"), QString("Aucune tâche autonome"));
+        translator.setOverride("en");
+        QCOMPARE(translator.translate("Main", "Réglages"), QString("Settings"));
+        QCOMPARE(translator.translate("Main", "Aucune tâche autonome"), QString("No autonomous task"));
+        QCOMPARE(translator.translate("Main", "%n file(s)", nullptr, 2), QString("%n files"));
+    }
+
     void translatorFallsBackToEnglish()
     {
         QTemporaryDir dir;

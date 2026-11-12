@@ -7,6 +7,7 @@ Item {
     id: root
 
     readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
+    property bool rolesInitialized: false
 
     function startMission() {
         if (missionTask.text.trim() === "") {
@@ -58,6 +59,18 @@ Item {
 
     Component.onCompleted: { agents.refresh(); missions.refresh(); skills.refresh() }
     onVisibleChanged: if (visible) { agents.refresh(); missions.refresh(); skills.refresh() }
+
+    Connections {
+        target: agents
+        function onChanged() {
+            if (root.rolesInitialized || plannerBox.count < 3)
+                return
+            plannerBox.currentIndex = 0
+            builderBox.currentIndex = Math.min(1, builderBox.count - 1)
+            reviewerBox.currentIndex = Math.min(2, reviewerBox.count - 1)
+            root.rolesInitialized = true
+        }
+    }
 
     ScrollView {
         anchors.fill: parent

@@ -146,7 +146,7 @@ Item {
                         spacing: design.space3
                         StatusDot { color: root.stateColor(backend.harnessState) }
                         Text {
-                            text: qsTr("MISSION")
+                            text: qsTr("MISSION INPUT")
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro

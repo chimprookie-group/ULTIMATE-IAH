@@ -72,16 +72,16 @@ Item {
 
     function statusLabel(status) {
         if (status === "untracked")
-            return qsTr("non suivi")
+            return qsTr("untracked")
         if (status === "added")
-            return qsTr("ajouté")
+            return qsTr("added")
         if (status === "deleted")
-            return qsTr("supprimé")
+            return qsTr("deleted")
         if (status === "renamed")
-            return qsTr("renommé")
+            return qsTr("renamed")
         if (status === "modified" || status === "changed")
-            return qsTr("modifié")
-        return qsTr("suivi")
+            return qsTr("modified")
+        return qsTr("tracked")
     }
 
     function statusColor(status) {
@@ -100,9 +100,9 @@ Item {
         if (selectedPath === "")
             return
         if (showingDiff) {
-            agentTaskRequested(qsTr("Explique les changements du diff de %1 dans ce projet. Décris l'intention, les risques et ce qu'il faut vérifier.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explain the changes in the diff of %1 in this project. Describe the intent, the risks, and what to verify.").arg(selectedPath))
         } else {
-            agentTaskRequested(qsTr("Explique le fichier %1 dans ce projet. Lis-le, décris son rôle, ses dépendances et les points à surveiller.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explain the file %1 in this project. Read it, describe its role, its dependencies, and anything worth watching.").arg(selectedPath))
         }
     }
 
@@ -110,7 +110,7 @@ Item {
         if (selectedPath === "")
             return
         workspaceModel.copyToClipboard(selectedPath)
-        Window.window.showToast(qsTr("Chemin copié."))
+        Window.window.showToast(qsTr("Path copied."))
     }
 
     function openFile() {
@@ -152,15 +152,14 @@ Item {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: backend.workspace + " · " + workspaceModel.count
-                          + (workspaceModel.count > 1 ? qsTr(" fichiers") : qsTr(" fichier"))
+                    text: backend.workspace + " · " + qsTr("%n file(s)", "", workspaceModel.count)
                     color: theme.dimText
                     font.family: backend.monoFont
                     font.pixelSize: design.textCaption
                     elide: Text.ElideMiddle
                 }
                 Button {
-                    text: qsTr("Rafraîchir")
+                    text: qsTr("Refresh")
                     flat: true
                     onClicked: root.refresh()
                 }
@@ -192,7 +191,7 @@ Item {
                     SettingsField {
                         id: filterField
                         Layout.fillWidth: true
-                        placeholderText: qsTr("Filtrer les fichiers…")
+                        placeholderText: qsTr("Filter files…")
                         onTextChanged: workspaceModel.setFilter(text)
                     }
 
@@ -258,7 +257,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             visible: workspaceModel.count === 0
-                            text: qsTr("Aucun fichier trouvé.")
+                            text: qsTr("No file found.")
                             color: theme.dimText
                             font.pixelSize: 10
                         }
@@ -277,7 +276,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     visible: root.selectedPath === ""
-                    text: qsTr("Sélectionnez un fichier pour l'aperçu, ou ouvrez son diff Git.")
+                    text: qsTr("Select a file to preview it, or open its Git diff.")
                     color: theme.dimText
                     font.pixelSize: 11
                 }
@@ -326,7 +325,7 @@ Item {
                             Text {
                                 id: previewLabel
                                 anchors.centerIn: parent
-                                text: qsTr("Aperçu")
+                                text: qsTr("Preview")
                                 color: !root.showingDiff ? theme.accentForeground : theme.text
                                 font.pixelSize: design.textCaption
                             }
@@ -367,13 +366,13 @@ Item {
                         }
                         Item { Layout.fillWidth: true }
                         Button {
-                            text: qsTr("Copier le chemin")
+                            text: qsTr("Copy path")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.copyPath()
                         }
                         Button {
-                            text: qsTr("Ouvrir")
+                            text: qsTr("Open")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.openFile()
