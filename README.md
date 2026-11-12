@@ -224,10 +224,10 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.13.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.14.0-1-x86_64.pkg.tar.zst
 ```
 
-Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans
+Le paquet remplace `ultimate-hai` et `deepcrasy-h`. Les données existantes sont conservées dans
 les chemins historiques (`~/.config/Crasy/deepcrasy-h` et
 `~/.local/share/Crasy/deepcrasy-h`) : mémoire, providers, MCP, missions et
 autopilote restent en place. Les anciens composants retirés sont nettoyés.

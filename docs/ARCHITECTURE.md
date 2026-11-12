@@ -54,7 +54,7 @@ données. Les anciens fichiers d'intégration retirés sont supprimés.
 
 ## Règles
 
-- Une instance par utilisateur (`ultimate-hai-uid`).
+- Une instance par utilisateur (`ultimate-iah-uid`).
 - Le terminal WebEngine n'est chargé qu'à l'ouverture.
 - Aucune exécution arbitraire par shell : le job agent natif et les serveurs MCP
   explicitement configurés.

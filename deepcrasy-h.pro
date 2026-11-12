@@ -1,8 +1,8 @@
-TARGET = ultimate-hai
+TARGET = ultimate-iah
 QT += core gui qml quick quick-private quickcontrols2 dbus network sql svg webchannel webenginequick
 
 CONFIG += c++17 release
-TARGET = ultimate-hai
+TARGET = ultimate-iah
 TEMPLATE = app
 
 HEADERS += \

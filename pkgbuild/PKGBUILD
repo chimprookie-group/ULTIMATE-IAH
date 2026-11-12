@@ -1,16 +1,16 @@
 # Maintainer: Ultimate IAH
-pkgname=ultimate-hai
-provides=('ultimate-hai' 'deepcrasy-h')
-conflicts=('deepcrasy-h')
-replaces=('deepcrasy-h')
-pkgver=1.13.0
+pkgname=ultimate-iah
+pkgver=1.14.0
 pkgrel=1
 pkgdesc='Ultimate IAH — native agentic cockpit, notes and bots'
 arch=('x86_64' 'aarch64')
-url='https://github.com/iatexplique-debug/DeepCrasy-H'
+url='https://github.com/iatexplique-debug/ULTIMATE-IAH'
 license=('MIT')
 depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-webchannel' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme' 'xdg-desktop-portal' 'xdg-utils' 'polkit' 'nodejs' 'npm' 'python' 'python-yaml' 'git')
 makedepends=('gcc' 'make' 'qt6-base' 'qt6-svg')
+provides=('ultimate-iah' 'ultimate-hai' 'deepcrasy-h')
+conflicts=('ultimate-hai' 'deepcrasy-h')
+replaces=('ultimate-hai' 'deepcrasy-h')
 source=()
 sha256sums=()
 
@@ -21,13 +21,13 @@ build() {
 
 package() {
   cd "$startdir/.."
-  install -Dm755 build/ultimate-hai "$pkgdir/usr/bin/ultimate-hai"
+  install -Dm755 build/ultimate-iah "$pkgdir/usr/bin/ultimate-iah"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 src/terminal/LICENSE-xterm "$pkgdir/usr/share/licenses/$pkgname/LICENSE-xterm"
-  install -Dm644 src/agent/BEHAVIOR.md "$pkgdir/usr/share/ultimate-hai/BEHAVIOR.md"
-  install -Dm644 pkgbuild/ultimate-hai.desktop "$pkgdir/usr/share/applications/ultimate-hai.desktop"
-  install -Dm644 assets/icon-128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/ultimate-hai.png"
-  install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ultimate-hai.png"
-  install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ultimate-hai.png"
-  install -Dm644 assets/icon-1024.png "$pkgdir/usr/share/icons/hicolor/1024x1024/apps/ultimate-hai.png"
+  install -Dm644 src/agent/BEHAVIOR.md "$pkgdir/usr/share/ultimate-iah/BEHAVIOR.md"
+  install -Dm644 pkgbuild/ultimate-iah.desktop "$pkgdir/usr/share/applications/ultimate-iah.desktop"
+  install -Dm644 assets/icon-128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/ultimate-iah.png"
+  install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ultimate-iah.png"
+  install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ultimate-iah.png"
+  install -Dm644 assets/icon-1024.png "$pkgdir/usr/share/icons/hicolor/1024x1024/apps/ultimate-iah.png"
 }

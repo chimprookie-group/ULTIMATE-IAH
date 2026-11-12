@@ -7,4 +7,4 @@ cd "$ROOT/build/tests"
 
 qmake6 "$ROOT/tests/deepcrasy-h_tests.pro"
 make -j"$(nproc)"
-QT_QPA_PLATFORM=offscreen ./ultimate-hai-tests "$@"
+QT_QPA_PLATFORM=offscreen ./ultimate-iah-tests "$@"

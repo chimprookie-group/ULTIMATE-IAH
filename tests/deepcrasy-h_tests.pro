@@ -1,6 +1,6 @@
 QT += network core gui sql testlib
 CONFIG += c++17 testcase
-TARGET = ultimate-hai-tests
+TARGET = ultimate-iah-tests
 TEMPLATE = app
 
 INCLUDEPATH += ../src

@@ -125,29 +125,31 @@ int runDoctor(bool json) {
 QString skillText() {
     return QStringLiteral(R"(# Ultimate IAH
 
-Ultimate IAH is an Omarchy desktop cockpit for the DeepSeek Harness, with a
-real terminal agent and project-aware tools.
+Ultimate IAH is a native Omarchy cockpit for the agentic harness, with a real
+terminal, notes, GitHub, web research and project-aware tools.
 
 ## Commands
 
-- `ultimate-hai open [folder]` opens the GUI, optionally rooted at a folder.
-- `ultimate-hai doctor --json` checks that `dsh`, QtWebEngine, and the desktop
-  portal are available. Exit code 0 means everything is ready.
-- `ultimate-hai skill install` writes this file.
+- `ultimate-iah open [folder]` opens the GUI, optionally rooted at a folder.
+- `ultimate-iah doctor --json` checks QtWebEngine, the desktop portal and the
+  local runtime. Exit code 0 means everything is ready.
+- `ultimate-iah skill install` writes this file.
 
 ## What it does
 
-- Harness pane: `dsh web` is started on a free port and its tokenized URL is
-  embedded in the window.
-- Terminal agent: a real PTY and a `dsh headless` task bar in the same workspace.
-- Project and files: Git, diffs, tools and skills stay one gesture away.
+- Ultimate Agent: native tool-calling loop, sessions, plans, jobs, subagents,
+  memory, skills, web search/fetch and MCP.
+- Notes: Markdown vault, wikilinks, backlinks and a force-directed graph.
+- GitHub: gh-backed repositories, projects, issues and pull requests.
+- Plugins: ArtCraft suite and external command manifests.
+- Terminal agent: a real PTY in the active workspace.
 
-Use it when the user wants the DeepSeek Harness plus a terminal agent.
+Use it for agentic project work without an embedded web harness.
 )");
 }
 
 int installSkill() {
-    const QString directory = QDir::homePath() + "/.agents/skills/ultimate-hai";
+    const QString directory = QDir::homePath() + "/.agents/skills/ultimate-iah";
     QDir().mkpath(directory);
     QFile file(directory + "/SKILL.md");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -169,12 +171,13 @@ namespace {
 // Migrate only when the packaged launcher is present, and only touch launcher
 // files, never user configuration or workspace data.
 void migrateLegacyLauncher() {
-    if (!QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-hai.desktop")))
+    if (!QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-iah.desktop")))
         return;
 
     const QString applications = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     QDir().mkpath(applications);
     QFile::remove(applications + QStringLiteral("/deepcrasy-h.desktop"));
+    QFile::remove(applications + QStringLiteral("/ultimate-hai.desktop"));
 
     // The old crasy package keeps a system entry with the old whale icon. Hide
     // it through a user override so the package stays installed (it provides
@@ -197,9 +200,11 @@ void migrateLegacyLauncher() {
         + QStringLiteral("/icons/hicolor");
     for (const QString &size : {QStringLiteral("scalable"), QStringLiteral("256x256"),
                                 QStringLiteral("512x512")}) {
-        const QString base = iconRoot + QLatin1Char('/') + size + QStringLiteral("/apps/deepcrasy-h");
-        QFile::remove(base + QStringLiteral(".svg"));
-        QFile::remove(base + QStringLiteral(".png"));
+        for (const QString &legacy : {QStringLiteral("deepcrasy-h"), QStringLiteral("ultimate-hai")}) {
+            const QString base = iconRoot + QLatin1Char('/') + size + QStringLiteral("/apps/") + legacy;
+            QFile::remove(base + QStringLiteral(".svg"));
+            QFile::remove(base + QStringLiteral(".png"));
+        }
     }
 
     // Invalidate user-level caches. Failure is harmless: the files are gone and
@@ -217,13 +222,17 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.13.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.14.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
     for (int i = 1; i < argc; ++i)
         arguments.append(QString::fromLocal8Bit(argv[i]));
 
+    if (arguments.value(0) == "--version" || arguments.value(0) == "-v") {
+        QTextStream(stdout) << "Ultimate IAH " << QCoreApplication::applicationVersion() << '\n';
+        return 0;
+    }
     if (arguments.value(0) == "doctor") {
         QCoreApplication app(argc, argv);
         return runDoctor(arguments.contains("--json"));
@@ -301,15 +310,15 @@ int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
     migrateLegacyLauncher();
 
-    // Matches the window to ultimate-hai.desktop, so the compositor (Wayland
+    // Matches the window to ultimate-iah.desktop, so the compositor (Wayland
     // app_id) and the launcher pick up the installed icon.
-    app.setDesktopFileName(QStringLiteral("ultimate-hai"));
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("ultimate-hai")));
+    app.setDesktopFileName(QStringLiteral("ultimate-iah"));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("ultimate-iah")));
 
     // One window per user: a second launch must raise the existing one, not
     // spawn another QtWebEngine profile and fight over the same portal id.
     QQuickWindow *mainWindow = nullptr;
-    const QString instanceName = QStringLiteral("ultimate-hai-%1").arg(QString::number(getuid()));
+    const QString instanceName = QStringLiteral("ultimate-iah-%1").arg(QString::number(getuid()));
     QLocalServer instanceServer;
     if (screenshot.isEmpty() && !demo && !agentJob) {
         QLocalSocket probe;
@@ -388,13 +397,13 @@ int main(int argc, char *argv[]) {
             backend.setWorkspace(workspace);
         ultimateAgent.setPermissionMode(agentPermission);
         if (agentPrompt.trimmed().isEmpty()) {
-            QTextStream(stderr) << "ultimate-hai: --agent-job requires --agent-prompt" << Qt::endl;
+            QTextStream(stderr) << "ultimate-iah: --agent-job requires --agent-prompt" << Qt::endl;
             return 2;
         }
         ultimateAgent.sendMessage(agentPrompt);
         if (!ultimateAgent.busy()) {
             QTextStream(stderr) << (ultimateAgent.error().isEmpty()
-                                    ? QStringLiteral("ultimate-hai: the agent did not start")
+                                    ? QStringLiteral("ultimate-iah: the agent did not start")
                                     : ultimateAgent.error()) << Qt::endl;
             return 1;
         }
@@ -411,7 +420,7 @@ int main(int argc, char *argv[]) {
         loop.exec();
         if (ultimateAgent.busy()) {
             ultimateAgent.cancel();
-            QTextStream(stderr) << "ultimate-hai: agent job timed out" << Qt::endl;
+            QTextStream(stderr) << "ultimate-iah: agent job timed out" << Qt::endl;
             return 1;
         }
         QString answer;

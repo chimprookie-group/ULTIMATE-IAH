@@ -97,8 +97,8 @@ void InstallationDoctor::check() {
         tr("serveur et patch MCP"));
 
     add(tr("Système"), tr("Entrée de bureau"),
-        QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-hai.desktop")),
-        tr("ultimate-hai.desktop"));
+        QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-iah.desktop")),
+        tr("ultimate-iah.desktop"));
 
     m_running = false;
     m_summary = tr("%1 composant(s) prêt(s), %2 manquant(s)").arg(m_passed).arg(m_failed);
