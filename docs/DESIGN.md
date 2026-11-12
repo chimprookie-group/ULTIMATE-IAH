@@ -1,8 +1,8 @@
-# Direction visuelle — Ultimate HAI
+# Direction visuelle — Ultimate IAH
 
 ## Note
 
-**Ultimate HAI est un instrument de mission, pas un dashboard SaaS.** Il est
+**Ultimate IAH est un instrument de mission, pas un dashboard SaaS.** Il est
 conçu pour un développeur Omarchy qui pilote des agents, des connexions et un
 workspace. Le ton est technique, calme et dense. L'élément mémorable est le
 rail de navigation à spine, doublé d'un en-tête de commandement qui rend

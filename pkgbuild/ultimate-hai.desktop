@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Ultimate HAI
-Name[fr]=Ultimate HAI
+Name=Ultimate IAH
+Name[fr]=Ultimate IAH
 Comment=Agentic DeepSeek Harness cockpit and terminal agent
 Comment[fr]=Cockpit DeepSeek Harness et terminal agent
 Exec=ultimate-hai %f

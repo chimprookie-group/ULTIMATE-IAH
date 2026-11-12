@@ -24,7 +24,7 @@ public:
     bool isEmpty() const override { return m_strings.isEmpty(); }
 
     // Empty means "automatic": Omarchy's language file, then the browser
-    // language Ultimate HAI is already using, then the system locale.
+    // language Ultimate IAH is already using, then the system locale.
     void setOverride(const QString &code);
     QString translate(const char *context, const char *sourceText, const char *disambiguation = nullptr,
                       int n = -1) const override;

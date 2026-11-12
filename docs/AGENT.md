@@ -1,6 +1,6 @@
 # Ultimate Agent
 
-Ultimate Agent est l'opérateur intégré d'Ultimate HAI. Il ne répond pas seulement
+Ultimate Agent est l'opérateur intégré d'Ultimate IAH. Il ne répond pas seulement
 sur l'application : il utilise les mêmes objets C++ que l'interface pour lire et
 modifier l'écosystème réel.
 

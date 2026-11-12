@@ -21,7 +21,7 @@ class MissionRunner;
 class SkillManager;
 class TerminalSession;
 
-// The built-in Ultimate HAI operator. It is a small tool-calling agent loop over
+// The built-in Ultimate IAH operator. It is a small tool-calling agent loop over
 // an OpenAI-compatible endpoint, with explicit tools for this application's
 // real ecosystem. The model never gets direct access to secrets: tools return
 // only masked values and errors.

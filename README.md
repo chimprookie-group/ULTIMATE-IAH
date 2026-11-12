@@ -1,20 +1,22 @@
-# Ultimate HAI
+# Ultimate IAH
 
 **Le cockpit agentique du DeepSeek Harness pour Omarchy.**
 
-Ultimate HAI réunit le harness, des agents orchestrés, une mémoire persistante,
+Ultimate IAH réunit le harness, des agents orchestrés, une mémoire persistante,
 un terminal réel, un autopilote borné et un centre de connexions providers/MCP
 — sans OpenCode.
 
-![Cockpit Ultimate HAI](assets/screenshot-home.png)
+![Cockpit Ultimate IAH](assets/screenshot-home.png)
 
 ## Identité
 
-Le cavalier et sa baleine sont le logo d'Ultimate HAI. Le fond noir a été
-détouré : l'application utilise une variante blanche sur les thèmes sombres et
-une variante encre sur les thèmes clairs. L'icône applicative conserve une
-tuile encre avec un trait d'accent. Le logo apparaît dans le rail, les en-têtes
-de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
+La baleine musclée est le nouveau logo d'Ultimate IAH. Le fond clair a été
+détouré avec précision : variante blanche sur les thèmes sombres, variante encre
+sur les thèmes clairs. Dans le rail, le logo est posé directement, sans tuile
+autour, pour lui laisser de l'air. Il structure aussi les en-têtes de page, les
+états vides d'Ultimate Agent et de la mémoire, l'écran Harness, la palette,
+l'aide et le À propos. L'icône du lanceur utilise une tuile encre arrondie avec
+la baleine blanche et un discret trait d'accent.
 
 ## Agentique
 
@@ -48,7 +50,7 @@ fois, exécuter la vérification réelle et rapporter les preuves.
 ![Ultimate Agent](assets/screenshot-agent.png)
 
 **Ctrl+Alt+U** ouvre le dock agent, et l'entrée **Ultimate Agent** de la barre
-latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate HAI et agit via
+latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate IAH et agit via
 des outils : diagnostic, providers, DSH, MCP, mémoire, skills, missions,
 terminal, fichiers, Git, installation et réglages.
 
@@ -59,7 +61,7 @@ Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité
 ## Raccourci DeepSeek Harness
 
 Le paquet installe aussi un lanceur **DeepSeek Harness** qui ouvre directement la
-vue harness d'Ultimate HAI, avec le nouveau logo. L'ancien lanceur Crasy reste
+vue harness d'Ultimate IAH, avec le nouveau logo. L'ancien lanceur Crasy reste
 masqué pour éviter l'ancienne icône.
 
 ## Connexions et MCP
@@ -75,7 +77,7 @@ masqué pour éviter l'ancienne icône.
   `agent.env` et le terminal. La clé reste la source unique des providers.
 - **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
   Fetch / Git, patch automatique pour le harness.
-- **MCP intégré** : mémoire Ultimate HAI.
+- **MCP intégré** : mémoire Ultimate IAH.
 
 ## Mémoire
 
@@ -124,7 +126,7 @@ masqué pour éviter l'ancienne icône.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.5.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.5.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

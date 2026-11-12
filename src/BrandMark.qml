@@ -1,8 +1,8 @@
 import QtQuick
 
-// The rider-and-whale mark, with a transparent ground. The white cut is used
-// on dark Omarchy themes and the ink cut on light ones. A hairline accent can
-// be shown underneath for small personal signatures.
+// The Ultimate IAH whale mark, with a transparent ground. The light cut is
+// used on dark Omarchy themes and the ink cut on light ones. A hairline accent
+// can be shown underneath for small signatures.
 Item {
     id: root
 

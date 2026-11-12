@@ -65,7 +65,7 @@ void TerminalSession::start(const QString &cwd) {
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("TERM"), QStringLiteral("xterm-256color"));
     environment.insert(QStringLiteral("COLORTERM"), QStringLiteral("truecolor"));
-    environment.insert(QStringLiteral("TERM_PROGRAM"), QStringLiteral("UltimateHAI"));
+    environment.insert(QStringLiteral("TERM_PROGRAM"), QStringLiteral("UltimateIAH"));
     // The DSH headless profile does not resolve credential refs. Mirror the
     // private agent environment into the shell so any manual `dsh headless`
     // works, not only tasks launched from the app bar.

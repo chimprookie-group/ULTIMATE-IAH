@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ultimate HAI memory MCP server.
+"""Ultimate IAH memory MCP server.
 
 Newline-delimited JSON-RPC over stdio. The database is the same SQLite/FTS5
 store used by the desktop application, so memories written by the agent are

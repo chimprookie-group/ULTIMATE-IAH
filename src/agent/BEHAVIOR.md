@@ -1,6 +1,6 @@
-# Ultimate HAI — One-shot operating policy
+# Ultimate IAH — One-shot operating policy
 
-This policy is part of Ultimate HAI's original memory and applies to every
+This policy is part of Ultimate IAH's original memory and applies to every
 Ultimate Agent execution and to every maintenance task performed for this app.
 
 ## Before changing anything

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-// Thin, trackless scrollbar used across Ultimate HAI. The thumb stays quiet at
+// Thin, trackless scrollbar used across Ultimate IAH. The thumb stays quiet at
 // rest and becomes clearly visible only while hovered or dragged.
 ScrollBar {
     id: root

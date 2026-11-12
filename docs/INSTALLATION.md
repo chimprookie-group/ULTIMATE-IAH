@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.5.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.5.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
@@ -11,7 +11,7 @@ xdg-desktop-portal.
 
 ## Runtime DSH
 
-Ultimate HAI cherche DSH dans cet ordre :
+Ultimate IAH cherche DSH dans cet ordre :
 
 1. `/usr/lib/crasy/dsh/node_modules/.bin/dsh` (runtime système du paquet crasy) ;
 2. `dsh` dans le `PATH` ;
@@ -38,7 +38,7 @@ mémoire et entrées de bureau.
 
 ## Poste vierge
 
-1. Installer le paquet Ultimate HAI.
+1. Installer le paquet Ultimate IAH.
 2. Ouvrir **Installation**.
 3. Lancer **Dépendances système** si nécessaire.
 4. Installer DSH s'il est absent.
@@ -51,4 +51,4 @@ Les données utilisateur restent dans `~/.config/Crasy/deepcrasy-h` et
 Au premier lancement, l'application retire l'ancienne entrée utilisateur
 `deepcrasy-h.desktop`, ses anciennes icônes et masque l'ancien lanceur
 `crasy.desktop` (le paquet `crasy` reste installé car il fournit le runtime DSH
-système). Seul le lanceur **Ultimate HAI** avec le nouveau logo reste visible.
+système). Seul le lanceur **Ultimate IAH** avec le nouveau logo reste visible.

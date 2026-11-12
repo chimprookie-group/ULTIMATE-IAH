@@ -64,7 +64,7 @@ Item {
             PageHeader {
                 width: parent.width
                 title: qsTr("Écosystème")
-                description: qsTr("Les composants actifs d'Ultimate HAI, le projet, les outils et le contexte du harness.")
+                description: qsTr("Les composants actifs d'Ultimate IAH, le projet, les outils et le contexte du harness.")
                 icon: "icons/ecosystem.svg"
                 ActionButton { text: qsTr("Rafraîchir"); onClicked: root.refresh(true) }
             }

@@ -431,7 +431,7 @@ QString MissionRunner::stepPrompt(const QVariantMap &mission, const QVariantMap 
     const QString role = step.value("role").toString();
     QString prompt = m_agents ? m_agents->promptFor(role) : QString();
     if (prompt.isEmpty())
-        prompt = tr("Tu es un agent d'Ultimate HAI. Travaille dans le projet et rends le résultat vérifiable.");
+        prompt = tr("Tu es un agent d'Ultimate IAH. Travaille dans le projet et rends le résultat vérifiable.");
     QString context;
     if (m_memory) {
         const QString recall = m_memory->recall(mission.value("project").toString(),

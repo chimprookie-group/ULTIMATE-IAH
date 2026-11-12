@@ -2,8 +2,8 @@
 Type=Application
 Name=DeepSeek Harness
 Name[fr]=DeepSeek Harness
-Comment=Open the DeepSeek Harness inside Ultimate HAI
-Comment[fr]=Ouvrir le DeepSeek Harness dans Ultimate HAI
+Comment=Open the DeepSeek Harness inside Ultimate IAH
+Comment[fr]=Ouvrir le DeepSeek Harness dans Ultimate IAH
 Exec=ultimate-hai --view harness %f
 Icon=ultimate-hai
 Terminal=false

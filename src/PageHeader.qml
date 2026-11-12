@@ -29,16 +29,17 @@ Item {
             Layout.alignment: Qt.AlignTop
             Rectangle {
                 anchors.fill: parent
+                visible: !root.brandMark
                 radius: design.radiusMd
                 color: theme.raised
                 border.width: 1
                 border.color: theme.border
             }
             BrandMark {
-                anchors.centerIn: parent
+                anchors.fill: parent
                 visible: root.brandMark
-                size: design.iconLg + 8
-                accent: true
+                size: 42
+                accent: false
             }
             ThemedIcon {
                 anchors.centerIn: parent

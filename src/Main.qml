@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 760
     minimumHeight: 620
     visible: true
-    title: backend.demo ? qsTr("Ultimate HAI") : "Ultimate HAI — " + backend.workspaceName
+    title: backend.demo ? qsTr("Ultimate IAH") : "Ultimate IAH — " + backend.workspaceName
     color: theme.background
     background: Rectangle { color: theme.background }
     font.family: backend.uiFont
@@ -40,7 +40,7 @@ ApplicationWindow {
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
-        return "Ultimate HAI"
+        return "Ultimate IAH"
     }
     property bool helpVisible: false
     property bool quitConfirm: false
@@ -290,7 +290,7 @@ ApplicationWindow {
                     }
                     Text {
                         Layout.maximumWidth: 280
-                        text: "Ultimate HAI  /  " + win.viewTitle
+                        text: "Ultimate IAH  /  " + win.viewTitle
                         color: theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: design.textMicro

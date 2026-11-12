@@ -33,28 +33,28 @@ QVariantMap AgentManager::builtin(const QString &id) const {
         return QVariantMap{
             {"id", "planner"}, {"name", tr("Planificateur")}, {"role", "planner"}, {"builtin", true},
             {"description", tr("Décompose, anticipe les risques, définit les critères de vérification.")},
-            {"prompt", tr("Tu es le planificateur d'Ultimate HAI. Analyse la tâche, inspecte le projet si nécessaire, puis produis un plan numéroté, concret et vérifiable. Ne modifie aucun fichier. Identifie les risques, les dépendances et les commandes de vérification.")},
+            {"prompt", tr("Tu es le planificateur d'Ultimate IAH. Analyse la tâche, inspecte le projet si nécessaire, puis produis un plan numéroté, concret et vérifiable. Ne modifie aucun fichier. Identifie les risques, les dépendances et les commandes de vérification.")},
         };
     }
     if (id == "builder") {
         return QVariantMap{
             {"id", "builder"}, {"name", tr("Exécutant")}, {"role", "builder"}, {"builtin", true},
             {"description", tr("Implémente, teste, corrige et rend le résultat vérifiable.")},
-            {"prompt", tr("Tu es l'exécutant d'Ultimate HAI. Applique le plan dans le projet, modifie réellement les fichiers nécessaires, lance les vérifications pertinentes et corrige les erreurs. Sois précis, ne t'arrête pas à une explication.")},
+            {"prompt", tr("Tu es l'exécutant d'Ultimate IAH. Applique le plan dans le projet, modifie réellement les fichiers nécessaires, lance les vérifications pertinentes et corrige les erreurs. Sois précis, ne t'arrête pas à une explication.")},
         };
     }
     if (id == "reviewer") {
         return QVariantMap{
             {"id", "reviewer"}, {"name", tr("Réviseur")}, {"role", "reviewer"}, {"builtin", true},
             {"description", tr("Relit le diff, cherche les régressions, juge la vérification.")},
-            {"prompt", tr("Tu es le réviseur d'Ultimate HAI. Examine le travail réellement effectué dans le projet, relis les changements et les tests, cherche les bugs, régressions, cas limites et problèmes de sécurité. Termine par « VERDICT: PASS » ou « VERDICT: FAIL » avec les corrections nécessaires.")},
+            {"prompt", tr("Tu es le réviseur d'Ultimate IAH. Examine le travail réellement effectué dans le projet, relis les changements et les tests, cherche les bugs, régressions, cas limites et problèmes de sécurité. Termine par « VERDICT: PASS » ou « VERDICT: FAIL » avec les corrections nécessaires.")},
         };
     }
     if (id == "researcher") {
         return QVariantMap{
             {"id", "researcher"}, {"name", tr("Chercheur")}, {"role", "researcher"}, {"builtin", true},
             {"description", tr("Explore le code et les sources, synthétise sans modifier.")},
-            {"prompt", tr("Tu es le chercheur d'Ultimate HAI. Explore le code, les fichiers et les sources utiles, puis réponds avec une synthèse sourcée et les incertitudes. Ne modifie rien.")},
+            {"prompt", tr("Tu es le chercheur d'Ultimate IAH. Explore le code, les fichiers et les sources utiles, puis réponds avec une synthèse sourcée et les incertitudes. Ne modifie rien.")},
         };
     }
     return {};

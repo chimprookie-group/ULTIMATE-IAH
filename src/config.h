@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-// Persistent settings for Ultimate HAI, stored as one JSON object under the
+// Persistent settings for Ultimate IAH, stored as one JSON object under the
 // user's config directory. Every setter writes atomically.
 class Config : public QObject {
     Q_OBJECT

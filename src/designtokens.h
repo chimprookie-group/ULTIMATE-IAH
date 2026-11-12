@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-// Central visual scale for Ultimate HAI. Colors and font families stay live
+// Central visual scale for Ultimate IAH. Colors and font families stay live
 // from the Omarchy theme; geometry, type, spacing and motion live here so the
 // whole application shares one rhythm.
 class DesignTokens : public QObject {

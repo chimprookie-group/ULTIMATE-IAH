@@ -153,7 +153,7 @@ QString UltimateAgent::systemPrompt() const {
 
 QJsonObject UltimateAgent::snapshot() const {
     QJsonObject root;
-    root.insert(QStringLiteral("app"), QStringLiteral("Ultimate HAI"));
+    root.insert(QStringLiteral("app"), QStringLiteral("Ultimate IAH"));
     root.insert(QStringLiteral("version"), m_backend ? m_backend->appVersion() : QString());
     root.insert(QStringLiteral("workspace"), m_backend ? m_backend->workspace() : QString());
     root.insert(QStringLiteral("view"), m_backend ? m_backend->view() : QString());
@@ -506,7 +506,7 @@ QString UltimateAgent::staticKnowledge() {
     QFile behaviorFile(QStringLiteral(":/agent/BEHAVIOR.md"));
     if (behaviorFile.open(QIODevice::ReadOnly))
         behavior = QString::fromUtf8(behaviorFile.readAll());
-    return QStringLiteral(R"PROMPT(You are Ultimate Agent, the built-in operator and expert of Ultimate HAI, an Omarchy desktop cockpit for the DeepSeek Harness (DSH).
+    return QStringLiteral(R"PROMPT(You are Ultimate Agent, the built-in operator and expert of Ultimate IAH, an Omarchy desktop cockpit for the DeepSeek Harness (DSH).
 
 IDENTITY AND MISSION
 - You are not a generic chatbot. You know this exact application, its local ecosystem, its files and its live state.
@@ -548,13 +548,13 @@ TOOL STRATEGY
 QJsonArray UltimateAgent::tools() {
     QJsonArray out;
     out.append(tool(QStringLiteral("ultimate_status"),
-                    QStringLiteral("Return live Ultimate HAI state: app, workspace, Git, harness, providers, MCP, memory, skills, agents."),
+                    QStringLiteral("Return live Ultimate IAH state: app, workspace, Git, harness, providers, MCP, memory, skills, agents."),
                     {}));
     out.append(tool(QStringLiteral("ultimate_diagnose"),
                     QStringLiteral("Run the real connection diagnostics and the full installation audit, and return every check with its result."),
                     {}));
     out.append(tool(QStringLiteral("ultimate_navigate"),
-                    QStringLiteral("Open an Ultimate HAI view for the user."),
+                    QStringLiteral("Open an Ultimate IAH view for the user."),
                     properties({{QStringLiteral("view"),
                                  enumProperty(QStringLiteral("Target view."), views())}}),
                     {QStringLiteral("view")}));

@@ -1,11 +1,11 @@
-# Maintainer: Ultimate HAI
+# Maintainer: Ultimate IAH
 pkgname=ultimate-hai
 provides=('ultimate-hai' 'deepcrasy-h')
 conflicts=('deepcrasy-h')
 replaces=('deepcrasy-h')
-pkgver=1.5.0
+pkgver=1.5.1
 pkgrel=1
-pkgdesc='Ultimate HAI — agentic DeepSeek Harness cockpit'
+pkgdesc='Ultimate IAH — agentic DeepSeek Harness cockpit'
 arch=('x86_64' 'aarch64')
 url='https://github.com/iatexplique-debug/DeepCrasy-H'
 license=('MIT')
@@ -31,7 +31,8 @@ package() {
   install -Dm644 src/agent/BEHAVIOR.md "$pkgdir/usr/share/ultimate-hai/BEHAVIOR.md"
   install -Dm644 pkgbuild/ultimate-hai.desktop "$pkgdir/usr/share/applications/ultimate-hai.desktop"
   install -Dm644 pkgbuild/deepseek-harness.desktop "$pkgdir/usr/share/applications/deepseek-harness.desktop"
-  install -Dm644 pkgbuild/ultimate-hai.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/ultimate-hai.svg"
+  install -Dm644 assets/icon-128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/ultimate-hai.png"
   install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ultimate-hai.png"
   install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ultimate-hai.png"
+  install -Dm644 assets/icon-1024.png "$pkgdir/usr/share/icons/hicolor/1024x1024/apps/ultimate-hai.png"
 }

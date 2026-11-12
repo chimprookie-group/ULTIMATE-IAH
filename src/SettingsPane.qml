@@ -47,7 +47,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Ultimate HAI suit le thème Omarchy actif. Choisissez un autre thème installé pour l'application seule.")
+                    text: qsTr("Ultimate IAH suit le thème Omarchy actif. Choisissez un autre thème installé pour l'application seule.")
                     color: theme.mutedText
                     font.pixelSize: 11
                     wrapMode: Text.Wrap
@@ -78,7 +78,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Automatique suit Omarchy, puis le navigateur embarqué. Un choix manuel ne s'applique qu'à Ultimate HAI.")
+                    text: qsTr("Automatique suit Omarchy, puis le navigateur embarqué. Un choix manuel ne s'applique qu'à Ultimate IAH.")
                     color: theme.mutedText
                     font.pixelSize: 11
                     wrapMode: Text.Wrap
@@ -308,13 +308,13 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: design.space3
-                    BrandMark { width: 52; height: 52; size: 52; accent: true }
+                    BrandMark { width: 62; height: 62; size: 62; accent: false }
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 1
                         Text {
                             Layout.fillWidth: true
-                            text: "Ultimate HAI " + backend.appVersion
+                            text: "Ultimate IAH " + backend.appVersion
                             color: theme.text
                             font.pixelSize: design.textBody
                         }

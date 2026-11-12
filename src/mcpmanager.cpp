@@ -183,7 +183,7 @@ void McpManager::rebuildBuiltins() {
     QVariantList builtins;
     builtins.append(QVariantMap{
         {"name", "ultimate-hai-memory"},
-        {"label", tr("Mémoire Ultimate HAI")},
+        {"label", tr("Mémoire Ultimate IAH")},
         {"detail", tr("Outils memory_search, memory_remember, memory_recent")},
         {"transport", "stdio"},
         {"active", QFileInfo::exists(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/mcp-memory.patch.yml")},

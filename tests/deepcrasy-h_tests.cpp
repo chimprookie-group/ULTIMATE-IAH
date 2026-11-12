@@ -24,7 +24,7 @@
 #include "theme.h"
 #include "translator.h"
 
-class UltimateHAITests : public QObject {
+class UltimateIAHTests : public QObject {
     Q_OBJECT
 
 private slots:
@@ -575,5 +575,5 @@ private:
     }
 };
 
-QTEST_MAIN(UltimateHAITests)
+QTEST_MAIN(UltimateIAHTests)
 #include "deepcrasy-h_tests.moc"

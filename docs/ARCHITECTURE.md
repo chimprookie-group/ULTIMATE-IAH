@@ -1,4 +1,4 @@
-# Architecture — Ultimate HAI
+# Architecture — Ultimate IAH
 
 Application Qt 6 / QML Harness-only pour Omarchy.
 
@@ -34,7 +34,7 @@ agent, Connexions, MCP, Installation, Réglages.
 - Credentials : `~/.dsh/.credentials.yaml` (mode 600).
 - `agent.env` : miroir privé, mode 600.
 
-Le nom visible, le binaire, le paquet et le `.desktop` sont **Ultimate HAI**.
+Le nom visible, le binaire, le paquet et le `.desktop` sont **Ultimate IAH**.
 Les chemins historiques sont conservés volontairement pour la migration des
 données. Les anciens fichiers d'intégration retirés sont supprimés.
 

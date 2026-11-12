@@ -10,7 +10,7 @@ Item {
     signal close()
 
     property var rows: [
-        { keys: "Ctrl+0", what: qsTr("Ultimate HAI cockpit") },
+        { keys: "Ctrl+0", what: qsTr("Ultimate IAH cockpit") },
         { keys: "Ctrl+K", what: qsTr("Command palette") },
         { keys: "Ctrl+1", what: qsTr("DeepSeek Harness") },
         { keys: "Ctrl+2", what: qsTr("Terminal agent") },

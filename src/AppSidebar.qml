@@ -29,9 +29,11 @@ Item {
         // Brand
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 74
+            Layout.preferredHeight: 82
             MouseArea {
+                id: brandMouse
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: backend.setView("home")
                 RowLayout {
@@ -40,36 +42,33 @@ Item {
                     anchors.rightMargin: root.compact ? 0 : design.space3
                     spacing: design.space3
 
-                    Rectangle {
+                    Item {
                         Layout.alignment: root.compact ? Qt.AlignHCenter : Qt.AlignVCenter
-                        width: 36
-                        height: 36
-                        radius: design.radiusMd
-                        color: theme.raised
-                        border.width: 1
-                        border.color: theme.border
+                        Layout.preferredWidth: root.compact ? 44 : 46
+                        Layout.preferredHeight: 46
                         BrandMark {
-                            anchors.centerIn: parent
-                            size: 30
-                            accent: true
+                            anchors.fill: parent
+                            size: root.compact ? 42 : 44
+                            accent: false
+                            markOpacity: brandMouse.containsMouse ? 1 : 0.92
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
                         visible: !root.compact
-                        spacing: 1
+                        spacing: 2
                         RowLayout {
                             spacing: design.space1
-                            Text { text: "Ultimate"; color: theme.brightText; font.family: "iA Writer Duospace"; font.pixelSize: design.textTitle; font.weight: Font.Bold }
-                            Text { text: "HAI"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: design.textTitle; font.weight: Font.Bold }
+                            Text { text: "Ultimate"; color: theme.brightText; font.family: "iA Writer Duospace"; font.pixelSize: 19; font.weight: Font.Bold }
+                            Text { text: "IAH"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: 19; font.weight: Font.Bold }
                         }
                         Text {
                             text: qsTr("AGENTIC CONTROL")
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: 7
-                            font.letterSpacing: 1.0
+                            font.letterSpacing: 1.15
                         }
                     }
                 }

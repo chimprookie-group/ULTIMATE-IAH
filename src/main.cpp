@@ -1,4 +1,4 @@
-// Ultimate HAI, the DeepSeek Harness cockpit for Omarchy.
+// Ultimate IAH, the DeepSeek Harness cockpit for Omarchy.
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -118,9 +118,9 @@ int runDoctor(bool json) {
 }
 
 QString skillText() {
-    return QStringLiteral(R"(# Ultimate HAI
+    return QStringLiteral(R"(# Ultimate IAH
 
-Ultimate HAI is an Omarchy desktop cockpit for the DeepSeek Harness, with a
+Ultimate IAH is an Omarchy desktop cockpit for the DeepSeek Harness, with a
 real terminal agent and project-aware tools.
 
 ## Commands
@@ -160,7 +160,7 @@ int installSkill() {
 namespace {
 
 // Older builds shipped a user-level Crasy desktop entry and palette icons.
-// They shadow the new Ultimate HAI launcher and keep showing the retired logo.
+// They shadow the new Ultimate IAH launcher and keep showing the retired logo.
 // Migrate only when the packaged launcher is present, and only touch launcher
 // files, never user configuration or workspace data.
 void migrateLegacyLauncher() {
@@ -210,9 +210,9 @@ void migrateLegacyLauncher() {
 int main(int argc, char *argv[]) {
     // Keep the legacy application name and organization: they define the
     // stable config/data paths that hold the user's memory, providers and
-    // integrations. The visible product is Ultimate HAI.
+    // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.1"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
