@@ -1,4 +1,4 @@
-QT += core gui qml quick quick-private quickcontrols2 dbus network svg webchannel webenginequick
+QT += core gui qml quick quick-private quickcontrols2 dbus network sql svg webchannel webenginequick
 
 CONFIG += c++17 release
 TARGET = deepcrasy-h
@@ -11,6 +11,8 @@ HEADERS += \
     src/gitstatus.h \
     src/harnessserver.h \
     src/harnessconnections.h \
+    src/memorystore.h \
+    src/autopilot.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
     src/nineroutermanager.h \
@@ -28,6 +30,8 @@ SOURCES += \
     src/gitstatus.cpp \
     src/harnessserver.cpp \
     src/harnessconnections.cpp \
+    src/memorystore.cpp \
+    src/autopilot.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
     src/nineroutermanager.cpp \

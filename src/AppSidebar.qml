@@ -121,6 +121,24 @@ Item {
                     active: backend.view === "workspace"
                     onClicked: backend.setView("workspace")
                 }
+                SidebarItem {
+                    Layout.fillWidth: true
+                    compact: root.compact
+                    icon: "icons/spark.svg"
+                    label: qsTr("Mémoire")
+                    hint: qsTr("Mémoire persistante (Ctrl+Alt+M)")
+                    active: backend.view === "memory"
+                    onClicked: backend.setView("memory")
+                }
+                SidebarItem {
+                    Layout.fillWidth: true
+                    compact: root.compact
+                    icon: "icons/reload.svg"
+                    label: qsTr("Autopilote")
+                    hint: qsTr("Tâches autonomes (Ctrl+Alt+A)")
+                    active: backend.view === "autopilot"
+                    onClicked: backend.setView("autopilot")
+                }
                 Text {
                     visible: !root.compact
                     Layout.leftMargin: 18

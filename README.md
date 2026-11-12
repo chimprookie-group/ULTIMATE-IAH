@@ -5,6 +5,10 @@ connexions et votre projet — sans OpenCode.
 
 ![Cockpit Crasy Harness](assets/screenshot-home.png)
 
+![Mémoire persistante](assets/screenshot-memory.png)
+
+![Autopilote](assets/screenshot-autopilot.png)
+
 ## Connexions
 
 ![Connexions du harness](assets/screenshot-connections.png)
@@ -14,6 +18,17 @@ DeepSeek, endpoints OpenAI-compatible, modèles et modèle par défaut. Les clé
 vont dans le credential store DSH, les routes dans un overlay `llm-pi-ai`
 consommé par le harness. 9Router et MausBot restent accessibles comme sources
 et ponts MCP.
+
+## Mémoire et autonomie
+
+- **Mémoire persistante** : SQLite + FTS5, par projet, avec faits, décisions,
+  préférences et résultats. Recherche plein texte, épinglage, intégrité et
+  outils MCP (`memory_search`, `memory_remember`, `memory_recent`) pour le
+  harness interactif.
+- **Autopilote** : file de tâches bornée, exécutée une à une par `dsh headless`
+  dans le workspace, avec mémoire injectée, timeout, reprise et journal. Le
+  mode autonome est désactivé par défaut et s'active explicitement.
+- **Tâches manuelles** : le terminal agent injecte aussi la mémoire pertinente.
 
 ## Le socle
 
@@ -55,6 +70,10 @@ cd pkgbuild && makepkg -f
 
 Le paquet Arch/Omarchy installe le binaire, le `.desktop`, l'icône et les
 licences. Le harness (`dsh`) et le shell restent des dépendances système.
+
+![Mémoire persistante](assets/screenshot-memory.png)
+
+![Autopilote](assets/screenshot-autopilot.png)
 
 ## Connexions
 

@@ -138,7 +138,8 @@ void Backend::applyStartupView() {
     const QString start = m_config->startupView();
     if (start != "home" && start != "ecosystem" && start != "workspace" && start != "harness"
         && start != "terminal" && start != "ninerouter" && start != "mausbot"
-        && start != "connections" && start != "settings")
+        && start != "connections" && start != "memory" && start != "autopilot"
+        && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -182,7 +183,8 @@ bool Backend::autoStartHarness() const { return m_config->autoStartHarness(); }
 void Backend::setStartupView(const QString &view) {
     if (view != "home" && view != "harness" && view != "terminal" && view != "ecosystem"
         && view != "workspace" && view != "ninerouter" && view != "mausbot"
-        && view != "connections" && view != "settings")
+        && view != "connections" && view != "memory" && view != "autopilot"
+        && view != "settings")
         return;
     m_config->setStartupView(view);
     emit optionsChanged();
@@ -196,7 +198,8 @@ void Backend::setAutoStartHarness(bool enabled) {
 void Backend::setView(const QString &view) {
     if (view != "home" && view != "ecosystem" && view != "workspace"
         && view != "ninerouter" && view != "mausbot"
-        && view != "harness" && view != "terminal" && view != "connections" && view != "settings")
+        && view != "harness" && view != "terminal" && view != "connections"
+        && view != "memory" && view != "autopilot" && view != "settings")
         return;
     if (view == m_view)
         return;

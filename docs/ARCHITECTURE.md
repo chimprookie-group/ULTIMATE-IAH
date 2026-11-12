@@ -29,6 +29,18 @@ Crasy Harness est une application Qt 6 / QML, Harness-only, pour Omarchy.
   9Router, MausBot et MCP.
 - Réglages : thème, langue, démarrage, workspace, binaire/profil harness.
 
+## Mémoire et autonomie
+
+- **MemoryStore** : SQLite WAL + FTS5 dans
+  `~/.local/share/Crasy/deepcrasy-h/memory.db`. Recherche, épinglage,
+  intégrité, import/export.
+- **MCP mémoire** : `memory_mcp.py` écrit depuis les ressources de
+  l'application ; patch `mcp-memory.patch.yml` chargé par le harness. Outils
+  `memory_search`, `memory_remember`, `memory_recent`.
+- **Autopilot** : SQLite `autopilot.db`, file de tâches, exécution unique via
+  `dsh headless` (jamais un shell), timeout 30 min, reprise, résultats écrits
+  en mémoire. Autonomie opt-in.
+
 ## Données
 
 - Config : `~/.config/Crasy/deepcrasy-h/config.json`.

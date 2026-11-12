@@ -68,7 +68,11 @@ Item {
         const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
         const env = connections.envPath
         const prefix = "set -a; if [ -f " + shellQuote(env) + " ]; then . " + shellQuote(env) + "; fi; set +a; "
-        terminal.run(prefix + binary + " headless " + shellQuote(text))
+        const context = memory.recall(backend.workspace, text, 8)
+        const full = context !== ""
+              ? "Mémoire persistante du projet (contexte fiable, ne la répète pas) :\n" + context + "\n\nTâche :\n" + text
+              : text
+        terminal.run(prefix + binary + " headless " + shellQuote(full))
         agentInput.text = ""
         Qt.callLater(function () {
             if (!web)

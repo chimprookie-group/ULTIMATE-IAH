@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file alias="mcp/memory_mcp.py">mcp/memory_mcp.py</file>
         <file>Main.qml</file>
         <file>ThemedIcon.qml</file>
         <file>ActionButton.qml</file>
@@ -8,6 +9,8 @@
         <file>HarnessPane.qml</file>
         <file>EcosystemPane.qml</file>
         <file>ConnectionsPane.qml</file>
+        <file>MemoryPane.qml</file>
+        <file>AutopilotPane.qml</file>
         <file>NineRouterPane.qml</file>
         <file>MausBotPane.qml</file>
         <file>WorkspacePane.qml</file>

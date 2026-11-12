@@ -27,6 +27,8 @@
 #include <unistd.h>
 
 #include "backend.h"
+#include "memorystore.h"
+#include "autopilot.h"
 #include "ecosystem.h"
 #include "iconprovider.h"
 #include "nineroutermanager.h"
@@ -151,7 +153,7 @@ int installSkill() {
 
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.23.1"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.24.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -271,6 +273,10 @@ int main(int argc, char *argv[]) {
     NineRouterManager nineRouter;
     MausBotManager mausBot;
     HarnessConnections connections;
+    MemoryStore memory;
+    Autopilot autopilot;
+    autopilot.setMemory(&memory);
+    autopilot.setDshBinary(backend.dshBinary());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
     QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
@@ -279,6 +285,9 @@ int main(int argc, char *argv[]) {
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
     translator.setOverride(backend.languagePreference());
+    QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
+        autopilot.setDshBinary(backend.dshBinary());
+    });
     QObject::connect(&backend, &Backend::languageChanged, &translator, [&backend, &translator] {
         translator.setOverride(backend.languagePreference());
     });
@@ -292,6 +301,8 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("nineRouter", &nineRouter);
     engine.rootContext()->setContextProperty("mausBot", &mausBot);
     engine.rootContext()->setContextProperty("connections", &connections);
+    engine.rootContext()->setContextProperty("memory", &memory);
+    engine.rootContext()->setContextProperty("autopilot", &autopilot);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

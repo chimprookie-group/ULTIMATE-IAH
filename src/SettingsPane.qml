@@ -149,7 +149,9 @@ Item {
                             { "id": "harness", "label": qsTr("Harness") },
                             { "id": "terminal", "label": qsTr("Terminal agent") },
                             { "id": "ecosystem", "label": qsTr("Projet") },
-                            { "id": "workspace", "label": qsTr("Fichiers") }
+                            { "id": "workspace", "label": qsTr("Fichiers") },
+                            { "id": "memory", "label": qsTr("Mémoire") },
+                            { "id": "autopilot", "label": qsTr("Autopilote") }
                         ]
                         Rectangle {
                             width: startupLabel.implicitWidth + 24

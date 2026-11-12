@@ -17,6 +17,8 @@ Item {
         { keys: "Ctrl+6", what: qsTr("Project") },
         { keys: "Ctrl+7", what: qsTr("Files and diffs") },
         { keys: "Ctrl+8", what: qsTr("Harness connections") },
+        { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
+        { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
         { keys: "Ctrl+9", what: qsTr("9Router") },
         { keys: "Ctrl+Shift+M", what: qsTr("MausBot and its MCP bridge") },
         { keys: "Ctrl+4", what: qsTr("Settings") },

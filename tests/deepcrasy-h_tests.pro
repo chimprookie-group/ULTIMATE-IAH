@@ -1,4 +1,4 @@
-QT += network core gui testlib
+QT += network core gui sql testlib
 CONFIG += c++17 testcase
 TARGET = deepcrasy-h_tests
 TEMPLATE = app
@@ -10,6 +10,8 @@ HEADERS += \
     ../src/ecosystem.h \
     ../src/harnessserver.h \
     ../src/harnessconnections.h \
+    ../src/memorystore.h \
+    ../src/autopilot.h \
     ../src/nineroutermanager.h \
     ../src/mausbotmanager.h \
     ../src/terminalsession.h \
@@ -27,8 +29,12 @@ SOURCES += \
     ../src/terminalsession.cpp \
     ../src/harnessserver.cpp \
     ../src/harnessconnections.cpp \
+    ../src/memorystore.cpp \
+    ../src/autopilot.cpp \
     ../src/nineroutermanager.cpp \
     ../src/mausbotmanager.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \
     ../src/translator.cpp
+
+RESOURCES += ../src/resources.qrc

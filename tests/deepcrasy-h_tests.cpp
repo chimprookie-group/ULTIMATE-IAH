@@ -14,6 +14,8 @@
 #include "terminalsession.h"
 #include "harnessserver.h"
 #include "harnessconnections.h"
+#include "memorystore.h"
+#include "autopilot.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -139,6 +141,74 @@ private slots:
 
 
 
+
+    void memoryStoresSearchesAndChecksIntegrity()
+    {
+        QTemporaryDir dir;
+        MemoryStore memory(dir.path() + "/memory.db");
+        QCOMPARE(memory.error(), QString());
+        const int id = memory.remember(dir.path(), "decision", "Choisir SQLite",
+                                       "Mémoire locale avec FTS5", "db,architecture",
+                                       true, 5, "test");
+        QVERIFY(id > 0);
+        QCOMPARE(memory.entries().size(), 1);
+        QCOMPARE(memory.stats().value("total").toInt(), 1);
+
+        memory.search("SQLite", dir.path());
+        QCOMPARE(memory.results().size(), 1);
+        const QVariantMap found = memory.results().at(0).toMap();
+        QCOMPARE(found.value("title").toString(), QString("Choisir SQLite"));
+        QVERIFY(memory.recall(dir.path(), "SQLite", 5).contains("SQLite"));
+
+        QVERIFY(memory.togglePin(id));
+        QVERIFY(memory.removeEntry(id));
+        QCOMPARE(memory.entries().size(), 0);
+        const QVariantMap report = memory.integrityCheck();
+        QCOMPARE(report.value("ok").toBool(), true);
+        QVERIFY2(memory.ensureMcpServer(), qPrintable(memory.error()));
+        QVERIFY(QFileInfo(memory.mcpPatchPath()).isFile());
+        const QString backup = memory.backupNow();
+        QVERIFY2(!backup.isEmpty(), qPrintable(memory.error()));
+        QVERIFY(QFileInfo(backup).isFile());
+    }
+
+    void autopilotPersistsBoundedJobs()
+    {
+        QTemporaryDir dir;
+        Autopilot autopilot(dir.path() + "/autopilot.db");
+        const int id = autopilot.addJob("Vérifier", "Lance les tests puis résume.", 0,
+                                        dir.path(), 3);
+        QVERIFY(id > 0);
+        QCOMPARE(autopilot.jobs().size(), 1);
+        QCOMPARE(autopilot.jobs().at(0).toMap().value("status").toString(), QString("pending"));
+        autopilot.setEnabled(true);
+        QCOMPARE(autopilot.enabled(), true);
+        QVERIFY(autopilot.removeJob(id));
+        QCOMPARE(autopilot.jobs().size(), 0);
+    }
+
+    void autopilotRunsAJobThroughDsh()
+    {
+        QTemporaryDir dir;
+        const QString fake = dir.path() + "/fake-dsh";
+        QFile script(fake);
+        QVERIFY(script.open(QIODevice::WriteOnly));
+        script.write("#!/bin/sh\necho \"AUTOPILOT_OK $2\"\n");
+        script.close();
+        QFile::setPermissions(fake, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+
+        Autopilot autopilot(dir.path() + "/autopilot.db");
+        autopilot.setDshBinary(fake);
+        QSignalSpy completed(&autopilot, &Autopilot::completed);
+        const int id = autopilot.addJob("Test", "Vérifie le runner.", 0, dir.path(), 1);
+        QVERIFY(id > 0);
+        autopilot.runNow(id);
+        QTRY_VERIFY_WITH_TIMEOUT(!autopilot.running(), 5000);
+        QCOMPARE(completed.count(), 1);
+        const QVariantMap job = autopilot.jobs().at(0).toMap();
+        QCOMPARE(job.value("status").toString(), QString("done"));
+        QVERIFY(job.value("lastOutput").toString().contains("AUTOPILOT_OK"));
+    }
 
     void connectionsPersistHarnessProviders()
     {
