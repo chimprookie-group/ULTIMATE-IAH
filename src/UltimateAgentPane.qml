@@ -555,7 +555,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.leftMargin: design.space1
                     Layout.rightMargin: design.space1
-                    Layout.preferredHeight: composerBody.implicitHeight + design.space2
+                    Layout.preferredHeight: composerBody.implicitHeight + design.space4
                     radius: design.radiusLg
                     color: theme.raised
                     border.width: 1
@@ -573,12 +573,15 @@ Item {
                     RowLayout {
                         id: composerBody
                         anchors.fill: parent
-                        anchors.margins: 6
+                        anchors.leftMargin: design.space2
+                        anchors.rightMargin: design.space2
+                        anchors.topMargin: 6
+                        anchors.bottomMargin: design.space3
                         spacing: design.space1
 
                         Rectangle {
                             id: attachButton
-                            Layout.alignment: Qt.AlignBottom
+                            Layout.alignment: Qt.AlignVCenter
                             implicitWidth: 38
                             implicitHeight: 38
                             radius: design.radiusMd
@@ -640,7 +643,7 @@ Item {
                         }
 
                         Rectangle {
-                            Layout.alignment: Qt.AlignBottom
+                            Layout.alignment: Qt.AlignVCenter
                             implicitWidth: 38
                             implicitHeight: 38
                             radius: design.radiusMd
