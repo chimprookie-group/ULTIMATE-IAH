@@ -517,7 +517,9 @@ Item {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.top: parent.top
-                        anchors.topMargin: 12
+                        anchors.leftMargin: 6
+                        anchors.rightMargin: 6
+                        anchors.topMargin: 10
                         visible: composerField.text === ""
                         text: qsTr("Demandez, diagnostiquez ou agissez…")
                         color: theme.dimText
