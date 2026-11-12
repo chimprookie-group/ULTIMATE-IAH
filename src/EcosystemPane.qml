@@ -91,6 +91,7 @@ Item {
                             { name: qsTr("Bots"), detail: bots.serverRunning ? qsTr("%n bot(s) · API locale", "", bots.bots.length) : qsTr("service arrêté"), ok: bots.serverRunning && bots.bots.length > 0, view: "bots", action: qsTr("Ouvrir") },
                             { name: qsTr("Notes"), detail: qsTr("%n note(s) · Markdown local", "", noteStore.count), ok: noteStore.count > 0, view: "notes", action: qsTr("Ouvrir") },
                             { name: qsTr("Plugins"), detail: qsTr("%n outil(s) · ArtCraft", "", plugins.toolCount), ok: plugins.installedCount > 0, view: "plugins", action: qsTr("Ouvrir") },
+                            { name: qsTr("GitHub"), detail: gitHub.authenticated ? qsTr("%1 · %2 dépôt(s)").arg(gitHub.login).arg(gitHub.repositories.length) : qsTr("Non connecté"), ok: gitHub.authenticated, view: "github", action: qsTr("Ouvrir") },
                             { name: qsTr("Recherche web"), detail: web.searchReady ? qsTr("DeepSeek Search") : qsTr("DuckDuckGo"), ok: true, view: "plugins", action: qsTr("Gérer") },
                             { name: qsTr("Installation"), detail: installation.summary !== "" ? installation.summary : qsTr("audit disponible"), ok: installation.failed === 0, view: "installation", action: qsTr("Vérifier") }
                         ]

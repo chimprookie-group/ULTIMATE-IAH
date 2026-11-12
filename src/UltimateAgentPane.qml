@@ -362,8 +362,8 @@ Item {
                                         Layout.fillWidth: true
                                         spacing: design.space2
                                         StatusDot { size: 5; color: modelData.ok ? theme.green : theme.red }
-                                        Text { text: modelData.tool; color: theme.text; font.family: backend.monoFont; font.pixelSize: design.textCaption }
-                                        Text { Layout.fillWidth: true; text: modelData.detail; color: theme.dimText; font.pixelSize: design.textCaption; elide: Text.ElideRight }
+                                        Text { text: modelData.tool || ""; color: theme.text; font.family: backend.monoFont; font.pixelSize: design.textCaption }
+                                        Text { Layout.fillWidth: true; text: modelData.detail || ""; color: theme.dimText; font.pixelSize: design.textCaption; elide: Text.ElideRight }
                                         Text {
                                             text: modelData.expanded ? qsTr("Masquer") : qsTr("Détails")
                                             color: theme.accent
@@ -373,8 +373,8 @@ Item {
                                     }
                                     Text {
                                         Layout.fillWidth: true
-                                        visible: modelData.expanded
-                                        text: modelData.payload
+                                        visible: !!modelData.expanded
+                                        text: modelData.payload || ""
                                         color: theme.dimText
                                         font.family: backend.monoFont
                                         font.pixelSize: design.textMicro

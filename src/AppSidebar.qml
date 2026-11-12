@@ -133,6 +133,7 @@ Item {
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/home.svg"; label: qsTr("Cockpit"); hint: qsTr("Cockpit (Ctrl+0)"); active: backend.view === "home"; onClicked: backend.setView("home") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/branch.svg"; label: qsTr("Écosystème"); hint: qsTr("Écosystème (Ctrl+6)"); active: backend.view === "ecosystem"; onClicked: backend.setView("ecosystem") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/files.svg"; label: qsTr("Fichiers"); hint: qsTr("Fichiers et diffs (Ctrl+7)"); active: backend.view === "workspace"; onClicked: backend.setView("workspace") }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/github.svg"; label: "GitHub"; hint: qsTr("Dépôts et projets GitHub (Ctrl+Alt+H)"); active: backend.view === "github"; onClicked: backend.setView("github") }
                 SidebarItem {
                     Layout.fillWidth: true; compact: root.compact; icon: "icons/connections.svg"; label: qsTr("Providers"); hint: qsTr("Providers et modèles (Ctrl+8)")
                     active: backend.view === "connections"

@@ -4,7 +4,7 @@ Ultimate Agent reçoit ses outils via le registre natif `PluginManager`.
 
 ## Socle DSH
 
-Le registre expose 28 capacités du noyau actives par défaut et 12 extensions
+Le registre expose 29 capacités du noyau actives par défaut et 12 extensions
 expérimentales désactivées, avec leur outil natif ou leur vue. Cette carte est
 la projection native du profil DSH `web` et du bundle `base`.
 

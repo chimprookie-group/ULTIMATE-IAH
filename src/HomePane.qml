@@ -103,7 +103,8 @@ Item {
                             { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" },
                             { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" },
                             { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" },
-                            { label: qsTr("Web"), state: web.searchReady ? "running" : "stopped" }
+                            { label: qsTr("Web"), state: web.searchReady ? "running" : "stopped" },
+                            { label: qsTr("GitHub"), state: gitHub.authenticated ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -487,6 +488,15 @@ Item {
                                 stateColor: web.searchReady ? theme.green : theme.orange
                                 actionLabel: qsTr("Gérer")
                                 onAction: backend.setView("plugins")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("GitHub")
+                                detail: gitHub.authenticated ? qsTr("%1 · %2 dépôt(s)").arg(gitHub.login).arg(gitHub.repositories.length) : qsTr("Non connecté")
+                                stateColor: gitHub.authenticated ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("github")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }

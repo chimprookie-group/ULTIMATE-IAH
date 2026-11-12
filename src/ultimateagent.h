@@ -24,6 +24,7 @@ class MissionRunner;
 class NoteStore;
 class PluginManager;
 class WebService;
+class GitHubService;
 class SkillManager;
 class TerminalSession;
 
@@ -55,7 +56,7 @@ public:
                   AgentManager *agents, MissionRunner *missions,
                   TerminalSession *terminal, InstallationDoctor *installation,
                   ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes,
-                  PluginManager *plugins, WebService *web, QObject *parent = nullptr);
+                  PluginManager *plugins, WebService *web, GitHubService *gitHub, QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
     bool busy() const { return m_busy; }
@@ -167,6 +168,7 @@ private:
     NoteStore *m_notes = nullptr;
     PluginManager *m_plugins = nullptr;
     WebService *m_web = nullptr;
+    GitHubService *m_gitHub = nullptr;
     AgentConversationStore *m_conversations = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;

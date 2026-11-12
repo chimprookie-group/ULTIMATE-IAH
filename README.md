@@ -115,13 +115,24 @@ Ultimate Agent expose deux outils web réels :
 
 Le panneau Plugins expose la carte complète du harness :
 
-- **28 capacités du noyau** actives par défaut : agent loop, sessions, outils,
+- **29 capacités du noyau** actives par défaut : agent loop, sessions, outils,
   fichiers, shell, web search/fetch, MCP, skills, plan, objectifs, jobs,
   sous-agents, planification, token meter, compaction, persona, notes, mémoire,
   providers, ArtCraft, etc.
 - **12 extensions expérimentales** visibles mais désactivées par défaut.
 - Chaque capacité indique son outil natif ou sa vue de contrôle.
 - Les outils réellement installés restent détectés dynamiquement.
+
+## Écosystème GitHub
+
+- Connexion via le CLI `gh` et son keyring, sans lire ni stocker le token.
+- Liste, recherche et sélection des dépôts.
+- Création de projet public/privé, avec clonage optionnel dans le workspace.
+- Clonage d’un dépôt existant.
+- Issues et pull requests, création d’issue.
+- Outils agent `github_status`, `github_repos`, `github_issues`, `github_pulls`,
+  `github_clone`, `github_create_repo`, `github_create_issue`.
+- Vue **GitHub** (Ctrl+Alt+H), intégrée au Cockpit et à l’Écosystème.
 
 ## Plugins et ArtCraft
 
@@ -213,7 +224,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.12.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.13.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

@@ -135,7 +135,7 @@ void Backend::applyStartupView() {
         && start != "terminal"
         && start != "connections" && start != "memory" && start != "autopilot"
         && start != "mcp" && start != "agents" && start != "installation"
-        && start != "agent" && start != "bots" && start != "notes" && start != "plugins" && start != "settings")
+        && start != "agent" && start != "bots" && start != "notes" && start != "github" && start != "plugins" && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -197,7 +197,7 @@ void Backend::setView(const QString &view) {
         && view != "terminal" && view != "connections"
         && view != "memory" && view != "autopilot" && view != "mcp"
         && view != "agents" && view != "installation" && view != "agent"
-        && view != "bots" && view != "notes" && view != "plugins" && view != "settings")
+        && view != "bots" && view != "notes" && view != "github" && view != "plugins" && view != "settings")
         return;
     if (view == m_view)
         return;

@@ -25,6 +25,8 @@ Application Qt 6 / QML native agentique pour Omarchy.
   activation persistante, manifestes externes et outils dynamiques du harness.
 - **NoteStore / NoteGraph** : vault Markdown, index SQLite, wikilinks,
   backlinks et graphe force-directed.
+- **GitHubService** : connexion gh, dépôts, création/clonage, issues et PR,
+  outils agent et vue GitHub.
 - **WebService** : web_search native (DeepSeek Search, secours DuckDuckGo),
   web_fetch borné, cache et protection des redirections cross-origin.
 

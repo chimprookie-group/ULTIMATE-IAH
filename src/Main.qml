@@ -38,6 +38,7 @@ ApplicationWindow {
         if (backend.view === "agent") return qsTr("Ultimate Agent")
         if (backend.view === "bots") return qsTr("Bots")
         if (backend.view === "notes") return qsTr("Notes")
+        if (backend.view === "github") return qsTr("GitHub")
         if (backend.view === "plugins") return qsTr("Plugins")
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
@@ -111,6 +112,7 @@ ApplicationWindow {
         add(qsTr("Agent"), qsTr("Ultimate Agent"), "Ctrl+Alt+U", "view:agent", "icons/spark.svg")
         add(qsTr("Agent"), qsTr("Bots"), "Ctrl+Alt+B", "view:bots", "icons/agents.svg")
         add(qsTr("Connaissance"), qsTr("Notes"), "Ctrl+Alt+N", "view:notes", "icons/notes.svg")
+        add(qsTr("Opérer"), qsTr("GitHub"), "Ctrl+Alt+H", "view:github", "icons/github.svg")
         add(qsTr("Système"), qsTr("Plugins"), "Ctrl+Alt+P", "view:plugins", "icons/plug.svg")
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
@@ -181,6 +183,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
     Shortcut { sequence: "Ctrl+Alt+B"; context: Qt.ApplicationShortcut; onActivated: backend.setView("bots") }
     Shortcut { sequence: "Ctrl+Alt+N"; context: Qt.ApplicationShortcut; onActivated: backend.setView("notes") }
+    Shortcut { sequence: "Ctrl+Alt+H"; context: Qt.ApplicationShortcut; onActivated: backend.setView("github") }
     Shortcut { sequence: "Ctrl+Alt+P"; context: Qt.ApplicationShortcut; onActivated: backend.setView("plugins") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
@@ -444,6 +447,11 @@ ApplicationWindow {
                 NotesPane {
                     anchors.fill: parent
                     visible: backend.view === "notes"
+                }
+
+                GitHubPane {
+                    anchors.fill: parent
+                    visible: backend.view === "github"
                 }
 
                 PluginsPane {
