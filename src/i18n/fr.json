@@ -824,5 +824,8 @@
   "Que veux-tu faire ?": "Que veux-tu faire ?",
   "Réparer": "Réparer",
   "Ultimate Agent connaît l'état réel d'Ultimate IAH et peut agir sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.": "Ultimate Agent connaît l'état réel d'Ultimate IAH et peut agir sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.",
-  "État réel du système": "État réel du système"
+  "État réel du système": "État réel du système",
+  "Ecosystem": "Écosystème",
+  "Molette pour parcourir · Échap pour fermer": "Molette pour parcourir · Échap pour fermer",
+  "Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless.": "Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless."
 }

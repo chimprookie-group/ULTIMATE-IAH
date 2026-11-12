@@ -824,5 +824,8 @@
   "Que veux-tu faire ?": "What next?",
   "Réparer": "Repair",
   "Ultimate Agent connaît l'état réel d'Ultimate IAH et peut agir sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.": "Ultimate Agent knows the real state of Ultimate IAH and can act on DSH, providers, MCP, memory, skills, terminal and installation.",
-  "État réel du système": "Real system state"
+  "État réel du système": "Real system state",
+  "Ecosystem": "Ecosystem",
+  "Molette pour parcourir · Échap pour fermer": "Scroll to browse · Esc to close",
+  "Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless.": "Everything works from the keyboard. The harness keeps its page; the terminal stays a real shell and runs tasks through dsh headless."
 }
