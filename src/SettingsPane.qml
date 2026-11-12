@@ -134,15 +134,15 @@ Item {
                         color: theme.text
                     }
                     Text {
-                        text: qsTr("One workspace, two engines, nothing hidden.")
+                        text: qsTr("Un espace de travail, un harness, un terminal agent.")
                         font.pixelSize: 12
                         color: theme.mutedText
                     }
                 }
 
                 ActionButton {
-                    text: qsTr("Back to chat")
-                    onClicked: backend.setView("opencode")
+                    text: qsTr("Retour au cockpit")
+                    onClicked: backend.setView("home")
                 }
             }
 
@@ -259,10 +259,8 @@ Item {
                         model: [
                             { "id": "last", "label": qsTr("Last view") },
                             { "id": "home", "label": qsTr("Home") },
-                            { "id": "opencode", "label": qsTr("Chat") },
                             { "id": "harness", "label": qsTr("Harness") },
-                            { "id": "split", "label": qsTr("Split") },
-                            { "id": "terminal", "label": qsTr("Terminal") },
+                            { "id": "terminal", "label": qsTr("Terminal agent") },
                             { "id": "ecosystem", "label": qsTr("Ecosystem") },
                             { "id": "workspace", "label": qsTr("Workspace") }
                         ]
@@ -331,30 +329,6 @@ Item {
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 1
-                        Text {
-                            text: qsTr("Launch OpenCode on startup")
-                            color: theme.text
-                            font.pixelSize: 11
-                        }
-                        Text {
-                            text: qsTr("Starts opencode acp with the window.")
-                            color: theme.dimText
-                            font.pixelSize: 9
-                        }
-                    }
-                    Switch {
-                        checked: backend.autoStartOpencode
-                        onToggled: backend.setAutoStartOpencode(checked)
-                    }
-                }
-
                 Rectangle {
                     Layout.fillWidth: true
                     height: 1
@@ -410,6 +384,7 @@ Item {
             }
 
             SettingsSection {
+                visible: false
                 title: qsTr("Work profiles")
                 width: content.width
 
@@ -501,6 +476,7 @@ Item {
             }
 
             SettingsSection {
+                visible: false
                 title: qsTr("Connections")
                 width: content.width
 
@@ -658,6 +634,7 @@ Item {
             }
 
             SettingsSection {
+                visible: false
                 title: qsTr("MCP servers")
                 width: content.width
 
@@ -1084,7 +1061,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Both engines start in this folder. Changing it restarts the harness and opens a new OpenCode session there.")
+                    text: qsTr("Le harness travaille dans ce dossier. Le changer redémarre le harness et le terminal agent.")
                     wrapMode: Text.Wrap
                     color: theme.dimText
                     font.pixelSize: 10
@@ -1216,6 +1193,7 @@ Item {
             }
 
             SettingsSection {
+                visible: false
                 title: qsTr("OpenCode")
                 width: content.width
 
@@ -1306,7 +1284,7 @@ Item {
                     spacing: 10
                     Text {
                         Layout.fillWidth: true
-                        text: "DeepCrasy H " + backend.appVersion
+                        text: "Crasy Harness " + backend.appVersion
                         color: theme.text
                         font.pixelSize: 12
                     }
@@ -1319,7 +1297,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Harness and OpenCode stay separate processes. DeepCrasy H only owns their lifecycle and the window around them.")
+                    text: qsTr("Le harness et son terminal agent restent des processus séparés. Crasy Harness possède leur cycle de vie et la fenêtre.")
                     wrapMode: Text.Wrap
                     color: theme.dimText
                     font.pixelSize: 10
@@ -1327,7 +1305,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Shortcuts: Ctrl+1 harness · Ctrl+2 chat · Ctrl+3 split · Ctrl+4 settings · Ctrl+L composer · ? help")
+                    text: qsTr("Raccourcis : Ctrl+0 cockpit · Ctrl+1 harness · Ctrl+2 terminal agent · Ctrl+4 réglages · Ctrl+K palette · ? aide")
                     wrapMode: Text.Wrap
                     color: theme.dimText
                     font.pixelSize: 10

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=DeepCrasy H
-Name[fr]=DeepCrasy H
-Comment=DeepSeek Harness and OpenCode in one window
-Comment[fr]=DeepSeek Harness et OpenCode dans une seule fenêtre
+Name=Crasy Harness
+Name[fr]=Crasy Harness
+Comment=DeepSeek Harness cockpit and terminal agent
+Comment[fr]=Cockpit DeepSeek Harness et terminal agent
 Exec=deepcrasy-h %f
 Icon=deepcrasy-h
 Terminal=false

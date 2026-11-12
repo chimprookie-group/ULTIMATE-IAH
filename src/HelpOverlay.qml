@@ -13,20 +13,13 @@ Item {
         { keys: "Ctrl+0", what: qsTr("Crasy Harness cockpit") },
         { keys: "Ctrl+K", what: qsTr("Command palette") },
         { keys: "Ctrl+1", what: qsTr("DeepSeek Harness") },
-        { keys: "Ctrl+2", what: qsTr("OpenCode chat") },
-        { keys: "Ctrl+5", what: qsTr("Terminal") },
-        { keys: "Ctrl+6", what: qsTr("Ecosystem") },
-        { keys: "Ctrl+7", what: qsTr("Workspace files and diffs") },
-        { keys: "Ctrl+8", what: qsTr("Providers and API keys") },
-        { keys: "Ctrl+9", what: qsTr("9Router, OpenCode and harness") },
+        { keys: "Ctrl+2", what: qsTr("Terminal agent") },
+        { keys: "Ctrl+6", what: qsTr("Project") },
+        { keys: "Ctrl+7", what: qsTr("Files and diffs") },
+        { keys: "Ctrl+9", what: qsTr("9Router") },
         { keys: "Ctrl+Shift+M", what: qsTr("MausBot and its MCP bridge") },
-        { keys: "Ctrl+3", what: qsTr("Split view") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
-        { keys: "Ctrl+Enter", what: qsTr("Send the message") },
-        { keys: "Shift+Enter", what: qsTr("New line in the composer") },
-        { keys: "Ctrl+N", what: qsTr("New OpenCode session") },
-        { keys: "Ctrl+M", what: qsTr("Choose the model") },
-        { keys: "Ctrl+L", what: qsTr("Focus the composer") },
+        { keys: "Ctrl+Enter", what: qsTr("Run a harness task in the terminal") },
         { keys: "Ctrl+R", what: qsTr("Restart the harness") },
         { keys: "?", what: qsTr("This help") },
         { keys: "Q", what: qsTr("Quit") }
@@ -80,7 +73,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Everything works from the keyboard. The harness keeps its page when you switch views; OpenCode keeps its transcript.")
+                text: qsTr("Everything works from the keyboard. The harness keeps its page; the terminal stays your real shell and runs harness tasks with dsh headless.")
                 wrapMode: Text.Wrap
                 color: theme.mutedText
                 font.pixelSize: 11

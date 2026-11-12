@@ -73,14 +73,6 @@ Item {
         selectedModels = next
     }
 
-    function applyOpenCode() {
-        if (selectedModels.length === 0) {
-            root.hostWindow.showToast(qsTr("Select at least one model."))
-            return
-        }
-        nineRouter.applyToOpenCode(selectedModels)
-    }
-
     function applyHarness() {
         if (selectedModels.length === 0) {
             root.hostWindow.showToast(qsTr("Select at least one model."))
@@ -99,11 +91,6 @@ Item {
         target: nineRouter
 
         function onModelsChanged() { root.ensureSelection() }
-
-        function onOpenCodeApplied() {
-            backend.restartOpencode()
-            root.hostWindow.showToast(qsTr("9Router is now an OpenCode provider."))
-        }
 
         function onHarnessApplied() {
             backend.restartHarness()
@@ -291,7 +278,7 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             text: nineRouter.installed
-                                  ? qsTr("Start the local router, then configure your providers in its dashboard. DeepCrasy H can expose its models to OpenCode and the harness.")
+                                  ? qsTr("Start the local router, then configure your providers in its dashboard. DeepCrasy H exposes its models to the harness.")
                                   : qsTr("9Router is a local AI router that connects 40+ providers and keeps one OpenAI-compatible endpoint. Install it locally inside DeepCrasy H; no root access and no global npm change.")
                             color: theme.mutedText
                             font.pixelSize: 10
@@ -424,7 +411,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("The dashboard is where you connect providers. Here you choose the models exposed to OpenCode and the harness.")
+                        text: qsTr("The dashboard is where you connect providers. Here you choose the models exposed to the harness.")
                         color: theme.dimText
                         font.pixelSize: 9
                         wrapMode: Text.Wrap
@@ -626,19 +613,10 @@ Item {
                         font.pixelSize: 9
                     }
 
-                    RowLayout {
+                    ActionButton {
                         Layout.fillWidth: true
-                        spacing: 4
-                        ActionButton {
-                            Layout.fillWidth: true
-                            text: qsTr("OpenCode")
-                            onClicked: root.applyOpenCode()
-                        }
-                        ActionButton {
-                            Layout.fillWidth: true
-                            text: qsTr("Harness")
-                            onClicked: root.applyHarness()
-                        }
+                        text: qsTr("Appliquer au harness")
+                        onClicked: root.applyHarness()
                     }
 
                     Button {

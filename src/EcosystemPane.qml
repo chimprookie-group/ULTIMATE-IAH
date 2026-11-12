@@ -7,8 +7,7 @@ Item {
     id: root
 
     signal commandRequested(string command)
-    signal promptRequested(string prompt)
-    signal openSessions()
+    signal agentTaskRequested(string prompt)
 
     readonly property int contentWidth: Math.max(320, Math.min(980, width - 64))
     readonly property int cardWidth: contentWidth >= 760 ? Math.floor((contentWidth - 12) / 2) : contentWidth
@@ -19,9 +18,6 @@ Item {
         else
             ecosystem.refresh(backend.workspace)
         backend.refreshGit()
-        mcp.refresh()
-        if (backend.opencodeState === "ready")
-            backend.refreshSessions()
     }
 
     function availableTools() {
@@ -63,10 +59,6 @@ Item {
                     : qsTr("clean")
             text += "\n" + qsTr("- Git: %1").arg(backend.gitBranch + " · " + state)
         }
-        if (backend.currentModel !== "")
-            text += "\n" + qsTr("- OpenCode model: %1 · %2").arg(backend.currentModel).arg(backend.currentMode)
-        if (mcp.servers.length > 0)
-            text += "\n" + qsTr("- MCP servers: %n", "", mcp.servers.length)
         return text
     }
 
@@ -87,7 +79,7 @@ Item {
     }
 
     function useSkill(skill) {
-        promptRequested(qsTr("Use the « %1 » skill from %2 to help me on this project. Start by telling me what it brings and what you need.").arg(skill.name).arg(skill.path))
+        agentTaskRequested(qsTr("Use the « %1 » skill from %2 to help me on this project. Start by telling me what it brings and what you need.").arg(skill.name).arg(skill.path))
     }
 
     function connectProvider() {
@@ -180,9 +172,7 @@ Item {
                     model: [
                         { "label": ecosystem.project.label !== undefined ? ecosystem.project.label : qsTr("workspace") },
                         { "label": qsTr("%n tool(s) ready", "", root.availableTools()) },
-                        { "label": qsTr("%n skill(s)", "", ecosystem.skills.length) },
-                        { "label": qsTr("%n model(s)", "", ecosystem.models.length > 0 ? ecosystem.models.length : backend.modelOptions.length) },
-                        { "label": qsTr("%n MCP server(s)", "", mcp.servers.length) }
+                        { "label": qsTr("%n skill(s)", "", ecosystem.skills.length) }
                     ]
 
                     Rectangle {
@@ -275,7 +265,7 @@ Item {
 
                     ActionButton {
                         text: qsTr("Inject project context")
-                        onClicked: root.promptRequested(root.contextBrief())
+                        onClicked: root.agentTaskRequested(root.contextBrief())
                     }
 
                     Flow {
@@ -296,7 +286,7 @@ Item {
                                 text: modelData.label
                                 flat: true
                                 font.pixelSize: 10
-                                onClicked: root.promptRequested(root.recipePrompt(modelData.id))
+                                onClicked: root.agentTaskRequested(root.recipePrompt(modelData.id))
                             }
                         }
                     }
@@ -400,6 +390,7 @@ Item {
                 }
 
                 HomeCard {
+                    visible: false
                     title: qsTr("Models")
                     icon: "icons/spark.svg"
                     accent: theme.orange
@@ -468,6 +459,7 @@ Item {
                 }
 
                 HomeCard {
+                    visible: false
                     title: qsTr("MCP and sessions")
                     icon: "icons/plug.svg"
                     accent: theme.green
@@ -534,11 +526,6 @@ Item {
                                 onClicked: root.useSession(modelData)
                             }
                         }
-                    }
-                    Button {
-                        text: qsTr("All sessions")
-                        flat: true
-                        onClicked: root.openSessions()
                     }
                 }
             }

@@ -60,7 +60,7 @@ private slots:
             Config config(path);
             config.setWorkspace(dir.path());
             config.setHarnessProfile("custom");
-            config.setView("split");
+            config.setView("terminal");
             config.setTheme("tokyo-night");
             config.setLanguage("fr");
             config.setStartupView("home");
@@ -72,7 +72,7 @@ private slots:
         Config reloaded(path);
         QCOMPARE(reloaded.workspace(), QFileInfo(dir.path()).absoluteFilePath());
         QCOMPARE(reloaded.harnessProfile(), QString("custom"));
-        QCOMPARE(reloaded.view(), QString("split"));
+        QCOMPARE(reloaded.view(), QString("terminal"));
         QCOMPARE(reloaded.theme(), QString("tokyo-night"));
         QCOMPARE(reloaded.language(), QString("fr"));
         QCOMPARE(reloaded.startupView(), QString("home"));
@@ -95,9 +95,9 @@ private slots:
     {
         QTemporaryDir dir;
         Config config(dir.path() + "/config.json");
-        config.setView("opencode");
+        config.setView("harness");
         config.setView("bogus");
-        QCOMPARE(config.view(), QString("opencode"));
+        QCOMPARE(config.view(), QString("harness"));
     }
 
     void gitStatusParsesBranchAndChanges()

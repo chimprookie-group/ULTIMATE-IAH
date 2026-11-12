@@ -56,10 +56,10 @@ Item {
                         RowLayout {
                             spacing: 3
                             Text { text: "Crasy"; color: theme.text; font.family: "iA Writer Duospace"; font.pixelSize: 16; font.weight: Font.Bold }
-                            Text { text: "H"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: 16; font.weight: Font.Bold }
+                            Text { text: "Harness"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: 16; font.weight: Font.Bold }
                         }
                         Text {
-                            text: qsTr("HARNESS · OPENCODE · APPS")
+                            text: qsTr("DEEPSEEK HARNESS")
                             color: theme.dimText
                             font.pixelSize: 7
                             font.letterSpacing: 0.9
@@ -121,16 +121,6 @@ Item {
                     active: backend.view === "workspace"
                     onClicked: backend.setView("workspace")
                 }
-                SidebarItem {
-                    Layout.fillWidth: true
-                    compact: root.compact
-                    icon: "icons/terminal.svg"
-                    label: qsTr("Terminal")
-                    hint: qsTr("Terminal (Ctrl+5)")
-                    active: backend.view === "terminal"
-                    onClicked: backend.setView("terminal")
-                }
-
                 Text {
                     visible: !root.compact
                     Layout.leftMargin: 18
@@ -157,28 +147,12 @@ Item {
                 SidebarItem {
                     Layout.fillWidth: true
                     compact: root.compact
-                    icon: "icons/chat.svg"
-                    label: "OpenCode"
-                    hint: qsTr("OpenCode (Ctrl+2)")
-                    active: backend.view === "opencode"
-                    statusColor: backend.opencodeState === "ready" ? theme.green
-                               : (backend.opencodeState === "starting" ? theme.yellow : theme.dimText)
-                    onClicked: backend.setView("opencode")
-                }
-                SidebarItem {
-                    Layout.fillWidth: true
-                    compact: root.compact
-                    icon: "icons/split.svg"
-                    label: qsTr("Split")
-                    hint: qsTr("Les deux panes (Ctrl+3)")
-                    active: backend.view === "split"
-                    onClicked: {
-                        if (win.compact) {
-                            win.showToast(qsTr("Split view needs a window at least 1180 px wide."))
-                            return
-                        }
-                        backend.setView("split")
-                    }
+                    icon: "icons/terminal.svg"
+                    label: qsTr("Terminal agent")
+                    hint: qsTr("Terminal agent (Ctrl+2)")
+                    active: backend.view === "terminal"
+                    statusColor: terminal.running ? theme.green : theme.dimText
+                    onClicked: backend.setView("terminal")
                 }
 
                 Text {
@@ -186,22 +160,13 @@ Item {
                     Layout.leftMargin: 18
                     Layout.topMargin: 14
                     Layout.bottomMargin: 3
-                    text: qsTr("INTÉGRATIONS")
+                    text: qsTr("CONNEXIONS")
                     color: theme.dimText
                     font.pixelSize: 7
                     font.letterSpacing: 1.1
                     font.weight: Font.DemiBold
                 }
 
-                SidebarItem {
-                    Layout.fillWidth: true
-                    compact: root.compact
-                    icon: "icons/providers.svg"
-                    label: qsTr("Providers")
-                    hint: qsTr("Providers et clés (Ctrl+8)")
-                    active: backend.view === "providers"
-                    onClicked: backend.setView("providers")
-                }
                 SidebarItem {
                     Layout.fillWidth: true
                     compact: root.compact

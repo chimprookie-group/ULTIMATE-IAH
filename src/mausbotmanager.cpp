@@ -503,7 +503,7 @@ void MausBotManager::connectMcp() {
         return;
     }
     QString error;
-    if (!writeOpenCodeMcp(&error) || !writeHarnessPatch(&error)) {
+    if (!writeHarnessPatch(&error)) {
         setError(error);
         return;
     }
@@ -517,10 +517,6 @@ void MausBotManager::connectMcp() {
 
 void MausBotManager::disconnectMcp() {
     QString error;
-    if (!removeOpenCodeMcp(&error)) {
-        setError(error);
-        return;
-    }
     QFile::remove(harnessPatchPath());
     QFile::remove(m_configDir + "/openmausbot.enabled");
     refresh();

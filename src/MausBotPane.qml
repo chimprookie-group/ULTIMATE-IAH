@@ -59,7 +59,7 @@ Item {
         function onMcpConnected() {
             backend.restartOpencode()
             backend.restartHarness()
-            root.hostWindow.showToast(qsTr("MausBot MCP connected to OpenCode and the harness."))
+            root.hostWindow.showToast(qsTr("MausBot MCP connected to the harness."))
         }
         function onMcpDisconnected() {
             backend.restartOpencode()
@@ -383,28 +383,12 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Expose the MausBot team to OpenCode and the harness through its stdio MCP server. Tools appear as mcp__openmausbot__*.")
+                        text: qsTr("Expose the MausBot team to the harness through its stdio MCP server. Tools appear as mcp__openmausbot__*.")
                         color: theme.dimText
                         font.pixelSize: 9
                         wrapMode: Text.Wrap
                     }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-                        StatusDot { color: mausBot.mcpOpenCode ? theme.green : theme.dimText }
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("OpenCode MCP")
-                            color: theme.text
-                            font.pixelSize: 10
-                        }
-                        Text {
-                            text: mausBot.mcpOpenCode ? qsTr("registered") : qsTr("not registered")
-                            color: mausBot.mcpOpenCode ? theme.green : theme.dimText
-                            font.pixelSize: 8
-                        }
-                    }
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
@@ -432,7 +416,7 @@ Item {
 
                     ActionButton {
                         Layout.fillWidth: true
-                        text: qsTr("Connect to OpenCode + harness")
+                        text: qsTr("Connect to harness")
                         onClicked: mausBot.connectMcp()
                     }
                     Button {

@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 720
     minimumHeight: 600
     visible: true
-    title: backend.demo ? qsTr("DeepCrasy H") : "DeepCrasy H — " + backend.workspaceName
+    title: backend.demo ? qsTr("Crasy Harness") : "Crasy Harness — " + backend.workspaceName
     color: theme.background
     background: Rectangle {
         gradient: Gradient {
@@ -35,13 +35,10 @@ ApplicationWindow {
         if (backend.view === "home") return qsTr("Cockpit")
         if (backend.view === "ecosystem") return qsTr("Projet")
         if (backend.view === "workspace") return qsTr("Fichiers")
-        if (backend.view === "providers") return qsTr("Providers")
         if (backend.view === "ninerouter") return "9Router"
         if (backend.view === "mausbot") return "MausBot"
         if (backend.view === "harness") return qsTr("Harness")
-        if (backend.view === "opencode") return "OpenCode"
-        if (backend.view === "split") return qsTr("Split")
-        if (backend.view === "terminal") return qsTr("Terminal")
+        if (backend.view === "terminal") return qsTr("Terminal agent")
         if (backend.view === "settings") return qsTr("Réglages")
         return "DeepCrasy H"
     }
@@ -54,9 +51,6 @@ ApplicationWindow {
     property bool forceQuit: false
     property bool terminalFocused: false
 
-    // Split only works when both panes get a usable width. In a tiled
-    // half-screen window it would squeeze the chat below 400 px, so fall back
-    // to the chat and say why.
     readonly property bool compact: width < 1180
 
     function showToast(message) {
@@ -64,11 +58,21 @@ ApplicationWindow {
         toastTimer.restart()
     }
 
+    function shellQuote(value) {
+        return "'" + String(value).replace(/'/g, "'\\''") + "'"
+    }
+
+    function runAgentTask(prompt) {
+        const text = String(prompt).trim()
+        if (text === "")
+            return
+        const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
+        backend.setView("terminal")
+        terminal.run(binary + " headless " + shellQuote(text))
+    }
+
     function requestQuit() {
-        if (backend.busy && !win.forceQuit)
-            win.quitConfirm = true
-        else
-            Qt.quit()
+        Qt.quit()
     }
 
     function stateColor(state) {
@@ -88,24 +92,19 @@ ApplicationWindow {
         }
 
         add(qsTr("Navigation"), qsTr("Home"), "Ctrl+0", "view:home", "icons/home.svg")
+        add(qsTr("Navigation"), qsTr("Cockpit"), "Ctrl+0", "view:home", "icons/home.svg")
         add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/harness.svg")
-        add(qsTr("Navigation"), "OpenCode", "Ctrl+2", "view:opencode", "icons/chat.svg")
-        add(qsTr("Navigation"), qsTr("Terminal"), "Ctrl+5", "view:terminal", "icons/terminal.svg")
-        add(qsTr("Navigation"), qsTr("Ecosystem"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
-        add(qsTr("Navigation"), qsTr("Workspace"), "Ctrl+7", "view:workspace", "icons/files.svg")
-        add(qsTr("Navigation"), qsTr("Providers"), "Ctrl+8", "view:providers", "icons/providers.svg")
+        add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
+        add(qsTr("Navigation"), qsTr("Projet"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
+        add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
         add(qsTr("Navigation"), "MausBot", "Ctrl+Shift+M", "view:mausbot", "icons/mausbot.svg")
-        add(qsTr("Navigation"), qsTr("Split"), "Ctrl+3", "view:split", "icons/split.svg")
-        add(qsTr("Navigation"), qsTr("Settings"), "Ctrl+4", "view:settings", "icons/gear.svg")
+        add(qsTr("Navigation"), qsTr("Réglages"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
-        add(qsTr("Actions"), qsTr("New OpenCode session"), "Ctrl+N", "action:new-session", "icons/plus.svg")
         add(qsTr("Actions"), qsTr("Restart the harness"), "Ctrl+R", "action:restart-harness", "icons/reload.svg")
-        add(qsTr("Actions"), qsTr("Restart OpenCode"), "", "action:restart-opencode", "icons/reload.svg")
         add(qsTr("Actions"), qsTr("Change workspace"), "", "action:workspace", "icons/folder.svg")
         add(qsTr("Actions"), qsTr("Run diagnostics"), "", "action:diagnostics", "icons/plug.svg")
-        add(qsTr("Actions"), qsTr("MCP servers"), "", "action:mcp", "icons/plug.svg")
-        add(qsTr("Actions"), qsTr("Project context"), "", "action:context", "icons/ecosystem.svg")
+        add(qsTr("Actions"), qsTr("Harness connections"), "", "action:mcp", "icons/plug.svg")
         add(qsTr("Actions"), qsTr("Open the harness in a browser"), "", "action:browser", "icons/external.svg")
         add(qsTr("Actions"), qsTr("Show shortcuts"), "?", "action:shortcuts", "icons/help.svg")
 
@@ -121,15 +120,6 @@ ApplicationWindow {
         add(qsTr("Language"), "Français", "", "lang:fr", "icons/globe.svg")
         add(qsTr("Language"), "English", "", "lang:en", "icons/globe.svg")
 
-        for (let i = 0; i < Math.min(6, backend.sessions.length); ++i) {
-            const session = backend.sessions[i]
-            const title = backend.sessionLabel(session)
-            const date = session.updatedAt !== undefined
-                ? Qt.formatDateTime(new Date(session.updatedAt), "d MMM")
-                : ""
-            add(qsTr("Sessions"), title, date, "session:" + session.sessionId, "icons/history.svg")
-        }
-
         return list
     }
 
@@ -140,16 +130,8 @@ ApplicationWindow {
             backend.setTheme(id.substring(6))
         } else if (id.indexOf("lang:") === 0) {
             backend.setLanguage(id.substring(5))
-        } else if (id.indexOf("session:") === 0) {
-            backend.loadSession(id.substring(8))
-            backend.setView("opencode")
-        } else if (id === "action:new-session") {
-            backend.newSession()
-            backend.setView("opencode")
         } else if (id === "action:restart-harness") {
             backend.restartHarness()
-        } else if (id === "action:restart-opencode") {
-            backend.restartOpencode()
         } else if (id === "action:workspace") {
             backend.pickWorkspace()
         } else if (id === "action:diagnostics") {
@@ -161,36 +143,23 @@ ApplicationWindow {
                 Qt.openUrlExternally(backend.harnessUrl)
         } else if (id === "action:mcp") {
             backend.setView("settings")
-        } else if (id === "action:context") {
-            ecosystem.refresh(backend.workspace)
-            backend.setView("opencode")
-            Qt.callLater(function () { chatPane.suggest(ecosystem.brief()) })
         } else if (id === "action:shortcuts") {
             win.helpVisible = true
         }
     }
 
-    // One WebEngineView and one ChatPane live for the whole session, so the
-    // harness keeps its page and OpenCode keeps its transcript when the user
-    // moves between single and split layouts.
+    // The harness WebEngine lives for the whole session and is unloaded while
+    // another view is active.
 
     Shortcut { sequence: "Ctrl+0"; context: Qt.ApplicationShortcut; onActivated: backend.setView("home") }
     Shortcut { sequence: "Ctrl+1"; context: Qt.ApplicationShortcut; onActivated: backend.setView("harness") }
-    Shortcut { sequence: "Ctrl+2"; context: Qt.ApplicationShortcut; onActivated: backend.setView("opencode") }
-    Shortcut { sequence: "Ctrl+3"; context: Qt.ApplicationShortcut; onActivated: backend.setView("split") }
+    Shortcut { sequence: "Ctrl+2"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("settings") }
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
-    Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("providers") }
     Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
     Shortcut { sequence: "Ctrl+Shift+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mausbot") }
-    Shortcut {
-        sequence: "Ctrl+N"
-        context: Qt.ApplicationShortcut
-        enabled: !win.terminalFocused
-        onActivated: backend.newSession()
-    }
     Shortcut {
         sequence: "Ctrl+K"
         context: Qt.ApplicationShortcut
@@ -202,12 +171,6 @@ ApplicationWindow {
         context: Qt.ApplicationShortcut
         enabled: !win.typing && !win.terminalFocused
         onActivated: backend.restartHarness()
-    }
-    Shortcut {
-        sequence: "Ctrl+L"
-        context: Qt.ApplicationShortcut
-        enabled: !win.terminalFocused
-        onActivated: chatPane.focusComposer()
     }
     Shortcut { sequence: "Ctrl+Q"; context: Qt.ApplicationShortcut; onActivated: win.requestQuit() }
     Shortcut {
@@ -231,17 +194,12 @@ ApplicationWindow {
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
-        enabled: win.helpVisible || sessionsPanel.opened || win.quitConfirm
-                 || commandPalette.opened || backend.permission.requestId !== undefined
+        enabled: win.helpVisible || win.quitConfirm || commandPalette.opened
         onActivated: {
             if (commandPalette.opened)
                 commandPalette.close()
-            else if (backend.permission.requestId !== undefined)
-                backend.respondPermission("")
             else if (win.helpVisible)
                 win.helpVisible = false
-            else if (sessionsPanel.opened)
-                sessionsPanel.close()
             else if (win.quitConfirm)
                 win.quitConfirm = false
         }
@@ -250,22 +208,10 @@ ApplicationWindow {
     Component.onCompleted: {
         if (Qt.application.arguments.indexOf("--palette") !== -1)
             Qt.callLater(function () { commandPalette.open() })
-        if (Qt.application.arguments.indexOf("--auth-demo") !== -1)
-            Qt.callLater(function () { mcp.authenticate("crasy-remote", "global") })
-    }
-
-    onCompactChanged: {
-        if (compact && backend.view === "split") {
-            backend.setView("opencode")
-            showToast(qsTr("Split view needs a window at least 1180 px wide."))
-        }
     }
 
     onClosing: function (close) {
-        if (backend.busy && !win.forceQuit) {
-            close.accepted = false
-            win.quitConfirm = true
-        }
+        close.accepted = true
     }
 
     ColumnLayout {
@@ -356,18 +302,6 @@ ApplicationWindow {
                     onClicked: commandPalette.open()
                 }
                 IconButton {
-                    icon: "icons/split.svg"
-                    hint: qsTr("Split view (Ctrl+3)")
-                    active: backend.view === "split"
-                    onClicked: {
-                        if (win.compact) {
-                            win.showToast(qsTr("Split view needs a window at least 1180 px wide."))
-                            return
-                        }
-                        backend.setView(backend.view === "split" ? "opencode" : "split")
-                    }
-                }
-                IconButton {
                     icon: "icons/help.svg"
                     hint: qsTr("Keyboard shortcuts (?)")
                     onClicked: win.helpVisible = true
@@ -391,49 +325,14 @@ ApplicationWindow {
                     spacing: 0
                     visible: backend.view !== "settings" && backend.view !== "home"
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
-                             && backend.view !== "workspace" && backend.view !== "providers"
+                             && backend.view !== "workspace"
                              && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
                         id: harnessPane
-                        visible: backend.view === "harness" || backend.view === "split"
+                        visible: backend.view === "harness"
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: backend.view === "split" ? win.contentWidth * backend.splitRatio : win.contentWidth
-                    }
-
-                    Rectangle {
-                        visible: backend.view === "split"
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        color: theme.border
-                    }
-
-                    ChatPane {
-                        id: chatPane
-                        visible: backend.view === "opencode" || backend.view === "split"
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: backend.view === "split" ? win.contentWidth * (1 - backend.splitRatio) : win.contentWidth
-                        onOpenSessions: sessionsPanel.open()
-                        onChangeModelRequested: chatPane.openModelPicker()
-                        onConnectProviderRequested: {
-                            const raw = backend.currentModel
-                            const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")) : ""
-                            const accounts = {
-                                "opencode": "OpenCode Console",
-                                "deepseek": "DeepSeek",
-                                "openai": "OpenAI",
-                                "anthropic": "Anthropic",
-                                "openrouter": "OpenRouter"
-                            }
-                            if (accounts[provider] !== undefined) {
-                                terminal.run("opencode auth logout \"" + accounts[provider] + "\"; opencode auth login \"" + accounts[provider] + "\" && opencode service restart")
-                                backend.setView("terminal")
-                            } else {
-                                backend.setView("providers")
-                            }
-                        }
                     }
                 }
 
@@ -450,16 +349,9 @@ ApplicationWindow {
                         terminal.run(command)
                         backend.setView("terminal")
                     }
-                    onPromptRequested: function (prompt) {
-                        backend.setView("opencode")
-                        Qt.callLater(function () { chatPane.suggest(prompt) })
+                    onAgentTaskRequested: function (prompt) {
+                        win.runAgentTask(prompt)
                     }
-                    onOpenSessions: sessionsPanel.open()
-                }
-
-                ProvidersPane {
-                    anchors.fill: parent
-                    visible: backend.view === "providers"
                 }
 
                 NineRouterPane {
@@ -475,31 +367,21 @@ ApplicationWindow {
                 WorkspacePane {
                     anchors.fill: parent
                     visible: backend.view === "workspace"
-                    onPromptRequested: function (prompt) {
-                        backend.setView("opencode")
-                        Qt.callLater(function () { chatPane.suggest(prompt) })
-                    }
-                    onAttachRequested: function (path) {
-                        chatPane.attachFile(path, workspaceModel.preview(path))
+                    onAgentTaskRequested: function (prompt) {
+                        win.runAgentTask(prompt)
                     }
                 }
 
                 HomePane {
                     anchors.fill: parent
                     visible: backend.view === "home"
-                    onOpenSessions: sessionsPanel.open()
                     onOpenPalette: commandPalette.open()
-                    onPromptRequested: function (prompt) {
-                        backend.setView("opencode")
-                        Qt.callLater(function () { chatPane.suggest(prompt) })
-                    }
                     onCommandRequested: function (command) {
                         terminal.run(command)
                         backend.setView("terminal")
                     }
-                    onModelPickerRequested: {
-                        backend.setView("opencode")
-                        Qt.callLater(function () { chatPane.openModelPicker() })
+                    onAgentTaskRequested: function (prompt) {
+                        win.runAgentTask(prompt)
                     }
                 }
 
@@ -556,7 +438,7 @@ ApplicationWindow {
                 Repeater {
                     model: [
                         { label: "Harness", color: win.stateColor(backend.harnessState) },
-                        { label: "OpenCode", color: win.stateColor(backend.opencodeState) },
+                        { label: "Terminal", color: terminal.running ? theme.green : theme.dimText },
                         { label: "9Router", color: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText) },
                         { label: "MausBot", color: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText) }
                     ]
@@ -567,15 +449,6 @@ ApplicationWindow {
                     }
                 }
 
-                Text {
-                    visible: backend.currentModel !== "" && win.width >= 900
-                    text: backend.currentModel
-                    color: theme.mutedText
-                    font.family: backend.monoFont
-                    font.pixelSize: 9
-                    elide: Text.ElideRight
-                    Layout.maximumWidth: 220
-                }
             }
         }
     }
@@ -600,20 +473,6 @@ ApplicationWindow {
         target: backend
         function onToast(message) { win.showToast(message) }
 
-        function onBusyChanged() {
-            if (!backend.busy && backend.notifyOnFinish && backend.sessionTitle !== "" && !win.active)
-                backend.notify(qsTr("OpenCode finished"), backend.sessionTitle)
-        }
-    }
-
-    SessionsPanel {
-        id: sessionsPanel
-        anchors.fill: parent
-    }
-
-    PermissionDialog {
-        anchors.fill: parent
-        request: backend.permission
     }
 
     HelpOverlay {
@@ -668,7 +527,7 @@ ApplicationWindow {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("OpenCode is working. Quitting now stops the answer where it is.")
+                    text: qsTr("Une tâche est encore en cours.")
                     wrapMode: Text.Wrap
                     color: theme.mutedText
                     font.pixelSize: 12

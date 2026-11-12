@@ -6,8 +6,7 @@ import QtQuick.Layouts
 Item {
     id: root
 
-    signal promptRequested(string prompt)
-    signal attachRequested(string path)
+    signal agentTaskRequested(string prompt)
 
     property string selectedPath: ""
     property string selectedStatus: ""
@@ -97,9 +96,9 @@ Item {
         if (selectedPath === "")
             return
         if (showingDiff) {
-            promptRequested(qsTr("Explain the changes in the diff of %1 in this project. Describe the intent, the risks, and what to verify.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explain the changes in the diff of %1 in this project. Describe the intent, the risks, and what to verify.").arg(selectedPath))
         } else {
-            promptRequested(qsTr("Explain the file %1 in this project. Read it, describe its role, its dependencies, and anything worth watching.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explain the file %1 in this project. Read it, describe its role, its dependencies, and anything worth watching.").arg(selectedPath))
         }
     }
 
@@ -356,16 +355,10 @@ Item {
                             }
                         }
                         Button {
-                            text: qsTr("Ask OpenCode")
+                            text: qsTr("Confier au harness")
                             flat: true
                             font.pixelSize: 9
                             onClicked: root.askAboutFile()
-                        }
-                        Button {
-                            text: qsTr("Attach to chat")
-                            flat: true
-                            font.pixelSize: 9
-                            onClicked: root.attachRequested(root.selectedPath)
                         }
                         Item { Layout.fillWidth: true }
                         Button {

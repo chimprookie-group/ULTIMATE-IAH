@@ -308,9 +308,8 @@ void Config::setTheme(const QString &theme) {
 }
 
 void Config::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers" && view != "ninerouter" && view != "mausbot"
-        && view != "harness" && view != "opencode" && view != "split" && view != "terminal"
-        && view != "settings")
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "ninerouter" && view != "mausbot"
+        && view != "harness" && view != "terminal" && view != "settings")
         return;
     if (view == m_view)
         return;

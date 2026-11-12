@@ -51,6 +51,24 @@ Item {
         web.runJavaScript("window.termClear && window.termClear()")
     }
 
+    function shellQuote(value) {
+        return "'" + String(value).replace(/'/g, "'\\''") + "'"
+    }
+
+    function runAgentTask() {
+        const text = agentInput.text.trim()
+        if (text === "")
+            return
+        arm()
+        const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
+        terminal.run(binary + " headless " + shellQuote(text))
+        agentInput.text = ""
+        Qt.callLater(function () {
+            web.forceActiveFocus()
+            web.runJavaScript("window.termFocus && window.termFocus()")
+        })
+    }
+
     function restart() {
         web.runJavaScript("window.termReset && window.termReset()")
         terminal.start(backend.workspace)
@@ -130,6 +148,52 @@ Item {
                     icon: "icons/reload.svg"
                     hint: qsTr("Restart the shell")
                     onClicked: root.restart()
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 44
+            color: theme.background
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: theme.border
+            }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                anchors.rightMargin: 8
+                spacing: 8
+
+                ThemedIcon {
+                    source: "icons/harness.svg"
+                    width: 14
+                    height: 14
+                    color: theme.accent
+                }
+                TextField {
+                    id: agentInput
+                    Layout.fillWidth: true
+                    placeholderText: qsTr("Confier une tâche au harness dans ce terminal…")
+                    color: theme.text
+                    font.pixelSize: 10
+                    selectByMouse: true
+                    onAccepted: root.runAgentTask()
+                    background: Rectangle {
+                        radius: Math.min(6, theme.radius)
+                        color: theme.raised
+                        border.width: 1
+                        border.color: agentInput.activeFocus ? theme.accent : theme.border
+                    }
+                }
+                ActionButton {
+                    text: qsTr("Exécuter")
+                    onClicked: root.runAgentTask()
                 }
             }
         }

@@ -200,11 +200,6 @@ Backend::Backend(QObject *parent)
         restartHarness();
         emit dshBinaryChanged();
     });
-    connect(m_config, &Config::opencodeBinaryChanged, this, [this] {
-        m_opencodeVersion.clear();
-        restartOpencode();
-        emit opencodeBinaryChanged();
-    });
     connect(m_config, &Config::optionsChanged, this, &Backend::optionsChanged);
     connect(m_config, &Config::profilesChanged, this, &Backend::profilesChanged);
     connect(m_config, &Config::viewChanged, this, [this] {
@@ -294,15 +289,13 @@ void Backend::boot() {
         m_harness->setWorkingDirectory(workspace());
         m_harness->start();
     }
-    if (m_config->autoStartOpencode())
-        startOpencode();
     refreshGit();
 }
 
 void Backend::applyStartupView() {
     const QString start = m_config->startupView();
     if (start != "home" && start != "ecosystem" && start != "workspace" && start != "harness"
-        && start != "opencode" && start != "split" && start != "terminal")
+        && start != "terminal" && start != "ninerouter" && start != "mausbot" && start != "settings")
         return;
     if (start == m_view)
         return;
