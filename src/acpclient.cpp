@@ -414,7 +414,7 @@ QString AcpClient::classifyFailure(const QString &text) {
         return QStringLiteral("usage");
     if (lower.contains("connect a provider") || lower.contains("no provider")
         || lower.contains("provider is not connected") || lower.contains("provider authentication required")
-        || lower.contains("authentication required"))
+        || lower.contains("authentication required") || lower.contains("reconnect") && lower.contains("console"))
         return QStringLiteral("provider");
     return QStringLiteral("error");
 }

@@ -129,6 +129,17 @@ dans DSH, y compris le démarrage du harness avec les deux overlays.
 MausBot utilise les CLI **Claude, Codex et Grok** déjà installés. L'installation
 npm locale ne demande pas root ; les dépendances système passent par `pkexec`.
 
+## Reconnexion d'un provider
+
+Chaque modèle appartient à un provider. Si le provider est expiré, changer de
+modèle dans le même provider ne résout rien : la carte d'erreur affiche
+désormais **Reconnecter OpenCode Console** (ou DeepSeek, OpenAI, Anthropic,
+OpenRouter) et lance le bon `opencode auth login "<provider>"` dans le terminal,
+puis `opencode service restart`. Les comptes sont aussi listés avec leur nom
+complet dans **Providers → Comptes OpenCode**, avec le même bouton de reconnexion.
+Le modèle courant et son provider restent visibles dans le sélecteur et la barre
+d'état.
+
 ## Providers : n'importe quelle API
 
 ![Gestion des providers](assets/screenshot-providers.png)

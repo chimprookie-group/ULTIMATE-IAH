@@ -153,6 +153,7 @@ private slots:
                  QString("usage"));
         QCOMPARE(AcpClient::classifyFailure("No provider is connected"), QString("provider"));
         QCOMPARE(AcpClient::classifyFailure("Authentication required: provider authentication required"), QString("provider"));
+        QCOMPARE(AcpClient::classifyFailure("Reconnect OpenCode Console to continue."), QString("provider"));
         QCOMPARE(AcpClient::classifyFailure("Something else"), QString("error"));
     }
 

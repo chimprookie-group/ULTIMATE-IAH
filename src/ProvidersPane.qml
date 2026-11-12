@@ -137,8 +137,8 @@ Item {
     }
 
     function reconnectAccount(account) {
-        const id = String(account.id).replace(/[^A-Za-z0-9._-]/g, "")
-        terminal.run("opencode auth logout " + id + "; opencode auth login " + id + " && opencode service restart")
+        const name = String(account.name).replace(/["\\$`]/g, "")
+        terminal.run("opencode auth logout \"" + name + "\"; opencode auth login \"" + name + "\" && opencode service restart")
         backend.setView("terminal")
     }
 
@@ -377,7 +377,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        StatusDot { color: theme.green }
+                        StatusDot { color: theme.yellow }
                         Text {
                             Layout.fillWidth: true
                             text: modelData.name

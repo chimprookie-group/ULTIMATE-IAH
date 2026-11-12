@@ -139,15 +139,14 @@ void ProviderManager::refreshAccounts() {
         if (process.waitForStarted(1200) && process.waitForFinished(4000)) {
             const QString output = QString::fromUtf8(process.readAll()).trimmed();
             if (!output.contains("No authenticated integrations")) {
-                static const QRegularExpression linePattern(
-                    QStringLiteral("^(\\S+)\\s+(.+?)\\s+(\\S+)$"));
                 for (const QString &line : output.split('\n', Qt::SkipEmptyParts)) {
-                    const auto match = linePattern.match(line.trimmed());
-                    if (!match.hasMatch())
+                    const QStringList columns = line.trimmed().split(
+                        QRegularExpression(QStringLiteral("\\s{2,}")), Qt::SkipEmptyParts);
+                    if (columns.size() < 3)
                         continue;
-                    accounts.append(QVariantMap{{"id", match.captured(1).toLower()},
-                                                {"name", match.captured(2).trimmed()},
-                                                {"status", match.captured(3)}});
+                    accounts.append(QVariantMap{{"id", columns.at(0).trimmed().toLower().replace(' ', '-')},
+                                                {"name", columns.at(1).trimmed()},
+                                                {"status", columns.at(2).trimmed()}});
                 }
             }
         } else if (process.state() != QProcess::NotRunning) {

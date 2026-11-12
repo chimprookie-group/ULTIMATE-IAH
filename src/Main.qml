@@ -417,7 +417,23 @@ ApplicationWindow {
                         Layout.preferredWidth: backend.view === "split" ? win.contentWidth * (1 - backend.splitRatio) : win.contentWidth
                         onOpenSessions: sessionsPanel.open()
                         onChangeModelRequested: chatPane.openModelPicker()
-                        onConnectProviderRequested: backend.setView("providers")
+                        onConnectProviderRequested: {
+                            const raw = backend.currentModel
+                            const provider = raw.indexOf("/") > 0 ? raw.slice(0, raw.indexOf("/")) : ""
+                            const accounts = {
+                                "opencode": "OpenCode Console",
+                                "deepseek": "DeepSeek",
+                                "openai": "OpenAI",
+                                "anthropic": "Anthropic",
+                                "openrouter": "OpenRouter"
+                            }
+                            if (accounts[provider] !== undefined) {
+                                terminal.run("opencode auth logout \"" + accounts[provider] + "\"; opencode auth login \"" + accounts[provider] + "\" && opencode service restart")
+                                backend.setView("terminal")
+                            } else {
+                                backend.setView("providers")
+                            }
+                        }
                     }
                 }
 

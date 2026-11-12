@@ -639,5 +639,9 @@
   "Changer": "Changer",
   "HARNESS · OPENCODE · APPS": "HARNESS · OPENCODE · APPS",
   "erreur": "erreur",
-  "hors dépôt git": "hors dépôt git"
+  "hors dépôt git": "hors dépôt git",
+  "Reconnect %1": "Reconnecter %1",
+  "le provider": "le provider",
+  "Actuel : %1": "Actuel : %1",
+  "Current: %1": "Actuel : %1"
 }

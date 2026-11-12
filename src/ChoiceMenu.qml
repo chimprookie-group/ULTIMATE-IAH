@@ -164,12 +164,22 @@ Popup {
             width: popup.width - 28
             spacing: 10
 
+            Text {
+                Layout.fillWidth: true
+                visible: popup.currentValue !== ""
+                text: qsTr("Actuel : %1").arg(popup.currentValue)
+                color: theme.dimText
+                font.family: backend.monoFont
+                font.pixelSize: 8
+                elide: Text.ElideMiddle
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
 
                 Text {
-                    text: popup.title.toUpperCase()
+                    text: popup.title
                     color: theme.mutedText
                     font.pixelSize: 9
                     font.letterSpacing: 1.3

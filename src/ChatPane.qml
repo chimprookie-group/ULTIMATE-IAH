@@ -26,6 +26,21 @@ Item {
         composer.openModelPicker()
     }
 
+    function providerId() {
+        const value = backend.currentModel
+        return value.indexOf("/") > 0 ? value.slice(0, value.indexOf("/")) : ""
+    }
+
+    function providerAccountName() {
+        const id = providerId()
+        if (id === "opencode") return "OpenCode Console"
+        if (id === "deepseek") return "DeepSeek"
+        if (id === "openai") return "OpenAI"
+        if (id === "anthropic") return "Anthropic"
+        if (id === "openrouter") return "OpenRouter"
+        return id !== "" ? id : qsTr("le provider")
+    }
+
     function attachFile(path, content) {
         composer.attachFile(path, content)
         backend.setView("opencode")
@@ -263,10 +278,14 @@ Item {
                                         onClicked: pane.changeModelRequested()
                                     }
                                     Button {
-                                        text: model.kind === "provider" ? qsTr("Manage providers") : qsTr("Connect a provider")
+                                        text: model.kind === "provider"
+                                              ? qsTr("Reconnect %1").arg(pane.providerAccountName())
+                                              : qsTr("Connect a provider")
                                         flat: true
                                         font.pixelSize: 9
                                         onClicked: pane.connectProviderRequested()
+                                        ToolTip.visible: hovered
+                                        ToolTip.text: pane.providerAccountName()
                                     }
                                     Button {
                                         text: qsTr("Retry")
