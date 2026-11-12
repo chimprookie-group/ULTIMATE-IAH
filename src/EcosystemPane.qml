@@ -89,20 +89,24 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.label
                             color: theme.mutedText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                     }
                 }
             }
 
-            Flow {
-                width: parent.width
-                spacing: 12
+            GridLayout {
+                Layout.fillWidth: true
+                columns: root.cardWidth >= root.contentWidth ? 1 : 2
+                columnSpacing: 12
+                rowSpacing: 12
 
                 HomeCard {
                     title: qsTr("Projet")
                     icon: "icons/branch.svg"
                     cardWidth: root.cardWidth
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
                     Text {
                         Layout.fillWidth: true
@@ -116,7 +120,7 @@ Item {
                         text: backend.workspace
                         color: theme.dimText
                         font.family: backend.monoFont
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         elide: Text.ElideMiddle
                     }
                     Text {
@@ -126,8 +130,9 @@ Item {
                               : qsTr("hors dépôt git")
                         color: backend.gitDirtyCount > 0 ? theme.orange : theme.mutedText
                         font.family: backend.monoFont
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
+                    Item { Layout.fillHeight: true }
                     Flow {
                         Layout.fillWidth: true
                         spacing: 4
@@ -136,16 +141,16 @@ Item {
                             Button {
                                 text: modelData.label
                                 flat: true
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                                 onClicked: root.commandRequested(modelData.command)
                             }
                         }
-                    }
-                    Button {
-                        text: qsTr("Git diff")
-                        flat: true
-                        font.pixelSize: 9
-                        onClicked: root.commandRequested("git diff")
+                        Button {
+                            text: qsTr("Git diff")
+                            flat: true
+                            font.pixelSize: design.textCaption
+                            onClicked: root.commandRequested("git diff")
+                        }
                     }
                 }
 
@@ -153,6 +158,8 @@ Item {
                     title: qsTr("Outils")
                     icon: "icons/terminal.svg"
                     cardWidth: root.cardWidth
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
                     Repeater {
                         model: ecosystem.tools
@@ -161,7 +168,7 @@ Item {
                             spacing: 7
                             StatusDot { size: 4; color: modelData.available ? theme.green : theme.dimText }
                             Text { Layout.fillWidth: true; text: modelData.label !== undefined ? modelData.label : modelData.id; color: theme.text; font.pixelSize: 10; elide: Text.ElideRight }
-                            Text { text: modelData.version; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight; Layout.maximumWidth: 150 }
+                            Text { text: modelData.version; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight; Layout.maximumWidth: 150 }
                         }
                     }
                 }
@@ -170,32 +177,57 @@ Item {
                     title: qsTr("Skills")
                     icon: "icons/spark.svg"
                     cardWidth: root.cardWidth
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
                     Text {
                         Layout.fillWidth: true
                         visible: ecosystem.skills.length === 0
                         text: qsTr("Aucun skill dans ~/.agents/skills.")
                         color: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
                     }
 
                     Repeater {
                         model: ecosystem.skills
-                        RowLayout {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 7
-                            ColumnLayout {
+                            spacing: 5
+                            RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 1
-                                Text { Layout.fillWidth: true; text: modelData.name !== undefined ? modelData.name : modelData.id; color: theme.text; font.pixelSize: 10; elide: Text.ElideRight }
-                                Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                                spacing: 7
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.name !== undefined ? modelData.name : modelData.id
+                                    color: theme.text
+                                    font.pixelSize: 10
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                }
+                                Button {
+                                    text: qsTr("Confier")
+                                    flat: true
+                                    font.pixelSize: design.textCaption
+                                    Layout.alignment: Qt.AlignTop
+                                    onClicked: root.sendTask(qsTr("Utilise le skill « %1 » depuis %2 pour m'aider sur ce projet. Dis-moi d'abord ce qu'il apporte et ce dont tu as besoin.").arg(modelData.name).arg(modelData.path))
+                                }
                             }
-                            Button {
-                                text: qsTr("Confier")
-                                flat: true
-                                font.pixelSize: 9
-                                onClicked: root.sendTask(qsTr("Utilise le skill « %1 » depuis %2 pour m'aider sur ce projet. Dis-moi d'abord ce qu'il apporte et ce dont tu as besoin.").arg(modelData.name).arg(modelData.path))
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.description
+                                color: theme.dimText
+                                font.pixelSize: design.textMicro
+                                lineHeight: 1.25
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 2
+                                elide: Text.ElideRight
+                            }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 1
+                                color: theme.border
+                                opacity: 0.6
                             }
                         }
                     }
@@ -206,32 +238,62 @@ Item {
                     icon: "icons/plug.svg"
                     accent: theme.green
                     cardWidth: root.cardWidth
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("Une tâche prête pour le harness, exécutée dans le terminal agent.")
                         color: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
                     }
-                    Flow {
+                    GridLayout {
                         Layout.fillWidth: true
-                        spacing: 4
-                        Button { text: qsTr("Expliquer"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Explique l'architecture de ce projet, ses modules principaux et les flux de données. Cite les fichiers importants.")) }
-                        Button { text: qsTr("Relire"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Relis mes changements non commités : bugs, régressions, cas limites et sécurité. Propose des correctifs concrets.")) }
-                        Button { text: qsTr("Tests"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Regarde le projet et propose les tests manquants les plus utiles. Écris-les puis lance la suite.")) }
-                        Button { text: qsTr("Corriger"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Reproduis le problème que je vais décrire, trouve la cause racine, corrige et vérifie avec un vrai test.")) }
-                        Button { text: qsTr("Sécurité"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Audite la sécurité du projet : entrées non validées, secrets, permissions, dépendances et chemins d'exécution. Classe les risques.")) }
-                        Button { text: qsTr("Performance"); flat: true; font.pixelSize: 9; onClicked: root.sendTask(qsTr("Trouve les goulots d'étranglement de performance. Mesure quand c'est possible, puis propose des optimisations classées par impact.")) }
+                        columns: 2
+                        columnSpacing: 6
+                        rowSpacing: 6
+                        Repeater {
+                            model: [
+                                { label: qsTr("Expliquer"), prompt: qsTr("Explique l'architecture de ce projet, ses modules principaux et les flux de données. Cite les fichiers importants.") },
+                                { label: qsTr("Relire"), prompt: qsTr("Relis mes changements non commités : bugs, régressions, cas limites et sécurité. Propose des correctifs concrets.") },
+                                { label: qsTr("Tests"), prompt: qsTr("Regarde le projet et propose les tests manquants les plus utiles. Écris-les puis lance la suite.") },
+                                { label: qsTr("Corriger"), prompt: qsTr("Reproduis le problème que je vais décrire, trouve la cause racine, corrige et vérifie avec un vrai test.") },
+                                { label: qsTr("Sécurité"), prompt: qsTr("Audite la sécurité du projet : entrées non validées, secrets, permissions, dépendances et chemins d'exécution. Classe les risques.") },
+                                { label: qsTr("Performance"), prompt: qsTr("Trouve les goulots d'étranglement de performance. Mesure quand c'est possible, puis propose des optimisations classées par impact.") }
+                            ]
+                            Button {
+                                id: recipeButton
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 30
+                                text: modelData.label
+                                font.pixelSize: design.textCaption
+                                padding: 0
+                                background: Rectangle {
+                                    radius: design.radiusSm
+                                    color: recipeButton.hovered ? theme.raised : theme.chip
+                                    border.width: recipeButton.activeFocus ? 2 : 1
+                                    border.color: recipeButton.activeFocus ? theme.accent
+                                                                          : (recipeButton.hovered ? theme.borderStrong : theme.border)
+                                }
+                                contentItem: Text {
+                                    text: recipeButton.text
+                                    color: theme.text
+                                    font.pixelSize: design.textCaption
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                onClicked: root.sendTask(modelData.prompt)
+                            }
+                        }
                     }
-                    Button {
+                    Item { Layout.fillHeight: true }
+                    ActionButton {
+                        Layout.alignment: Qt.AlignRight
                         text: qsTr("Injecter le contexte")
-                        flat: true
-                        font.pixelSize: 9
                         onClicked: root.sendTask(root.contextBrief())
                     }
                 }
-            }
-        }
+            }        }
     }
 }

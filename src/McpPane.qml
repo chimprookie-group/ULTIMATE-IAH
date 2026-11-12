@@ -81,7 +81,7 @@ Item {
                 Layout.fillWidth: true
                 text: qsTr("Les serveurs MCP sont exécutés par le harness avec les permissions de votre session. N'activez que des commandes que vous contrôlez.")
                 color: theme.orange
-                font.pixelSize: 9
+                font.pixelSize: design.textCaption
                 wrapMode: Text.Wrap
             }
 
@@ -107,12 +107,12 @@ Item {
                                 Layout.fillWidth: true
                                 spacing: 1
                                 Text { text: modelData.label; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                                Text { Layout.fillWidth: true; text: modelData.detail; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                                Text { Layout.fillWidth: true; text: modelData.detail; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                             }
                             Text {
                                 text: modelData.active ? qsTr("actif") : qsTr("inactif")
                                 color: modelData.active ? theme.green : theme.dimText
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                             }
                         }
                     }
@@ -125,31 +125,53 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
-                    SettingsField {
-                        id: nameField
+                    spacing: design.space3
+
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("Nom — ex. filesystem")
+                        spacing: 3
+                        Text { text: qsTr("Nom"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        SettingsField {
+                            id: nameField
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("Nom — ex. filesystem")
+                        }
                     }
-                    ComboBox {
-                        id: transportBox
-                        Layout.preferredWidth: 150
-                        model: ["stdio", "HTTP"]
-                        font.pixelSize: 9
+                    ColumnLayout {
+                        Layout.preferredWidth: 160
+                        Layout.maximumWidth: 180
+                        spacing: 3
+                        Text { text: qsTr("Transport"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        ComboBox {
+                            id: transportBox
+                            Layout.fillWidth: true
+                            model: ["stdio", "HTTP"]
+                            font.pixelSize: design.textCaption
+                        }
                     }
                 }
 
-                SettingsField {
-                    id: commandField
+                ColumnLayout {
                     Layout.fillWidth: true
+                    spacing: 3
                     visible: transportBox.currentIndex === 0
-                    placeholderText: qsTr("Commande — ex. npx, uvx")
+                    Text { text: qsTr("Commande"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    SettingsField {
+                        id: commandField
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("Commande — ex. npx, uvx")
+                    }
                 }
-                SettingsField {
-                    id: urlField
+                ColumnLayout {
                     Layout.fillWidth: true
+                    spacing: 3
                     visible: transportBox.currentIndex === 1
-                    placeholderText: qsTr("URL MCP — ex. https://serveur/mcp")
+                    Text { text: qsTr("URL du serveur"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    SettingsField {
+                        id: urlField
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("URL MCP — ex. https://serveur/mcp")
+                    }
                 }
 
                 GridLayout {
@@ -172,7 +194,7 @@ Item {
                             anchors.margins: 6
                             color: theme.text
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: TextArea.Wrap
                             background: null
                         }
@@ -183,7 +205,7 @@ Item {
                             text: qsTr("Arguments, un par ligne")
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
                     }
@@ -201,7 +223,7 @@ Item {
                             anchors.margins: 6
                             color: theme.text
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: TextArea.Wrap
                             background: null
                         }
@@ -212,7 +234,7 @@ Item {
                             text: qsTr("Env KEY=VALUE, une par ligne")
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
                     }
@@ -230,7 +252,7 @@ Item {
                             anchors.margins: 6
                             color: theme.text
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: TextArea.Wrap
                             background: null
                         }
@@ -241,7 +263,7 @@ Item {
                             text: qsTr("Headers Authorization=…, un par ligne")
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
                     }
@@ -250,10 +272,10 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 4
-                    Text { text: qsTr("Presets :"); color: theme.dimText; font.pixelSize: 8 }
-                    Button { text: "Filesystem"; flat: true; font.pixelSize: 8; onClicked: root.presetFilesystem() }
-                    Button { text: "Fetch"; flat: true; font.pixelSize: 8; onClicked: root.presetFetch() }
-                    Button { text: "Git"; flat: true; font.pixelSize: 8; onClicked: root.presetGit() }
+                    Text { text: qsTr("Exemples :"); color: theme.dimText; font.pixelSize: 8 }
+                    Button { text: "Filesystem"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFilesystem() }
+                    Button { text: "Fetch"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFetch() }
+                    Button { text: "Git"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetGit() }
                     Item { Layout.fillWidth: true }
                     ActionButton { text: qsTr("Ajouter"); onClicked: root.addServer() }
                 }
@@ -262,7 +284,7 @@ Item {
                     visible: mcpManager.error !== ""
                     text: mcpManager.error
                     color: theme.red
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
             }
@@ -270,9 +292,9 @@ Item {
             Text {
                 Layout.fillWidth: true
                 visible: mcpManager.servers.length === 0
-                text: qsTr("Aucun serveur personnalisé. Ajoutez-en un ou utilisez les presets.")
+                text: qsTr("Aucun serveur personnalisé. Ajoutez-en un ou utilisez un exemple.")
                 color: theme.dimText
-                font.pixelSize: 9
+                font.pixelSize: design.textCaption
             }
 
             Repeater {
@@ -311,7 +333,7 @@ Item {
                             Button {
                                 text: qsTr("Supprimer")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 onClicked: {
                                     mcpManager.removeServer(modelData.id)
                                     backend.restartHarness()
@@ -325,7 +347,7 @@ Item {
                                   : modelData.url
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             elide: Text.ElideMiddle
                         }
                     }

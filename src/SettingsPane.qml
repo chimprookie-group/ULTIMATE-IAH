@@ -204,7 +204,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Le harness et le terminal agent travaillent dans ce dossier.")
                     color: theme.dimText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                 }
             }
 
@@ -234,7 +234,7 @@ Item {
                             anchors.centerIn: parent
                             text: backend.dshAvailable ? qsTr("trouvé") : qsTr("absent")
                             color: backend.dshAvailable ? theme.green : theme.red
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                     }
                 }
@@ -252,7 +252,7 @@ Item {
                     Text {
                         text: backend.harnessState + " · " + backend.harnessDetail
                         color: root.stateColor(backend.harnessState)
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                 }
 
@@ -266,7 +266,7 @@ Item {
                     Text {
                         text: backend.harnessHealth
                         color: backend.harnessHealth === "ok" ? theme.green : theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                 }
             }
@@ -296,7 +296,7 @@ Item {
                     Text {
                         text: mausBot.mcpHarness ? qsTr("MCP harness connecté") : qsTr("MCP harness non connecté")
                         color: mausBot.mcpHarness ? theme.green : theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                 }
             }
@@ -329,7 +329,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Raccourcis : Ctrl+0 cockpit · Ctrl+1 harness · Ctrl+2 terminal agent · Ctrl+4 réglages · Ctrl+K palette · ? aide")
                     color: theme.dimText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
             }

@@ -88,7 +88,7 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.label
                             color: theme.mutedText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                     }
                 }
@@ -100,21 +100,33 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
-                    SettingsField {
-                        id: titleField
+                    spacing: design.space3
+
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("Titre — ex. Décision : SQLite + FTS5")
-                        onAccepted: root.addMemory()
+                        spacing: 3
+                        Text { text: qsTr("Titre"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        SettingsField {
+                            id: titleField
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("Titre — ex. Décision : SQLite + FTS5")
+                            onAccepted: root.addMemory()
+                        }
                     }
-                    ComboBox {
-                        id: kindBox
+                    ColumnLayout {
                         Layout.preferredWidth: 128
-                        model: ["note", "fact", "decision", "preference", "task", "result"]
-                        font.pixelSize: 9
+                        spacing: 3
+                        Text { text: qsTr("Type"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        ComboBox {
+                            id: kindBox
+                            Layout.fillWidth: true
+                            model: ["note", "fact", "decision", "preference", "task", "result"]
+                            font.pixelSize: design.textCaption
+                        }
                     }
                 }
 
+                Text { Layout.fillWidth: true; text: qsTr("Contenu"); color: theme.dimText; font.pixelSize: design.textCaption }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 86
@@ -146,18 +158,29 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
-                    SettingsField {
-                        id: tagsField
+                    spacing: design.space3
+
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("Tags, séparés par des virgules")
+                        spacing: 3
+                        Text { text: qsTr("Tags"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        SettingsField {
+                            id: tagsField
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("Tags, séparés par des virgules")
+                        }
                     }
                     CheckBox {
                         id: pinnedBox
                         text: qsTr("Épingler")
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
+                        Layout.alignment: Qt.AlignBottom
                     }
-                    ActionButton { text: qsTr("Retenir"); onClicked: root.addMemory() }
+                    ActionButton {
+                        Layout.alignment: Qt.AlignBottom
+                        text: qsTr("Retenir")
+                        onClicked: root.addMemory()
+                    }
                 }
             }
 
@@ -189,25 +212,42 @@ Item {
                 visible: memory.error !== ""
                 text: memory.error
                 color: theme.red
-                font.pixelSize: 9
+                font.pixelSize: design.textCaption
                 wrapMode: Text.Wrap
             }
 
-            BrandMark {
-                Layout.alignment: Qt.AlignHCenter
-                width: 54
-                height: 46
-                size: 54
-                accent: true
-                markOpacity: 0.75
-                visible: root.shown.length === 0
-            }
-            Text {
+            ColumnLayout {
                 Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: design.space5
+                spacing: design.space3
                 visible: root.shown.length === 0
-                text: memory.query !== "" ? qsTr("Aucun résultat.") : qsTr("La mémoire est vide. Commencez par une décision ou une préférence.")
-                color: theme.dimText
-                font.pixelSize: 10
+
+                BrandMark {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: 54
+                    height: 46
+                    size: 54
+                    accent: true
+                    markOpacity: 0.75
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: memory.query !== "" ? qsTr("Aucun résultat") : qsTr("La mémoire est vide")
+                    color: theme.text
+                    font.pixelSize: design.textBody
+                    font.weight: Font.DemiBold
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: memory.query !== "" ? qsTr("Essayez un autre mot-clé ou effacez la recherche.")
+                                                 : qsTr("Commencez par une décision, une préférence ou un résultat à retenir.")
+                    color: theme.dimText
+                    font.pixelSize: design.textCaption
+                    wrapMode: Text.Wrap
+                }
             }
 
             Repeater {
@@ -240,7 +280,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: modelData.kind
                                     color: theme.accent
-                                    font.pixelSize: 8
+                                    font.pixelSize: design.textMicro
                                     font.weight: Font.DemiBold
                                 }
                             }
@@ -255,13 +295,13 @@ Item {
                             Button {
                                 text: modelData.pinned ? qsTr("Épinglée") : qsTr("Épingler")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 onClicked: memory.togglePin(modelData.id)
                             }
                             Button {
                                 text: qsTr("Supprimer")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 onClicked: memory.removeEntry(modelData.id)
                             }
                         }
@@ -282,7 +322,7 @@ Item {
                                   + " · " + modelData.updatedAt.substring(0, 10)
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             elide: Text.ElideMiddle
                         }
                     }

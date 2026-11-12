@@ -17,6 +17,9 @@ Item {
     property string subtitle: ""
 
     signal chosen(string id)
+    activeFocusOnTab: true
+    Keys.onReturnPressed: root.chosen(root.themeId)
+    Keys.onEnterPressed: root.chosen(root.themeId)
 
     width: 160
     height: 86
@@ -33,10 +36,9 @@ Item {
         anchors.fill: parent
         radius: design.radiusMd
         color: root.cardBackground
-        border.width: root.active ? 2 : 1
-        border.color: root.active ? root.cardAccent : Qt.rgba(root.cardForeground.r, root.cardForeground.g, root.cardForeground.b, 0.26)
-        scale: hover.containsMouse ? 1.015 : 1.0
-        Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        border.width: root.activeFocus ? 2 : (root.active ? 2 : 1)
+        border.color: root.activeFocus ? root.cardForeground
+                                       : (root.active ? root.cardAccent : Qt.rgba(root.cardForeground.r, root.cardForeground.g, root.cardForeground.b, 0.26))
 
         ColumnLayout {
             anchors.fill: parent
@@ -92,7 +94,7 @@ Item {
                 Layout.fillWidth: true
                 text: root.subtitle !== "" ? root.subtitle : (root.mode === "light" ? qsTr("Light") : qsTr("Dark"))
                 color: root.cardForeground
-                opacity: 0.55
+                opacity: root.mode === "light" ? 0.68 : 0.55
                 font.pixelSize: design.textMicro
                 elide: Text.ElideRight
             }

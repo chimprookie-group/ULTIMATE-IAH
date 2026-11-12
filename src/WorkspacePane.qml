@@ -13,6 +13,10 @@ Item {
     property int selectedSize: 0
     property bool showingDiff: false
     property string shownText: ""
+    readonly property bool markdownPreview: !showingDiff
+        && /\.(md|markdown|mdx)$/i.test(selectedPath)
+    readonly property string previewText: markdownPreview
+        ? shownText.replace(/!\[[^\]]*\]\([^)]*\)/g, "") : shownText
 
     readonly property int leftWidth: Math.max(230, Math.min(320, width * 0.3))
     readonly property var selectedFile: {
@@ -68,16 +72,16 @@ Item {
 
     function statusLabel(status) {
         if (status === "untracked")
-            return qsTr("untracked")
+            return qsTr("non suivi")
         if (status === "added")
-            return qsTr("added")
+            return qsTr("ajouté")
         if (status === "deleted")
-            return qsTr("deleted")
+            return qsTr("supprimé")
         if (status === "renamed")
-            return qsTr("renamed")
+            return qsTr("renommé")
         if (status === "modified" || status === "changed")
-            return qsTr("modified")
-        return qsTr("tracked")
+            return qsTr("modifié")
+        return qsTr("suivi")
     }
 
     function statusColor(status) {
@@ -96,9 +100,9 @@ Item {
         if (selectedPath === "")
             return
         if (showingDiff) {
-            agentTaskRequested(qsTr("Explain the changes in the diff of %1 in this project. Describe the intent, the risks, and what to verify.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explique les changements du diff de %1 dans ce projet. Décris l'intention, les risques et ce qu'il faut vérifier.").arg(selectedPath))
         } else {
-            agentTaskRequested(qsTr("Explain the file %1 in this project. Read it, describe its role, its dependencies, and anything worth watching.").arg(selectedPath))
+            agentTaskRequested(qsTr("Explique le fichier %1 dans ce projet. Lis-le, décris son rôle, ses dépendances et les points à surveiller.").arg(selectedPath))
         }
     }
 
@@ -106,7 +110,7 @@ Item {
         if (selectedPath === "")
             return
         workspaceModel.copyToClipboard(selectedPath)
-        Window.window.showToast(qsTr("Path copied."))
+        Window.window.showToast(qsTr("Chemin copié."))
     }
 
     function openFile() {
@@ -148,14 +152,15 @@ Item {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: backend.workspace + " · " + qsTr("%n file(s)", "", workspaceModel.count)
+                    text: backend.workspace + " · " + workspaceModel.count
+                          + (workspaceModel.count > 1 ? qsTr(" fichiers") : qsTr(" fichier"))
                     color: theme.dimText
                     font.family: backend.monoFont
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     elide: Text.ElideMiddle
                 }
                 Button {
-                    text: qsTr("Refresh")
+                    text: qsTr("Rafraîchir")
                     flat: true
                     onClicked: root.refresh()
                 }
@@ -187,7 +192,7 @@ Item {
                     SettingsField {
                         id: filterField
                         Layout.fillWidth: true
-                        placeholderText: qsTr("Filter files…")
+                        placeholderText: qsTr("Filtrer les fichiers…")
                         onTextChanged: workspaceModel.setFilter(text)
                     }
 
@@ -235,7 +240,7 @@ Item {
                                         text: modelData.dir
                                         color: theme.dimText
                                         font.family: backend.monoFont
-                                        font.pixelSize: 8
+                                        font.pixelSize: design.textMicro
                                         elide: Text.ElideRight
                                     }
                                 }
@@ -253,7 +258,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             visible: workspaceModel.count === 0
-                            text: qsTr("No file found.")
+                            text: qsTr("Aucun fichier trouvé.")
                             color: theme.dimText
                             font.pixelSize: 10
                         }
@@ -272,7 +277,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     visible: root.selectedPath === ""
-                    text: qsTr("Select a file to preview it, or open its Git diff.")
+                    text: qsTr("Sélectionnez un fichier pour l'aperçu, ou ouvrez son diff Git.")
                     color: theme.dimText
                     font.pixelSize: 11
                 }
@@ -298,12 +303,12 @@ Item {
                         Text {
                             text: root.statusLabel(root.selectedStatus)
                             color: root.statusColor(root.selectedStatus)
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
                         Text {
                             text: root.sizeLabel(root.selectedSize)
                             color: theme.dimText
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
                     }
 
@@ -321,9 +326,9 @@ Item {
                             Text {
                                 id: previewLabel
                                 anchors.centerIn: parent
-                                text: qsTr("Preview")
+                                text: qsTr("Aperçu")
                                 color: !root.showingDiff ? theme.accentForeground : theme.text
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -346,7 +351,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: qsTr("Diff")
                                 color: root.showingDiff ? theme.accentForeground : theme.text
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -357,20 +362,20 @@ Item {
                         Button {
                             text: qsTr("Confier au harness")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.askAboutFile()
                         }
                         Item { Layout.fillWidth: true }
                         Button {
-                            text: qsTr("Copy path")
+                            text: qsTr("Copier le chemin")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.copyPath()
                         }
                         Button {
-                            text: qsTr("Open")
+                            text: qsTr("Ouvrir")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.openFile()
                         }
                     }
@@ -385,25 +390,29 @@ Item {
                         clip: true
 
                         Flickable {
+                            id: previewFlick
                             anchors.fill: parent
                             anchors.margins: 10
                             clip: true
-                            contentWidth: codeText.implicitWidth
+                            contentWidth: root.markdownPreview ? codeText.width : codeText.implicitWidth
                             contentHeight: codeText.implicitHeight
                             boundsBehavior: Flickable.StopAtBounds
 
                             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-                            ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+                            ScrollBar.horizontal: ScrollBar {
+                                policy: root.markdownPreview ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded
+                            }
 
                             Text {
                                 id: codeText
-                                text: root.shownText
+                                width: root.markdownPreview ? Math.min(previewFlick.width, 760) : implicitWidth
+                                text: root.previewText
                                 color: theme.text
-                                font.family: backend.monoFont
-                                font.pixelSize: 10
-                                lineHeight: 1.35
-                                textFormat: Text.PlainText
-                                wrapMode: Text.NoWrap
+                                font.family: root.markdownPreview ? backend.uiFont : backend.monoFont
+                                font.pixelSize: root.markdownPreview ? 12 : 10
+                                lineHeight: root.markdownPreview ? 1.45 : 1.35
+                                textFormat: root.markdownPreview ? Text.MarkdownText : Text.PlainText
+                                wrapMode: root.markdownPreview ? Text.Wrap : Text.NoWrap
                             }
                         }
                     }

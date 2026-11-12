@@ -227,7 +227,7 @@ Item {
                         Text {
                             text: nineRouter.detail + (nineRouter.version !== "" ? " · v" + nineRouter.version : "")
                             color: theme.dimText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                     }
                 }
@@ -369,7 +369,7 @@ Item {
                             visible: nineRouter.installing
                             text: qsTr("Installing the local package… this can take a minute.")
                             color: theme.yellow
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
 
                         Text {
@@ -378,7 +378,7 @@ Item {
                             text: nineRouter.installLog
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                             maximumLineCount: 4
                             elide: Text.ElideRight
@@ -389,7 +389,7 @@ Item {
                             visible: nineRouter.error !== ""
                             text: nineRouter.error
                             color: theme.red
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
 
@@ -398,7 +398,7 @@ Item {
                             visible: nineRouter.installReport !== ""
                             text: nineRouter.installReport
                             color: theme.green
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
 
@@ -408,7 +408,7 @@ Item {
                             text: nineRouter.privilegedLog
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                             maximumLineCount: 4
                             elide: Text.ElideRight
@@ -428,7 +428,7 @@ Item {
                             Button {
                                 text: nineRouter.privilegedBusy ? qsTr("Authorizing…") : qsTr("System dependencies (sudo)")
                                 flat: true
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                                 enabled: !nineRouter.privilegedBusy && !nineRouter.installing
                                 onClicked: nineRouter.installDependencies()
                             }
@@ -445,7 +445,7 @@ Item {
                             visible: !nineRouter.installed && nineRouter.privilegedLog === ""
                             text: qsTr("The local install needs no root. pkexec is only used for Node/npm/PyYAML dependencies, and the password stays with polkit.")
                             color: theme.dimText
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                         }
                     }
@@ -492,7 +492,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("The dashboard is where you connect providers. Here you choose the models exposed to the harness.")
                         color: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
                     }
 
@@ -502,19 +502,19 @@ Item {
                         Text {
                             text: qsTr("Key")
                             color: theme.dimText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                         Text {
                             Layout.fillWidth: true
                             text: nineRouter.keyMasked !== "" ? nineRouter.keyMasked : qsTr("not created")
                             color: nineRouter.keyMasked !== "" ? theme.green : theme.yellow
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                         Button {
                             text: qsTr("Refresh")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: nineRouter.refresh()
                         }
                     }
@@ -523,7 +523,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Dashboard login: 123456 on a fresh install. Change it in 9Router Settings.")
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                     }
 
@@ -545,7 +545,7 @@ Item {
                                 Layout.fillWidth: true
                                 text: qsTr("9Router asks for its dashboard password.")
                                 color: theme.yellow
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                             }
                             RowLayout {
                                 Layout.fillWidth: true
@@ -569,7 +569,7 @@ Item {
                                 Button {
                                     text: qsTr("Log in")
                                     flat: true
-                                    font.pixelSize: 9
+                                    font.pixelSize: design.textCaption
                                     onClicked: nineRouter.login(root.password)
                                 }
                             }
@@ -577,7 +577,7 @@ Item {
                                 Layout.fillWidth: true
                                 text: qsTr("A fresh install uses 123456; change it in 9Router Settings.")
                                 color: theme.dimText
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 wrapMode: Text.Wrap
                             }
                         }
@@ -587,7 +587,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("%1 models · %2 selected").arg(nineRouter.models.length).arg(root.selectedCount)
                         color: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
 
                     TextField {
@@ -612,20 +612,20 @@ Item {
                         Button {
                             text: qsTr("Recommended")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.selectedModels = root.recommendedModels()
                         }
                         Button {
                             text: qsTr("Select visible")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.selectVisible()
                         }
                         Item { Layout.fillWidth: true }
                         Button {
                             text: qsTr("Clear")
                             flat: true
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             onClicked: root.selectedModels = []
                         }
                     }
@@ -661,7 +661,7 @@ Item {
                                         text: modelData.id
                                         color: theme.text
                                         font.family: backend.monoFont
-                                        font.pixelSize: 9
+                                        font.pixelSize: design.textCaption
                                         elide: Text.ElideRight
                                     }
                                     Text {
@@ -689,7 +689,7 @@ Item {
                         text: qsTr("Make it the harness default model")
                         checked: root.makeDefault
                         onToggled: root.makeDefault = checked
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
 
                     ActionButton {
@@ -702,7 +702,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Disconnect from harness")
                         flat: true
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         onClicked: nineRouter.disconnectHarness()
                     }
                 }

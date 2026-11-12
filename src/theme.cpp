@@ -337,8 +337,10 @@ void Theme::applyPalette(const QVariantMap &palette) {
     m_text = hex(fg);
     m_brightText = hex(colorOr(palette, "bright_foreground",
                                colorOr(palette, "light_foreground", fg)));
-    m_mutedText = hex(mix(fg, bg, m_dark ? 0.38 : 0.28));
-    m_dimText = hex(mix(fg, bg, m_dark ? 0.55 : 0.45));
+    // Light surfaces need more foreground weight to keep 9–10 px metadata
+    // readable; dark surfaces can stay softer without losing contrast.
+    m_mutedText = hex(mix(fg, bg, m_dark ? 0.38 : 0.12));
+    m_dimText = hex(mix(fg, bg, m_dark ? 0.55 : 0.25));
 
     m_accent = hex(accent);
     m_accentForeground = luminance(accent) > .179 ? "black" : "white";

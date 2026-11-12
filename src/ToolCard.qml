@@ -134,7 +134,7 @@ Item {
                     }
                     Text {
                         text: root.statusLabel(root.status)
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         font.letterSpacing: 0.3
                         color: root.statusColor(root.status)
                     }

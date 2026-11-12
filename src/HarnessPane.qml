@@ -72,7 +72,7 @@ Item {
                         anchors.centerIn: parent
                         text: backend.harnessProfile
                         font.family: backend.monoFont
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         color: theme.mutedText
                     }
                 }
@@ -118,7 +118,7 @@ Item {
             Column {
                 anchors.centerIn: parent
                 spacing: 14
-                visible: backend.harnessState === "starting" || backend.harnessState === "stopped"
+                visible: backend.harnessState === "starting"
 
                 BrandMark {
                     width: 58
@@ -144,6 +144,58 @@ Item {
                     text: backend.harnessDetail
                     color: theme.dimText
                     font.pixelSize: 11
+                }
+            }
+
+            // Empty / stopped
+            ColumnLayout {
+                anchors.centerIn: parent
+                width: Math.min(460, parent.width - design.space7)
+                spacing: design.space3
+                visible: backend.harnessState !== "starting" && backend.harnessState !== "failed"
+                         && (backend.harnessState === "stopped" || backend.harnessUrl === "")
+
+                BrandMark {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: 54
+                    height: 48
+                    size: 54
+                    accent: true
+                    markOpacity: 0.75
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: backend.demo ? qsTr("Aperçu du harness")
+                                       : (backend.harnessState === "stopped" ? qsTr("Le harness est arrêté")
+                                                                             : qsTr("Connexion au harness…"))
+                    color: theme.text
+                    font.pixelSize: design.textBodyLarge
+                    font.weight: Font.DemiBold
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: backend.demo ? qsTr("L'aperçu de démonstration n'ouvre pas de session DSH réelle.")
+                                       : (backend.harnessDetail !== "" ? backend.harnessDetail
+                                                                       : qsTr("Démarrez le harness pour charger le cockpit web."))
+                    color: theme.mutedText
+                    font.pixelSize: design.textCaption
+                    wrapMode: Text.Wrap
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: design.space2
+                    visible: !backend.demo
+                    Button {
+                        text: qsTr("Réglages")
+                        flat: true
+                        onClicked: backend.setView("settings")
+                    }
+                    ActionButton {
+                        text: qsTr("Démarrer le harness")
+                        onClicked: backend.restartHarness()
+                    }
                 }
             }
 

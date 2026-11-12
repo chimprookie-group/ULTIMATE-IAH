@@ -105,14 +105,14 @@ Item {
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
-                        Button { text: qsTr("Annuler"); flat: true; font.pixelSize: 8; onClicked: missions.cancel() }
+                        Button { text: qsTr("Annuler"); flat: true; font.pixelSize: design.textMicro; onClicked: missions.cancel() }
                     }
                     Text {
                         Layout.fillWidth: true
                         text: missions.lastOutput !== "" ? missions.lastOutput.slice(-1200) : qsTr("L'agent travaille…")
                         color: theme.dimText
                         font.family: backend.monoFont
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                         maximumLineCount: 8
                         elide: Text.ElideRight
@@ -157,28 +157,41 @@ Item {
                 }
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
-                    Text { text: qsTr("Plan"); color: theme.dimText; font.pixelSize: 8 }
-                    ComboBox { id: plannerBox; Layout.fillWidth: true; model: agents.profiles; textRole: "name"; valueRole: "id"; font.pixelSize: 8 }
-                    Text { text: qsTr("Exécution"); color: theme.dimText; font.pixelSize: 8 }
-                    ComboBox {
-                        id: builderBox
+                    spacing: design.space3
+
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        model: agents.profiles
-                        textRole: "name"
-                        valueRole: "id"
-                        font.pixelSize: 8
-                        currentIndex: 1
+                        spacing: 3
+                        Text { text: qsTr("Planification"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        ComboBox { id: plannerBox; Layout.fillWidth: true; model: agents.profiles; textRole: "name"; valueRole: "id"; font.pixelSize: 8 }
                     }
-                    Text { text: qsTr("Revue"); color: theme.dimText; font.pixelSize: 8 }
-                    ComboBox {
-                        id: reviewerBox
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        model: agents.profiles
-                        textRole: "name"
-                        valueRole: "id"
-                        font.pixelSize: 8
-                        currentIndex: 2
+                        spacing: 3
+                        Text { text: qsTr("Exécution"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        ComboBox {
+                            id: builderBox
+                            Layout.fillWidth: true
+                            model: agents.profiles
+                            textRole: "name"
+                            valueRole: "id"
+                            font.pixelSize: design.textMicro
+                            currentIndex: 1
+                        }
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 3
+                        Text { text: qsTr("Revue"); color: theme.dimText; font.pixelSize: design.textCaption }
+                        ComboBox {
+                            id: reviewerBox
+                            Layout.fillWidth: true
+                            model: agents.profiles
+                            textRole: "name"
+                            valueRole: "id"
+                            font.pixelSize: design.textMicro
+                            currentIndex: 2
+                        }
                     }
                 }
                 RowLayout {
@@ -187,7 +200,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Séquence : Plan → Exécution → Revue · mémoire injectée à chaque étape")
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                     }
                     ActionButton {
@@ -201,7 +214,7 @@ Item {
                     visible: missions.error !== ""
                     text: missions.error
                     color: theme.red
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
             }
@@ -211,7 +224,7 @@ Item {
                 visible: missions.missions.length === 0
                 text: qsTr("Aucune mission. Le premier plan apparaîtra ici.")
                 color: theme.dimText
-                font.pixelSize: 9
+                font.pixelSize: design.textCaption
             }
 
             Repeater {
@@ -246,13 +259,13 @@ Item {
                             Text {
                                 text: modelData.status
                                 color: root.statusColor(modelData.status)
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 font.weight: Font.DemiBold
                             }
                             Button {
                                 text: qsTr("Supprimer")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 enabled: !missions.running
                                 onClicked: missions.removeMission(modelData.id)
                             }
@@ -261,7 +274,7 @@ Item {
                             Layout.fillWidth: true
                             text: modelData.task
                             color: theme.mutedText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                             maximumLineCount: 2
                             elide: Text.ElideRight
@@ -283,7 +296,7 @@ Item {
                                         text: step.title
                                         color: step.status === "done" ? theme.green
                                              : (step.status === "running" ? theme.yellow : theme.dimText)
-                                        font.pixelSize: 8
+                                        font.pixelSize: design.textMicro
                                         font.weight: Font.DemiBold
                                     }
                                 }
@@ -293,7 +306,7 @@ Item {
                                 visible: modelData.error !== ""
                                 text: modelData.error
                                 color: theme.red
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 elide: Text.ElideRight
                                 Layout.maximumWidth: 360
                             }
@@ -304,7 +317,7 @@ Item {
                             text: root.latestOutput(modelData.steps)
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                             maximumLineCount: 5
                             elide: Text.ElideRight
@@ -326,13 +339,13 @@ Item {
                             Layout.fillWidth: true
                             spacing: 1
                             Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.role; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                         }
                         Button {
                             visible: !modelData.builtin
                             text: qsTr("Supprimer")
                             flat: true
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             onClicked: agents.removeProfile(modelData.id)
                         }
                     }
@@ -350,7 +363,7 @@ Item {
                     visible: agents.error !== ""
                     text: agents.error
                     color: theme.red
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                 }
             }
 
@@ -362,7 +375,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Des instructions réutilisables, découvertes par le harness dans ~/.agents/skills et dans le projet.")
                     color: theme.dimText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
 
@@ -375,7 +388,7 @@ Item {
                             Layout.fillWidth: true
                             spacing: 1
                             Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.scope; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                         }
                         Button {
                             text: qsTr("Utiliser")
@@ -415,7 +428,7 @@ Item {
                         color: theme.text
                         placeholderText: qsTr("Instructions du skill…")
                         placeholderTextColor: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: TextArea.Wrap
                         background: null
                     }
@@ -427,7 +440,7 @@ Item {
                         visible: skills.error !== ""
                         text: skills.error
                         color: theme.red
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                     }
                     ActionButton { text: qsTr("Créer le skill"); onClicked: root.addSkill() }
                 }

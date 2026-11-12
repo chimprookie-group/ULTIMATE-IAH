@@ -313,7 +313,7 @@ ApplicationWindow {
                                 text: "Ctrl K"
                                 color: theme.dimText
                                 font.family: backend.monoFont
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                             }
                         }
                     }

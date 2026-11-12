@@ -11,7 +11,7 @@ Item {
     signal agentTaskRequested(string prompt)
 
     readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
-    readonly property bool wide: contentWidth >= 920
+    readonly property bool wide: contentWidth >= 860
     property real reveal: 0
 
     function stateColor(state) {
@@ -146,7 +146,7 @@ Item {
                         spacing: design.space3
                         StatusDot { color: root.stateColor(backend.harnessState) }
                         Text {
-                            text: qsTr("MISSION INPUT")
+                            text: qsTr("MISSION")
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro
@@ -326,33 +326,36 @@ Item {
                             columns: 2
                             columnSpacing: design.space2
                             rowSpacing: design.space2
-                            Button {
-                                Layout.fillWidth: true
-                                text: qsTr("Agents")
-                                flat: true
-                                font.pixelSize: design.textCaption
-                                onClicked: backend.setView("agents")
-                            }
-                            Button {
-                                Layout.fillWidth: true
-                                text: qsTr("Mémoire")
-                                flat: true
-                                font.pixelSize: design.textCaption
-                                onClicked: backend.setView("memory")
-                            }
-                            Button {
-                                Layout.fillWidth: true
-                                text: qsTr("Autopilote")
-                                flat: true
-                                font.pixelSize: design.textCaption
-                                onClicked: backend.setView("autopilot")
-                            }
-                            Button {
-                                Layout.fillWidth: true
-                                text: "MCP"
-                                flat: true
-                                font.pixelSize: design.textCaption
-                                onClicked: backend.setView("mcp")
+
+                            Repeater {
+                                model: [
+                                    { label: qsTr("Agents"), view: "agents" },
+                                    { label: qsTr("Mémoire"), view: "memory" },
+                                    { label: qsTr("Autopilote"), view: "autopilot" },
+                                    { label: "MCP", view: "mcp" }
+                                ]
+                                Button {
+                                    id: agentTile
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 30
+                                    text: modelData.label
+                                    padding: 0
+                                    background: Rectangle {
+                                        radius: design.radiusSm
+                                        color: agentTile.hovered ? theme.raised : theme.chip
+                                        border.width: agentTile.activeFocus ? 2 : 1
+                                        border.color: agentTile.activeFocus ? theme.accent
+                                                                           : (agentTile.hovered ? theme.borderStrong : theme.border)
+                                    }
+                                    contentItem: Text {
+                                        text: agentTile.text
+                                        color: theme.text
+                                        font.pixelSize: design.textCaption
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                    onClicked: backend.setView(modelData.view)
+                                }
                             }
                         }
                     }

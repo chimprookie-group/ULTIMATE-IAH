@@ -183,7 +183,7 @@ Item {
                         Text {
                             text: mausBot.detail + (mausBot.version !== "" ? " · v" + mausBot.version : "")
                             color: theme.dimText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                     }
                 }
@@ -344,7 +344,7 @@ Item {
                             visible: mausBot.installReport !== ""
                             text: mausBot.installReport
                             color: theme.green
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
                         Text {
@@ -352,7 +352,7 @@ Item {
                             visible: mausBot.installing
                             text: qsTr("Installing the local package… this can take a minute.")
                             color: theme.yellow
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                         }
                         Text {
                             Layout.fillWidth: true
@@ -360,7 +360,7 @@ Item {
                             text: mausBot.installLog
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                             maximumLineCount: 4
                             elide: Text.ElideRight
@@ -371,7 +371,7 @@ Item {
                             text: mausBot.privilegedLog
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                             maximumLineCount: 4
                             elide: Text.ElideRight
@@ -381,7 +381,7 @@ Item {
                             visible: mausBot.error !== ""
                             text: mausBot.error
                             color: theme.red
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                         }
 
@@ -399,7 +399,7 @@ Item {
                             Button {
                                 text: mausBot.privilegedBusy ? qsTr("Authorizing…") : qsTr("System dependencies (sudo)")
                                 flat: true
-                                font.pixelSize: 9
+                                font.pixelSize: design.textCaption
                                 enabled: !mausBot.privilegedBusy && !mausBot.installing
                                 onClicked: mausBot.installDependencies()
                             }
@@ -452,7 +452,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Expose the MausBot team to the harness through its stdio MCP server. Tools appear as mcp__openmausbot__*.")
                         color: theme.dimText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
                     }
 
@@ -469,7 +469,7 @@ Item {
                         Text {
                             text: mausBot.mcpHarness ? qsTr("registered") : qsTr("not registered")
                             color: mausBot.mcpHarness ? theme.green : theme.dimText
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
                     }
 
@@ -477,7 +477,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("MausBot must stay running for its tools. Read-only tools work on loopback; pairing may be required for actions that change your team.")
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                     }
 
@@ -490,7 +490,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Disconnect MCP")
                         flat: true
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         onClicked: mausBot.disconnectMcp()
                     }
 
@@ -498,7 +498,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Available agents: Claude, Codex and Grok CLIs are detected automatically by MausBot.")
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                     }
 

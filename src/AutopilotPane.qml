@@ -74,7 +74,7 @@ Item {
                           ? qsTr("Autonomie active : les tâches échues s'exécutent seules, une à la fois, dans %1.").arg(backend.workspace)
                           : qsTr("Autonomie en pause. Les tâches ne s'exécutent que manuellement.")
                     color: autopilot.enabled ? theme.orange : theme.mutedText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
             }
@@ -110,7 +110,7 @@ Item {
                         text: autopilot.lastOutput !== "" ? autopilot.lastOutput.slice(-1200) : qsTr("Le harness travaille…")
                         color: theme.dimText
                         font.family: backend.monoFont
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                         wrapMode: Text.Wrap
                         maximumLineCount: 8
                         elide: Text.ElideRight
@@ -165,12 +165,12 @@ Item {
                     Text {
                         text: qsTr("minutes")
                         color: theme.mutedText
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                     Text {
                         text: qsTr("0 = manuel · sinon répétition à intervalle régulier")
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                     }
                     Item { Layout.fillWidth: true }
                     ActionButton { text: qsTr("Ajouter"); onClicked: root.addJob() }
@@ -180,26 +180,42 @@ Item {
                     visible: autopilot.error !== ""
                     text: autopilot.error
                     color: theme.red
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
             }
 
-            BrandMark {
-                Layout.alignment: Qt.AlignHCenter
-                width: 48
-                height: 42
-                size: 48
-                accent: true
-                markOpacity: 0.7
-                visible: autopilot.jobs.length === 0
-            }
-            Text {
+            ColumnLayout {
                 Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: design.space5
+                spacing: design.space3
                 visible: autopilot.jobs.length === 0
-                text: qsTr("Aucune tâche autonome. Ajoutez une tâche et activez l'autonomie.")
-                color: theme.dimText
-                font.pixelSize: 10
+
+                BrandMark {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: 48
+                    height: 42
+                    size: 48
+                    accent: true
+                    markOpacity: 0.7
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("Aucune tâche autonome")
+                    color: theme.text
+                    font.pixelSize: design.textBody
+                    font.weight: Font.DemiBold
+                }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("Ajoutez une tâche et activez l'autonomie pour la faire tourner à intervalle régulier.")
+                    color: theme.dimText
+                    font.pixelSize: design.textCaption
+                    wrapMode: Text.Wrap
+                }
             }
 
             Repeater {
@@ -234,7 +250,7 @@ Item {
                             Text {
                                 text: modelData.status
                                 color: root.statusColor(modelData.status)
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 font.weight: Font.DemiBold
                             }
                         }
@@ -242,7 +258,7 @@ Item {
                             Layout.fillWidth: true
                             text: modelData.prompt
                             color: theme.mutedText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             wrapMode: Text.Wrap
                             maximumLineCount: 3
                             elide: Text.ElideRight
@@ -256,7 +272,7 @@ Item {
                                   + (modelData.lastError !== "" ? " · " + modelData.lastError : "")
                             color: modelData.lastError !== "" ? theme.red : theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             wrapMode: Text.Wrap
                         }
                         RowLayout {
@@ -265,21 +281,21 @@ Item {
                             Button {
                                 text: qsTr("Exécuter")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 enabled: !autopilot.running
                                 onClicked: autopilot.runNow(modelData.id)
                             }
                             Button {
                                 text: modelData.enabled ? qsTr("Mettre en pause") : qsTr("Reprendre")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 onClicked: autopilot.toggleJob(modelData.id)
                             }
                             Item { Layout.fillWidth: true }
                             Button {
                                 text: qsTr("Supprimer")
                                 flat: true
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 enabled: !autopilot.running
                                 onClicked: autopilot.removeJob(modelData.id)
                             }

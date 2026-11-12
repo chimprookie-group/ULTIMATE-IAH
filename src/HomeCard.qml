@@ -22,9 +22,14 @@ Rectangle {
 
     ColumnLayout {
         id: body
-        x: design.space5
-        y: design.space4
-        width: parent.width - design.space8
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: design.space5
+        anchors.rightMargin: design.space3
+        anchors.topMargin: design.space4
+        anchors.bottomMargin: design.space4
         spacing: design.space2
 
         RowLayout {

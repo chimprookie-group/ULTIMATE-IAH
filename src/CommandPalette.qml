@@ -128,7 +128,7 @@ Item {
                         text: "Esc"
                         color: theme.mutedText
                         font.family: backend.monoFont
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                     }
                 }
             }
@@ -240,12 +240,12 @@ Item {
                             text: modelData.hint !== undefined ? modelData.hint : ""
                             color: theme.dimText
                             font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
                         Text {
                             text: modelData.group !== undefined ? modelData.group : ""
                             color: theme.dimText
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
                     }
 
@@ -273,7 +273,7 @@ Item {
                 Layout.fillWidth: true
                 text: qsTr("↑↓ naviguer · Entrée exécuter · Échap fermer")
                 color: theme.dimText
-                font.pixelSize: 8
+                font.pixelSize: design.textMicro
                 horizontalAlignment: Text.AlignRight
             }
         }

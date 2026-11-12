@@ -83,7 +83,7 @@ Item {
                 visible: connections.error !== ""
                 text: connections.error
                 color: theme.red
-                font.pixelSize: 9
+                font.pixelSize: design.textCaption
                 wrapMode: Text.Wrap
             }
 
@@ -194,7 +194,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Choisissez un preset, puis collez votre clé. Les endpoints locaux n'exigent pas de clé.")
                     color: theme.dimText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
                 }
 
@@ -217,7 +217,7 @@ Item {
                         Button {
                             text: modelData.name
                             flat: true
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                             onClicked: root.applyPreset(modelData)
                         }
                     }
@@ -351,13 +351,13 @@ Item {
                                     text: modelData.hasKey ? modelData.keyMasked : qsTr("sans clé")
                                     color: modelData.hasKey ? theme.green : theme.yellow
                                     font.family: backend.monoFont
-                                    font.pixelSize: 8
+                                    font.pixelSize: design.textMicro
                                 }
                                 Button {
                                     visible: !modelData.builtin
                                     text: qsTr("Supprimer")
                                     flat: true
-                                    font.pixelSize: 8
+                                    font.pixelSize: design.textMicro
                                     onClicked: {
                                         connections.removeProvider(modelData.id)
                                         backend.restartHarness()
@@ -369,7 +369,7 @@ Item {
                                 text: modelData.baseURL + "  ·  " + (modelData.api !== undefined ? modelData.api : "openai-completions")
                                 color: theme.dimText
                                 font.family: backend.monoFont
-                                font.pixelSize: 8
+                                font.pixelSize: design.textMicro
                                 elide: Text.ElideMiddle
                             }
                             Flow {
@@ -380,7 +380,7 @@ Item {
                                     Button {
                                         text: modelData
                                         flat: true
-                                        font.pixelSize: 8
+                                        font.pixelSize: design.textMicro
                                         highlighted: connections.defaultModel === (providerData.id + "/" + modelData)
                                         onClicked: {
                                             connections.setDefault(providerData.id, modelData)
@@ -416,7 +416,7 @@ Item {
                         id: providerApi
                         Layout.preferredWidth: 180
                         model: ["OpenAI-compatible", "Anthropic"]
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                 }
                 SettingsField {
@@ -429,7 +429,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Modèles, un par ligne. Utilisez id=Nom affiché si besoin.")
                     color: theme.dimText
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                 }
                 Rectangle {
                     Layout.fillWidth: true
@@ -446,7 +446,7 @@ Item {
                         placeholderText: "deepseek-chat=DeepSeek Chat\ndeepseek-reasoner=DeepSeek Reasoner"
                         placeholderTextColor: theme.dimText
                         font.family: backend.monoFont
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                         wrapMode: TextArea.NoWrap
                         background: null
                     }
@@ -457,7 +457,7 @@ Item {
                         id: makeDefault
                         text: qsTr("Modèle par défaut")
                         checked: true
-                        font.pixelSize: 9
+                        font.pixelSize: design.textCaption
                     }
                     Item { Layout.fillWidth: true }
                     ActionButton { text: qsTr("Ajouter"); onClicked: root.saveProvider() }
@@ -484,7 +484,7 @@ Item {
                         text: connections.defaultModel !== "" ? qsTr("Défaut : %1").arg(connections.defaultModel) : qsTr("Aucun modèle par défaut")
                         color: theme.dimText
                         font.family: backend.monoFont
-                        font.pixelSize: 8
+                        font.pixelSize: design.textMicro
                     }
                 }
             }
