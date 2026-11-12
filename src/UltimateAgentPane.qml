@@ -156,7 +156,7 @@ Item {
                 anchors.fill: parent
                 visible: !root.empty
                 anchors.leftMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
-                anchors.rightMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2) + design.space4
+                anchors.rightMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
                 anchors.topMargin: design.space4
                 anchors.bottomMargin: design.space3
                 clip: true
@@ -475,7 +475,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: composerRow.implicitHeight + design.space3
             Layout.leftMargin: Math.max(root.compact ? design.space3 : design.space5, (parent.width - root.contentWidth) / 2)
-            Layout.rightMargin: Math.max(root.compact ? design.space3 : design.space5, (parent.width - root.contentWidth) / 2) + design.space4
+            Layout.rightMargin: Math.max(root.compact ? design.space3 : design.space5, (parent.width - root.contentWidth) / 2)
             Layout.bottomMargin: design.space3
             radius: design.radiusLg
             color: theme.raised
