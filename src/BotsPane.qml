@@ -127,6 +127,8 @@ Item {
                 x: Math.max(design.space5, (parent.width - width) / 2)
                 spacing: design.space3
 
+                Item { Layout.fillWidth: true; Layout.preferredHeight: design.space4 }
+
                 PageHeader {
                     Layout.fillWidth: true
                     title: qsTr("Bots")
