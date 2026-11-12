@@ -7,9 +7,10 @@ Item {
     property string hint: ""
     property bool active: false
     signal clicked()
+    Accessible.name: hint
 
-    implicitWidth: 32
-    implicitHeight: 32
+    implicitWidth: 28
+    implicitHeight: 28
 
     Rectangle {
         anchors.fill: parent
@@ -36,8 +37,4 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
-
-    ToolTip.visible: mouse.containsMouse && root.hint !== ""
-    ToolTip.text: root.hint
-    ToolTip.delay: 450
 }

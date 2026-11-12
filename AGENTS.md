@@ -13,3 +13,11 @@ Ces règles s'appliquent à toutes les sessions et aux installateurs de l'applic
 - `NineRouterManager` vérifie 9Router après installation, nettoie ses caches temporaires, puis le démarre.
 - Les dépendances système passent par `pkexec pacman` et sont vérifiées après l'installation.
 - Toute nouvelle action privilégiée doit réutiliser ce chemin `pkexec`, jamais `sudo` directement.
+
+## Méthode UI — une seule correction propre
+
+- Avant toute correction visuelle, reproduire le défaut sur une capture réelle.
+- Identifier la cause structurelle commune avant de modifier plusieurs fichiers.
+- Ne pas empiler les petits correctifs au hasard : une modification de composant partagé, puis une vérification réelle.
+- Après correction, refaire la même capture au même endroit et au même thème, et vérifier les états survol, focus et fenêtre compacte.
+- Une animation de survol ne doit jamais modifier la géométrie visible d'une icône : privilégier couleur/opacité et garder la zone strictement dans la cellule de l'icône.

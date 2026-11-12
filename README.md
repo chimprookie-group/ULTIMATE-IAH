@@ -123,7 +123,7 @@ masqué pour éviter l'ancienne icône.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.4.3-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.4.4-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

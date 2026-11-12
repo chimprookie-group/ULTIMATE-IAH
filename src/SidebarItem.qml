@@ -12,14 +12,17 @@ Item {
     property bool compact: false
     property color statusColor: "transparent"
     signal clicked()
+    Accessible.name: label !== "" ? label : hint
 
     implicitWidth: design.sidebarWidth
     implicitHeight: 38
 
     Rectangle {
-        anchors.fill: parent
-        anchors.leftMargin: design.space2
-        anchors.rightMargin: design.space2
+        id: hoverBox
+        anchors.verticalCenter: parent.verticalCenter
+        x: root.compact ? Math.round((parent.width - width) / 2) : design.space2
+        width: root.compact ? 26 : 30
+        height: 28
         radius: design.radiusSm
         color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
         Behavior on color { ColorAnimation { duration: design.durationFast } }
@@ -79,8 +82,4 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
-
-    ToolTip.visible: mouse.containsMouse && root.hint !== ""
-    ToolTip.text: root.hint
-    ToolTip.delay: 400
 }

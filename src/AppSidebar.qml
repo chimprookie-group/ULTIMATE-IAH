@@ -185,9 +185,9 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: design.controlHeight
-                Layout.leftMargin: design.space1
-                Layout.rightMargin: design.space1
+                Layout.preferredHeight: root.compact ? 26 : design.controlHeight
+                Layout.leftMargin: root.compact ? 21 : design.space1
+                Layout.rightMargin: root.compact ? 21 : design.space1
                 radius: design.radiusSm
                 color: commandMouse.containsMouse ? theme.chip : "transparent"
                 border.width: 1
