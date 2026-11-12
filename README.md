@@ -111,6 +111,18 @@ Ultimate Agent expose deux outils web réels :
 - Outils agent `ultimate_notes` pour lire, chercher, créer et mettre à jour.
 - Raccourci **Ctrl+Alt+N**.
 
+## Socle DSH natif
+
+Le panneau Plugins expose la carte complète du harness :
+
+- **28 capacités du noyau** actives par défaut : agent loop, sessions, outils,
+  fichiers, shell, web search/fetch, MCP, skills, plan, objectifs, jobs,
+  sous-agents, planification, token meter, compaction, persona, notes, mémoire,
+  providers, ArtCraft, etc.
+- **12 extensions expérimentales** visibles mais désactivées par défaut.
+- Chaque capacité indique son outil natif ou sa vue de contrôle.
+- Les outils réellement installés restent détectés dynamiquement.
+
 ## Plugins et ArtCraft
 
 ![Plugins et ArtCraft](assets/screenshot-plugins.png)
@@ -201,7 +213,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.11.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.12.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

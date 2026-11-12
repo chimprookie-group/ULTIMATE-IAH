@@ -12,6 +12,9 @@
 class PluginManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList plugins READ plugins NOTIFY changed)
+    Q_PROPERTY(QVariantList capabilities READ capabilities NOTIFY changed)
+    Q_PROPERTY(int activeCapabilities READ activeCapabilities NOTIFY changed)
+    Q_PROPERTY(int coreCapabilities READ coreCapabilities NOTIFY changed)
     Q_PROPERTY(int installedCount READ installedCount NOTIFY changed)
     Q_PROPERTY(int enabledCount READ enabledCount NOTIFY changed)
     Q_PROPERTY(int toolCount READ toolCount NOTIFY changed)
@@ -30,6 +33,9 @@ public:
     explicit PluginManager(const QString &configDir = {}, QObject *parent = nullptr);
 
     QVariantList plugins() const { return m_plugins; }
+    QVariantList capabilities() const { return m_capabilities; }
+    int activeCapabilities() const;
+    int coreCapabilities() const;
     int installedCount() const;
     int enabledCount() const;
     int toolCount() const { return toolDefinitions().size(); }
@@ -69,6 +75,7 @@ private:
 
     QString m_configDir;
     QVariantList m_plugins;
+    QVariantList m_capabilities;
     QSet<QString> m_disabled;
     QString m_error;
 };

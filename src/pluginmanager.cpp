@@ -47,6 +47,63 @@ const QList<PluginManager::ArtCraft> &profiles() {
     };
     return list;
 }
+struct DshCapability {
+    const char *id;
+    const char *name;
+    const char *category;
+    const char *description;
+    bool enabledByDefault;
+    bool implemented;
+    const char *tool;
+    const char *view;
+};
+
+const QList<DshCapability> &dshCapabilities() {
+    static const QList<DshCapability> list = {
+        {"agent-loop", "Boucle agent", "Noyau", "Boucle tool-calling native, rounds et arrêt propre.", true, true, "ultimate_status", "agent"},
+        {"sessions", "Sessions", "Noyau", "Conversations persistantes, reprise, historique et recherche.", true, true, "ultimate_agent", "agent"},
+        {"tools", "Outils", "Noyau", "Registre d’outils intégrés et dynamiques avec permissions.", true, true, "ultimate_plugins", "plugins"},
+        {"fs", "Fichiers", "Noyau", "Lecture, écriture, listage et recherche dans le workspace.", true, true, "ultimate_files", "workspace"},
+        {"bash", "Shell", "Noyau", "Terminal PTY réel et exécution contrôlée.", true, true, "ultimate_terminal", "terminal"},
+        {"web-search", "Recherche web", "Noyau", "DeepSeek Search et secours DuckDuckGo.", true, true, "web_search", "plugins"},
+        {"web-fetch", "Lecture web", "Noyau", "Fetch HTTP borné, texte propre et cache.", true, true, "web_fetch", "plugins"},
+        {"mcp", "MCP", "Noyau", "Serveurs MCP stdio/HTTP et outils associés.", true, true, "ultimate_mcp", "mcp"},
+        {"skills", "Skills", "Noyau", "Bibliothèque de compétences injectées dans le prompt.", true, true, "ultimate_skills", "agents"},
+        {"goals", "Objectifs", "Noyau", "Missions Plan → Exécution → Revue.", true, true, "ultimate_mission", "agents"},
+        {"plan", "Plan", "Noyau", "Mode planification avant action.", true, true, "ultimate_status", "agent"},
+        {"jobs", "Jobs", "Noyau", "Autopilote, files et reprise.", true, true, "ultimate_status", "autopilot"},
+        {"subagents", "Sous-agents", "Noyau", "Rôles planner, builder, reviewer et chercheur.", true, true, "ultimate_mission", "agents"},
+        {"schedule", "Planification", "Noyau", "Planifications récurrentes des bots.", true, true, "ultimate_bots", "bots"},
+        {"token-meter", "Token meter", "Noyau", "Jauge de contexte et compaction.", true, true, "ultimate_status", "agent"},
+        {"compaction", "Compaction", "Noyau", "Compaction du contexte et pruning des outils.", true, true, "ultimate_status", "agent"},
+        {"time-context", "Contexte temporel", "Noyau", "Date, heure et espace de travail dans le prompt.", true, true, "ultimate_status", "agent"},
+        {"persona", "Persona", "Noyau", "Instructions et profils de comportement.", true, true, "ultimate_agents", "agents"},
+        {"ask-user", "Ask user", "Noyau", "Confirmation explicite des actions destructrices.", true, true, "ultimate_status", "agent"},
+        {"present", "Présentation", "Noyau", "Artefacts et rendus de résultats.", true, false, "", "workspace"},
+        {"todo", "Todo", "Noyau", "Suivi de tâches dans une mission.", true, true, "ultimate_mission", "agents"},
+        {"workflow", "Workflow", "Noyau", "Orchestration multi-étapes native.", true, true, "ultimate_mission", "agents"},
+        {"workspace", "Workspace", "Noyau", "Projet, Git et fichiers partagés.", true, true, "ultimate_git", "workspace"},
+        {"notes", "Notes", "Noyau", "Vault Markdown, wikilinks, backlinks et graphe.", true, true, "ultimate_notes", "notes"},
+        {"memory", "Mémoire", "Noyau", "Mémoire persistante SQLite/FTS5.", true, true, "ultimate_memory", "memory"},
+        {"providers", "Providers", "Noyau", "Catalogue, clé DeepSeek et modèle par défaut.", true, true, "ultimate_connections", "connections"},
+        {"plugins", "Plugins", "Noyau", "Registre natif et manifestes externes.", true, true, "ultimate_plugins", "plugins"},
+        {"artcraft", "ArtCraft", "Noyau", "14 CLI créatives exposées comme outils.", true, true, "artcraft_gridcraft", "plugins"},
+        {"agent-team", "Agent team", "Expérimental", "Équipe d’agents avec rôles parallèles.", false, false, "", "agents"},
+        {"voice-input", "Voice input", "Expérimental", "Entrée vocale et dictée.", false, false, "", "agent"},
+        {"auto-review", "Auto review", "Expérimental", "Revue automatique des changements.", false, false, "", "agents"},
+        {"cot-translation", "CoT translation", "Expérimental", "Traduction du raisonnement.", false, false, "", "agent"},
+        {"ralph", "Ralph", "Expérimental", "Boucle autonome de construction.", false, false, "", "autopilot"},
+        {"liveshare", "Live share", "Expérimental", "Partage de session en direct.", false, false, "", "agent"},
+        {"plugin-market", "Plugin market", "Expérimental", "Marché de plugins Cordis.", false, false, "", "plugins"},
+        {"worktree", "Worktree", "Expérimental", "Isolation Git par worktree.", false, false, "", "workspace"},
+        {"forge", "Forge", "Expérimental", "Boucle de forge expérimentale.", false, false, "", "agents"},
+        {"image-offload", "Image offload", "Expérimental", "Déport des images hors contexte.", false, false, "", "agent"},
+        {"speech-to-text", "Speech to text", "Expérimental", "Transcription audio.", false, false, "", "agent"},
+        {"translator", "Translator", "Expérimental", "Traduction expérimentale.", false, false, "", "agent"}
+    };
+    return list;
+}
+
 } // namespace
 
 PluginManager::PluginManager(const QString &configDir, QObject *parent)
@@ -71,6 +128,19 @@ QString PluginManager::externalDir() const {
 QString PluginManager::artcraftPath() const {
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
         + QStringLiteral("/artcraft/bin");
+}
+
+int PluginManager::activeCapabilities() const {
+    int count = 0;
+    for (const QVariant &value : m_capabilities)
+        if (value.toMap().value(QStringLiteral("enabled")).toBool()) ++count;
+    return count;
+}
+int PluginManager::coreCapabilities() const {
+    int count = 0;
+    for (const QVariant &value : m_capabilities)
+        if (value.toMap().value(QStringLiteral("category")).toString() == QLatin1String("Noyau")) ++count;
+    return count;
 }
 
 int PluginManager::installedCount() const {
@@ -160,6 +230,20 @@ void PluginManager::refresh() {
     m_plugins.clear();
     QDir().mkpath(artcraftPath());
     QDir().mkpath(externalDir());
+    m_capabilities.clear();
+    for (const DshCapability &capability : dshCapabilities()) {
+        m_capabilities.append(QVariantMap{
+            {QStringLiteral("id"), QString::fromLatin1(capability.id)},
+            {QStringLiteral("name"), QString::fromLatin1(capability.name)},
+            {QStringLiteral("category"), QString::fromLatin1(capability.category)},
+            {QStringLiteral("description"), QString::fromLatin1(capability.description)},
+            {QStringLiteral("defaultEnabled"), capability.enabledByDefault},
+            {QStringLiteral("enabled"), capability.enabledByDefault},
+            {QStringLiteral("implemented"), capability.implemented},
+            {QStringLiteral("tool"), QString::fromLatin1(capability.tool)},
+            {QStringLiteral("view"), QString::fromLatin1(capability.view)},
+        });
+    }
     for (const ArtCraft &craft : profiles())
         m_plugins.append(buildArtcraft(craft));
     QDir directory(externalDir());

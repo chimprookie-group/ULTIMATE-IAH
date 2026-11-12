@@ -2,6 +2,12 @@
 
 Ultimate Agent reçoit ses outils via le registre natif `PluginManager`.
 
+## Socle DSH
+
+Le registre expose 28 capacités du noyau actives par défaut et 12 extensions
+expérimentales désactivées, avec leur outil natif ou leur vue. Cette carte est
+la projection native du profil DSH `web` et du bundle `base`.
+
 ## ArtCraft
 
 - Binaires détectés dans `~/.local/share/Crasy/deepcrasy-h/artcraft/bin`,

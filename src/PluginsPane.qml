@@ -14,6 +14,22 @@ Item {
         }
         return result
     }
+    readonly property var coreCapabilities: {
+        var result = []
+        for (var i = 0; i < plugins.capabilities.length; ++i) {
+            if (plugins.capabilities[i].category === "Noyau")
+                result.push(plugins.capabilities[i])
+        }
+        return result
+    }
+    readonly property var experimentalCapabilities: {
+        var result = []
+        for (var i = 0; i < plugins.capabilities.length; ++i) {
+            if (plugins.capabilities[i].category !== "Noyau")
+                result.push(plugins.capabilities[i])
+        }
+        return result
+    }
     readonly property var external: {
         var result = []
         for (var i = 0; i < plugins.plugins.length; ++i) {
@@ -61,7 +77,7 @@ Item {
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: root.contentWidth > 820 ? 4 : 2
+                columns: root.contentWidth > 1000 ? 5 : 2
                 columnSpacing: design.space2
                 rowSpacing: design.space2
                 Rectangle { Layout.fillWidth: true; implicitHeight: 74; radius: design.radiusMd; color: theme.surface; border.width: 1; border.color: theme.border
@@ -84,8 +100,8 @@ Item {
                 }
                 Rectangle { Layout.fillWidth: true; implicitHeight: 74; radius: design.radiusMd; color: theme.surface; border.width: 1; border.color: theme.border
                     ColumnLayout { anchors.fill: parent; anchors.margins: design.space3; spacing: 1
-                        Text { text: qsTr("ArtCraft"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
-                        Text { text: root.artcraft.filter(function (p) { return p.installed }).length + " / " + root.artcraft.length; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
+                        Text { text: qsTr("Capacités DSH"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        Text { text: plugins.activeCapabilities + " / " + plugins.capabilities.length; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
                     }
                 }
             }
@@ -169,6 +185,83 @@ Item {
                     }
                 }
                 Text { Layout.fillWidth: true; visible: web.recentSearches.length === 0; text: qsTr("Aucune recherche récente."); color: theme.dimText; font.pixelSize: design.textCaption }
+            }
+
+            SettingsSection {
+                title: qsTr("Noyau DSH")
+                Layout.fillWidth: true
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { Layout.fillWidth: true; text: qsTr("Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                    Text { text: plugins.activeCapabilities + " / " + plugins.capabilities.length; color: theme.green; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                }
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: root.contentWidth > 1000 ? 3 : 2
+                    columnSpacing: design.space2
+                    rowSpacing: design.space2
+                    Repeater {
+                        model: root.coreCapabilities
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: dshCoreColumn.implicitHeight + design.space3
+                            radius: design.radiusSm
+                            color: theme.background
+                            border.width: 1
+                            border.color: modelData.implemented ? theme.border : theme.borderStrong
+                            ColumnLayout {
+                                id: dshCoreColumn
+                                anchors.fill: parent
+                                anchors.margins: design.space2
+                                spacing: 2
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    StatusDot { size: 4; color: modelData.implemented ? theme.green : theme.yellow }
+                                    Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textMicro; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                    Text { text: modelData.implemented ? qsTr("natif") : qsTr("partiel"); color: modelData.implemented ? theme.green : theme.orange; font.pixelSize: 8 }
+                                }
+                                Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                                Text { Layout.fillWidth: true; text: modelData.tool !== "" ? modelData.tool : modelData.view; color: theme.accent; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideRight }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Extensions expérimentales")
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: root.contentWidth > 1000 ? 3 : 2
+                    columnSpacing: design.space2
+                    rowSpacing: design.space2
+                    Repeater {
+                        model: root.experimentalCapabilities
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: expColumn.implicitHeight + design.space3
+                            radius: design.radiusSm
+                            color: theme.surface
+                            border.width: 1
+                            border.color: theme.border
+                            ColumnLayout {
+                                id: expColumn
+                                anchors.fill: parent
+                                anchors.margins: design.space2
+                                spacing: 1
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    StatusDot { size: 4; color: theme.dimText }
+                                    Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textMicro; font.weight: Font.DemiBold }
+                                    Text { text: qsTr("désactivé"); color: theme.dimText; font.pixelSize: 8 }
+                                }
+                                Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                            }
+                        }
+                    }
+                }
             }
 
             SettingsSection {

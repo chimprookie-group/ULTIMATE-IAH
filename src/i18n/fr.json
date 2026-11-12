@@ -1196,5 +1196,13 @@
   "Web · %1": "Web · %1",
   "secours DuckDuckGo": "secours DuckDuckGo",
   "web_search et web_fetch sont enregistrés dans Ultimate Agent. DeepSeek Search est prioritaire ; DuckDuckGo sert de secours sans clé.": "web_search et web_fetch sont enregistrés dans Ultimate Agent. DeepSeek Search est prioritaire ; DuckDuckGo sert de secours sans clé.",
-  "Outils plugins": "Outils plugins"
+  "Outils plugins": "Outils plugins",
+  "Capacités DSH": "Capacités DSH",
+  "Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème.": "Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème.",
+  "Extensions expérimentales": "Extensions expérimentales",
+  "Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web.": "Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web.",
+  "Noyau DSH": "Noyau DSH",
+  "désactivé": "désactivé",
+  "natif": "natif",
+  "partiel": "partiel"
 }

@@ -313,7 +313,9 @@ QJsonObject UltimateAgent::snapshot() const {
         root.insert(QStringLiteral("plugins"),
                     QJsonObject{{QStringLiteral("installed"), m_plugins->installedCount()},
                                 {QStringLiteral("enabled"), m_plugins->enabledCount()},
-                                {QStringLiteral("tools"), m_plugins->toolCount()}});
+                                {QStringLiteral("tools"), m_plugins->toolCount()},
+                                {QStringLiteral("capabilities"), m_plugins->activeCapabilities()},
+                                {QStringLiteral("coreCapabilities"), m_plugins->coreCapabilities()}});
     }
     if (m_notes) {
         root.insert(QStringLiteral("notes"),
@@ -1702,7 +1704,10 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         return okResult({{QStringLiteral("installed"), m_plugins->installedCount()},
                          {QStringLiteral("enabled"), m_plugins->enabledCount()},
                          {QStringLiteral("tools"), m_plugins->toolCount()},
-                         {QStringLiteral("plugins"), QJsonArray::fromVariantList(m_plugins->plugins())}});
+                         {QStringLiteral("capabilities"), m_plugins->activeCapabilities()},
+                         {QStringLiteral("coreCapabilities"), m_plugins->coreCapabilities()},
+                         {QStringLiteral("plugins"), QJsonArray::fromVariantList(m_plugins->plugins())},
+                         {QStringLiteral("dshCapabilities"), QJsonArray::fromVariantList(m_plugins->capabilities())}});
     }
     if (name == QLatin1String("ultimate_notes")) {
         if (!m_notes)
