@@ -68,8 +68,10 @@ ApplicationWindow {
         if (text === "")
             return
         const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
+        const env = connections.envPath
+        const prefix = "set -a; if [ -f " + shellQuote(env) + " ]; then . " + shellQuote(env) + "; fi; set +a; "
         backend.setView("terminal")
-        terminal.run(binary + " headless " + shellQuote(text))
+        terminal.run(prefix + binary + " headless " + shellQuote(text))
     }
 
     function requestQuit() {

@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QFileInfo>
 #include <QStringList>
 #include <QRegularExpression>
 #include <QUrl>
@@ -23,7 +24,9 @@ QString profilePatchPath(const QString &profile) {
 } // namespace
 
 HarnessConnections::HarnessConnections(const QString &overlayPath, QObject *parent)
-    : QObject(parent), m_overlayPath(overlayPath.isEmpty() ? defaultOverlayPath() : overlayPath) {
+    : QObject(parent),
+      m_overlayPath(overlayPath.isEmpty() ? defaultOverlayPath() : overlayPath),
+      m_envPath(QFileInfo(m_overlayPath).absolutePath() + "/agent.env") {
     refresh();
 }
 
@@ -165,6 +168,14 @@ os.makedirs(os.path.dirname(creds_path), exist_ok=True)
 with open(creds_path, "w", encoding="utf-8") as handle:
     yaml.safe_dump(creds, handle, sort_keys=False, allow_unicode=True)
 os.chmod(creds_path, 0o600)
+env_path = data.get("env", "")
+if env_path:
+    os.makedirs(os.path.dirname(env_path), exist_ok=True)
+    with open(env_path, "w", encoding="utf-8") as handle:
+        for key, value in refs.items():
+            if isinstance(key, str) and isinstance(value, str) and "\\n" not in value:
+                handle.write(key + "=" + value + "\n")
+    os.chmod(env_path, 0o600)
 
 summary = [provider_summary(pid, entry) for pid, entry in sorted(providers.items())]
 deepseek = refs.get("DEEPSEEK_API_KEY", "")
@@ -197,6 +208,7 @@ bool HarnessConnections::run(const QJsonObject &request, QJsonObject &result) {
     payload["profilePatch"] = profilePatchPath(harnessProfile());
     payload["overlay"] = m_overlayPath;
     payload["credentials"] = credentialsPath();
+    payload["env"] = m_envPath;
 
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);

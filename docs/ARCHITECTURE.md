@@ -15,7 +15,9 @@ Crasy Harness est une application Qt 6 / QML, Harness-only, pour Omarchy.
   leurs ponts harness. Aucun moteur OpenCode n'est construit ni lancé.
 - **HarnessConnections** écrit les providers `llm-pi-ai` du harness, les clés
   dans le credential store DSH et le modèle par défaut, via un helper Python
-  atomique.
+  atomique. Il maintient aussi `agent.env` (mode 600), miroir des credentials :
+  `HarnessServer` l'injecte dans `dsh web`, et le terminal agent le source avant
+  `dsh headless`, car le profil headless ne résout pas les `refs` DSH.
 
 ## Vues
 

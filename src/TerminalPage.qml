@@ -61,7 +61,9 @@ Item {
             return
         arm()
         const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
-        terminal.run(binary + " headless " + shellQuote(text))
+        const env = connections.envPath
+        const prefix = "set -a; if [ -f " + shellQuote(env) + " ]; then . " + shellQuote(env) + "; fi; set +a; "
+        terminal.run(prefix + binary + " headless " + shellQuote(text))
         agentInput.text = ""
         Qt.callLater(function () {
             web.forceActiveFocus()

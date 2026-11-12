@@ -160,6 +160,11 @@ private slots:
         QCOMPARE(provider.value("hasKey").toBool(), true);
         QCOMPARE(connections.defaultModel(), QString("mock/mock-model"));
 
+        QFile agentEnv(dir.path() + "/agent.env");
+        QVERIFY(agentEnv.open(QIODevice::ReadOnly));
+        QVERIFY(agentEnv.readAll().contains("HARNESS_MOCK_API_KEY=secret-key"));
+        agentEnv.close();
+
         QFile written(dir.path() + "/.credentials.yaml");
         QVERIFY(written.open(QIODevice::ReadOnly));
         QVERIFY(written.readAll().contains("HARNESS_MOCK_API_KEY"));

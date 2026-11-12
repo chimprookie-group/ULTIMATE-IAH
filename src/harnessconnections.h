@@ -13,6 +13,7 @@ class HarnessConnections : public QObject {
     Q_PROPERTY(QString defaultModel READ defaultModel NOTIFY changed)
     Q_PROPERTY(bool deepseekConfigured READ deepseekConfigured NOTIFY changed)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString envPath READ envPath NOTIFY changed)
 
 public:
     explicit HarnessConnections(const QString &overlayPath = {}, QObject *parent = nullptr);
@@ -21,6 +22,7 @@ public:
     QString defaultModel() const { return m_defaultModel; }
     bool deepseekConfigured() const { return m_deepseekConfigured; }
     QString error() const { return m_error; }
+    QString envPath() const { return m_envPath; }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void saveDeepSeek(const QString &apiKey);
@@ -44,6 +46,7 @@ private:
     QString pythonHelper() const;
 
     QString m_overlayPath;
+    QString m_envPath;
     QVariantList m_providers;
     QString m_defaultModel;
     QString m_error;

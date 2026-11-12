@@ -181,6 +181,20 @@ void HarnessServer::start() {
 
     // 9Router integration: an app-owned overlay adds the nine-router provider,
     // and the key rides in the child environment instead of DSH settings.
+    QFile agentEnv(configDir + "/agent.env");
+    if (agentEnv.open(QIODevice::ReadOnly)) {
+        const QStringList lines = QString::fromUtf8(agentEnv.readAll()).split('\n', Qt::SkipEmptyParts);
+        for (const QString &line : lines) {
+            const int equals = line.indexOf('=');
+            if (equals <= 0)
+                continue;
+            const QString key = line.left(equals).trimmed();
+            const QString value = line.mid(equals + 1).trimmed();
+            if (!key.isEmpty() && !value.isEmpty() && key.at(0).isLetter()
+                && key.count(QRegularExpression(QStringLiteral("^[A-Za-z_][A-Za-z0-9_]*$"))) == 1)
+                environment.insert(key, value);
+        }
+    }
     QFile envFile(configDir + "/nine-router.env");
     if (envFile.open(QIODevice::ReadOnly)) {
         const QString key = QString::fromUtf8(envFile.readAll()).trimmed();
