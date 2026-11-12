@@ -3,6 +3,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDir>
+#include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -21,6 +22,7 @@
 #include <QStandardPaths>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QTextStream>
+#include <QTemporaryDir>
 #include <QTimer>
 #include <QtWebEngineQuick/QtWebEngineQuick>
 
@@ -36,6 +38,7 @@
 #include "agentmanager.h"
 #include "skillmanager.h"
 #include "missionrunner.h"
+#include "notestore.h"
 #include "autopilot.h"
 #include "botmanager.h"
 #include "ecosystem.h"
@@ -83,9 +86,6 @@ int runDoctor(bool json) {
         checks.append(QJsonObject{{"name", name}, {"ok", ok}, {"detail", detail}});
     };
 
-    const QString dsh = QStandardPaths::findExecutable("dsh");
-    add("dsh", !dsh.isEmpty(), dsh.isEmpty() ? QStringLiteral("not found in PATH")
-                                             : dsh + " · " + probe(dsh, {"--version"}));
 
     const bool portal = QDBusConnection::sessionBus().interface()
         && QDBusConnection::sessionBus().interface()->isServiceRegistered("org.freedesktop.portal.Desktop");
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.8.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.9.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -233,12 +233,14 @@ int main(int argc, char *argv[]) {
         arguments.removeFirst();
 
     bool demo = false;
+    bool agentJob = false;
     bool agentDock = false;
     QString screenshot;
     QString view;
     QString workspace;
     QString themeId;
     QString agentPrompt;
+    QString agentPermission = QStringLiteral("workspace-write");
     int windowHeight = 0;
     int windowWidth = 0;
     int delay = 1800;
@@ -246,6 +248,8 @@ int main(int argc, char *argv[]) {
         const QString &argument = arguments.at(i);
         if (argument == "--demo") {
             demo = true;
+        } else if (argument == "--agent-job") {
+            agentJob = true;
         } else if (argument == "--agent-dock") {
             agentDock = true;
         } else if (argument == "--screenshot" && i + 1 < arguments.size()) {
@@ -258,6 +262,8 @@ int main(int argc, char *argv[]) {
             themeId = arguments.at(++i);
         } else if (argument == "--agent-prompt" && i + 1 < arguments.size()) {
             agentPrompt = arguments.at(++i);
+        } else if (argument == "--permission" && i + 1 < arguments.size()) {
+            agentPermission = arguments.at(++i);
         } else if (argument == "--height" && i + 1 < arguments.size()) {
             windowHeight = arguments.at(++i).toInt();
         } else if (argument == "--width" && i + 1 < arguments.size()) {
@@ -267,6 +273,11 @@ int main(int argc, char *argv[]) {
         } else if (!argument.startsWith("--") && QFileInfo(argument).isDir()) {
             workspace = argument;
         }
+    }
+
+    if (agentJob) {
+        qputenv("QT_QPA_PLATFORM", "offscreen");
+        qputenv("ULTIMATE_IAH_AGENT_JOB", "1");
     }
 
     // The QML disk cache keys qrc URLs by path, so a rebuilt binary can keep
@@ -281,7 +292,8 @@ int main(int argc, char *argv[]) {
     qputenv("QSG_RENDER_LOOP", "basic");
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    QtWebEngineQuick::initialize();
+    if (!agentJob)
+        QtWebEngineQuick::initialize();
 
     QGuiApplication app(argc, argv);
     migrateLegacyLauncher();
@@ -296,7 +308,7 @@ int main(int argc, char *argv[]) {
     QQuickWindow *mainWindow = nullptr;
     const QString instanceName = QStringLiteral("ultimate-hai-%1").arg(QString::number(getuid()));
     QLocalServer instanceServer;
-    if (screenshot.isEmpty() && !demo) {
+    if (screenshot.isEmpty() && !demo && !agentJob) {
         QLocalSocket probe;
         probe.connectToServer(instanceName);
         if (probe.waitForConnected(250)) {
@@ -333,6 +345,10 @@ int main(int argc, char *argv[]) {
     Translator translator;
     app.installTranslator(&translator);
 
+    QTemporaryDir agentJobDir;
+    if (agentJob && agentJobDir.isValid())
+        qputenv("ULTIMATE_IAH_AGENT_DB", (agentJobDir.path() + QStringLiteral("/agent.db")).toUtf8());
+
     Theme theme;
     Backend backend;
     backend.attachTheme(&theme);
@@ -346,11 +362,12 @@ int main(int argc, char *argv[]) {
     AgentManager agents;
     SkillManager skills;
     skills.setWorkspace(backend.workspace());
+    NoteStore noteStore;
     QObject::connect(&backend, &Backend::workspaceChanged, &skills, [&backend, &skills] {
         skills.setWorkspace(backend.workspace());
     });
     MissionRunner missions(MissionRunner::defaultPath(), &agents, &memory);
-    missions.setDshBinary(backend.dshBinary());
+    missions.setDshBinary(QCoreApplication::applicationFilePath());
     translator.setOverride(backend.languagePreference());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
@@ -359,8 +376,56 @@ int main(int argc, char *argv[]) {
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
-                                &installation, &connectionDoctor, &bots);
-    autopilot.setDshBinary(backend.dshBinary());
+                                &installation, &connectionDoctor, &bots, &noteStore);
+    if (agentJob) {
+        if (!workspace.isEmpty())
+            backend.setWorkspace(workspace);
+        ultimateAgent.setPermissionMode(agentPermission);
+        if (agentPrompt.trimmed().isEmpty()) {
+            QTextStream(stderr) << "ultimate-hai: --agent-job requires --agent-prompt" << Qt::endl;
+            return 2;
+        }
+        ultimateAgent.sendMessage(agentPrompt);
+        if (!ultimateAgent.busy()) {
+            QTextStream(stderr) << (ultimateAgent.error().isEmpty()
+                                    ? QStringLiteral("ultimate-hai: the agent did not start")
+                                    : ultimateAgent.error()) << Qt::endl;
+            return 1;
+        }
+        QEventLoop loop;
+        QTimer watchdog;
+        watchdog.setSingleShot(true);
+        watchdog.setInterval(8 * 60 * 1000);
+        QObject::connect(&watchdog, &QTimer::timeout, &loop, &QEventLoop::quit);
+        QObject::connect(&ultimateAgent, &UltimateAgent::busyChanged, &loop, [&] {
+            if (!ultimateAgent.busy())
+                loop.quit();
+        });
+        watchdog.start();
+        loop.exec();
+        if (ultimateAgent.busy()) {
+            ultimateAgent.cancel();
+            QTextStream(stderr) << "ultimate-hai: agent job timed out" << Qt::endl;
+            return 1;
+        }
+        QString answer;
+        const QVariantList transcript = ultimateAgent.messages();
+        for (int i = transcript.size() - 1; i >= 0; --i) {
+            const QVariantMap message = transcript.at(i).toMap();
+            if (message.value(QStringLiteral("role")).toString() == QLatin1String("assistant")) {
+                answer = message.value(QStringLiteral("text")).toString();
+                break;
+            }
+        }
+        if (!ultimateAgent.error().isEmpty() && answer.isEmpty()) {
+            QTextStream(stderr) << ultimateAgent.error() << Qt::endl;
+            return 1;
+        }
+        QTextStream(stdout) << answer << Qt::endl;
+        return 0;
+    }
+
+    autopilot.setDshBinary(QCoreApplication::applicationFilePath());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
     QObject::connect(&backend, &Backend::workspaceChanged, &ecosystem,
@@ -369,10 +434,10 @@ int main(int argc, char *argv[]) {
     // The translator auto-detects (Omarchy, then the browser language), and an
     // explicit app preference wins over both.
     QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
-        autopilot.setDshBinary(backend.dshBinary());
+        autopilot.setDshBinary(QCoreApplication::applicationFilePath());
     });
     QObject::connect(&backend, &Backend::dshBinaryChanged, &missions, [&backend, &missions] {
-        missions.setDshBinary(backend.dshBinary());
+        missions.setDshBinary(QCoreApplication::applicationFilePath());
     });
     QObject::connect(&backend, &Backend::dshBinaryChanged, &bots, [&backend, &bots] {
         bots.setDshBinary(backend.dshBinary());
@@ -400,6 +465,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("missions", &missions);
     engine.rootContext()->setContextProperty("autopilot", &autopilot);
     engine.rootContext()->setContextProperty("bots", &bots);
+    engine.rootContext()->setContextProperty("noteStore", &noteStore);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

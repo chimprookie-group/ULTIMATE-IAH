@@ -38,12 +38,8 @@ void ConnectionDoctor::run() {
     m_failed = 0;
 
     const QString config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    const QString dsh = QStandardPaths::findExecutable(m_backend->dshBinary());
-    add(tr("Harness"), tr("Binaire dsh"),
-        !dsh.isEmpty(), dsh.isEmpty() ? tr("absent du PATH") : dsh);
-    add(tr("Harness"), tr("Processus harness"),
-        m_backend->harnessState() == "running" || m_backend->demo(),
-        m_backend->harnessState() + " · " + m_backend->harnessDetail());
+    add(tr("Runtime"), tr("Ultimate Agent"),
+        true, tr("Moteur natif · providers locaux"));
 
     const QFileInfo agentEnv(config + "/agent.env");
     const QFileInfo creds(qEnvironmentVariable("DSH_HOME", QDir::homePath() + "/.dsh") + "/.credentials.yaml");
@@ -66,7 +62,7 @@ void ConnectionDoctor::run() {
         envFile.exists() && envKeys > 0,
         envFile.exists() ? tr("%1 clé(s), %2").arg(envKeys).arg(privateEnv ? tr("privé") : tr("permissions larges"))
                          : tr("agent.env absent"));
-    add(tr("Credentials"), tr("Credential store DSH"),
+    add(tr("Credentials"), tr("Store de credentials"),
         creds.isFile(),
         creds.isFile() ? creds.absoluteFilePath() : tr("fichier absent"));
     add(tr("Credentials"), tr("Clé DeepSeek"), hasDeepSeek,

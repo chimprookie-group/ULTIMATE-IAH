@@ -51,6 +51,9 @@ AgentConversationStore::~AgentConversationStore() {
 }
 
 QString AgentConversationStore::defaultPath() {
+    const QString override = qEnvironmentVariable("ULTIMATE_IAH_AGENT_DB");
+    if (!override.trimmed().isEmpty())
+        return override;
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
         + QStringLiteral("/agent-conversations.db");
 }

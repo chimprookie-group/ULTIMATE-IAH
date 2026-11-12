@@ -42,12 +42,6 @@ void InstallationDoctor::check() {
     m_passed = 0;
     m_failed = 0;
 
-    const QString dsh = m_backend->dshBinary();
-    const bool dshOk = m_backend->dshAvailable();
-    add(tr("Harness"), tr("Runtime DSH"), dshOk,
-        dshOk ? dsh + " · " + probe(dsh, {"--version"}) : tr("dsh est introuvable"),
-        dshOk ? QString() : tr("Installez le runtime DSH ou utilisez « Installer DSH »."));
-
     const QString node = QStandardPaths::findExecutable(QStringLiteral("node"));
     add(tr("Dépendances"), tr("Node.js"), !node.isEmpty(),
         node.isEmpty() ? tr("absent") : node + " · " + probe(node, {"--version"}),
@@ -170,23 +164,6 @@ void InstallationDoctor::installSystemDependencies() {
                QStringLiteral("nodejs"), QStringLiteral("npm"), QStringLiteral("python"),
                QStringLiteral("python-yaml"), QStringLiteral("git"), QStringLiteral("xdg-utils"),
                QStringLiteral("polkit"), QStringLiteral("xdg-desktop-portal")});
-}
-
-void InstallationDoctor::installDsh() {
-    const QString npm = QStandardPaths::findExecutable(QStringLiteral("npm"));
-    if (npm.isEmpty()) {
-        setError(tr("npm est requis pour installer DSH."));
-        return;
-    }
-    const QString prefix = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/dsh";
-    QDir().mkpath(prefix);
-    runAction(tr("Installation de DSH"),
-              npm, {QStringLiteral("install"), QStringLiteral("--prefix"), prefix,
-                    QStringLiteral("@deepseek-ai/dsh@0.2.2-rc.1")},
-              [this, prefix](bool ok) {
-                  if (ok)
-                      m_backend->setDshBinary(prefix + "/node_modules/.bin/dsh");
-              });
 }
 
 void InstallationDoctor::setError(const QString &error) {

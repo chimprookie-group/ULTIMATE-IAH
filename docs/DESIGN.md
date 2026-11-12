@@ -6,7 +6,7 @@
 conçu pour un développeur Omarchy qui pilote des agents, des connexions et un
 workspace. Le ton est technique, calme et dense. L'élément mémorable est le
 rail de navigation à spine, doublé d'un en-tête de commandement qui rend
-l'état du harness lisible en un regard. Mode : opérer.
+l'état de l'agent lisible en un regard. Mode : opérer.
 
 ## Tokens
 
@@ -29,7 +29,7 @@ Les tokens vivent dans `designtokens.h` et sont exposés à QML sous `design`.
 - Rail : marque, workspace, groupes Opérer / Intelligence / Runtime / Réseau,
   commandes et réglages. Le rail se replie en icônes avec un indicateur actif.
 - En-tête : repli du rail, workspace, fil d'Ariane, palette de commandes,
-  état du harness, aide.
+  état de l'agent, aide.
 - Pages : `PageHeader` commun (icône, titre display, description courte,
   actions), puis des panneaux à hairline.
 - Barre de statut : chemin, branche, état des services.

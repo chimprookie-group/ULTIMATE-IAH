@@ -359,7 +359,7 @@ Item {
                             }
                         }
                         Button {
-                            text: qsTr("Confier au harness")
+                            text: qsTr("Confier à Ultimate Agent")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.askAboutFile()

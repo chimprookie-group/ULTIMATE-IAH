@@ -24,7 +24,7 @@ Item {
                              urlField.text, headersArea.text)
         if (mcpManager.error === "") {
             root.resetForm()
-            Window.window.showToast(qsTr("Serveur MCP ajouté. Redémarrez le harness."))
+            Window.window.showToast(qsTr("Serveur MCP ajouté."))
         }
     }
 
@@ -69,18 +69,18 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("MCP")
-                description: qsTr("Les outils et sources de données que le harness peut appeler, en stdio ou en HTTP.")
+                description: qsTr("Les outils et sources de données qu'Ultimate Agent peut appeler, en stdio ou en HTTP.")
                 icon: "icons/mcp.svg"
                 accent: theme.green
                 ActionButton {
-                    text: qsTr("Redémarrer le harness")
-                    onClicked: backend.restartHarness()
+                    text: qsTr("Rafraîchir")
+                    onClicked: mcpManager.refresh()
                 }
             }
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Les serveurs MCP sont exécutés par le harness avec les permissions de votre session. N'activez que des commandes que vous contrôlez.")
+                text: qsTr("Les serveurs MCP sont exécutés par Ultimate Agent avec les permissions de votre session. N'activez que des commandes que vous contrôlez.")
                 color: theme.orange
                 font.pixelSize: design.textCaption
                 wrapMode: Text.Wrap
@@ -328,7 +328,6 @@ Item {
                                 checked: modelData.enabled
                                 onToggled: {
                                     mcpManager.setEnabled(modelData.id, checked)
-                                    backend.restartHarness()
                                 }
                             }
                             Button {
@@ -337,7 +336,6 @@ Item {
                                 font.pixelSize: design.textMicro
                                 onClicked: {
                                     mcpManager.removeServer(modelData.id)
-                                    backend.restartHarness()
                                 }
                             }
                         }

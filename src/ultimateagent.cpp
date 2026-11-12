@@ -10,6 +10,7 @@
 #include "mcpmanager.h"
 #include "memorystore.h"
 #include "missionrunner.h"
+#include "notestore.h"
 #include "skillmanager.h"
 #include "terminalsession.h"
 
@@ -85,18 +86,46 @@ QJsonObject tool(const QString &name, const QString &description,
                                   {QStringLiteral("required"), QJsonArray::fromStringList(required)}}}}}};
 }
 
+bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
+    const QString action = arguments.value(QStringLiteral("action")).toString();
+    if (name == QLatin1String("ultimate_status") || name == QLatin1String("ultimate_diagnose")
+        || name == QLatin1String("ultimate_navigate") || name == QLatin1String("ultimate_agents")
+        || name == QLatin1String("ultimate_services") && action == QLatin1String("status"))
+        return true;
+    if (name == QLatin1String("ultimate_connections"))
+        return action.isEmpty() || action == QLatin1String("list") || action == QLatin1String("status");
+    if (name == QLatin1String("ultimate_bots"))
+        return action == QLatin1String("list") || action == QLatin1String("status");
+    if (name == QLatin1String("ultimate_mcp"))
+        return action.isEmpty() || action == QLatin1String("list");
+    if (name == QLatin1String("ultimate_memory"))
+        return action == QLatin1String("search") || action == QLatin1String("recent") || action == QLatin1String("stats");
+    if (name == QLatin1String("ultimate_skills"))
+        return action == QLatin1String("list") || action == QLatin1String("read");
+    if (name == QLatin1String("ultimate_notes"))
+        return action == QLatin1String("list") || action == QLatin1String("search")
+            || action == QLatin1String("read") || action == QLatin1String("tags");
+    if (name == QLatin1String("ultimate_files"))
+        return action == QLatin1String("list") || action == QLatin1String("read") || action == QLatin1String("search");
+    if (name == QLatin1String("ultimate_git"))
+        return action == QLatin1String("status") || action == QLatin1String("log") || action == QLatin1String("diff");
+    if (name == QLatin1String("ultimate_settings"))
+        return action == QLatin1String("read") || action == QLatin1String("status");
+    return false;
+}
+
 } // namespace
 
 UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
                              McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                              AgentManager *agents, MissionRunner *missions,
                              TerminalSession *terminal, InstallationDoctor *installation,
-                             ConnectionDoctor *connectionDoctor, BotManager *bots, QObject *parent)
+                             ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes, QObject *parent)
     : QObject(parent), m_backend(backend), m_connections(connections),
       m_mcp(mcp), m_memory(memory),
       m_skills(skills), m_agents(agents), m_missions(missions), m_terminal(terminal),
       m_installation(installation), m_connectionDoctor(connectionDoctor),
-      m_bots(bots), m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
+      m_bots(bots), m_notes(notes), m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
     m_timeout->setSingleShot(true);
     m_timeout->setInterval(120000);
     QObject::connect(m_timeout, &QTimer::timeout, this, [this] {
@@ -176,8 +205,18 @@ QString UltimateAgent::systemPrompt() const {
     QString prompt = staticKnowledge();
     prompt += QStringLiteral("\n\nLIVE SNAPSHOT\n")
         + QString::fromUtf8(QJsonDocument(snapshot()).toJson(QJsonDocument::Compact));
+    prompt += QStringLiteral("\n\nPERMISSION\n");
+    prompt += m_permissionMode == QLatin1String("read-only")
+        ? QStringLiteral("Lecture seule. N'écris aucun fichier, ne lance aucune commande "
+                         "mutante et ne modifie aucune configuration.")
+        : QStringLiteral("Écriture workspace autorisée. Les actions destructrices "
+                         "restent soumises à confirmation.");
     prompt += QStringLiteral("\n\nMODE\n");
-    if (m_mode == QLatin1String("diagnostic")) {
+    if (m_mode == QLatin1String("plan")) {
+        prompt += QStringLiteral("Mode planification. Avant toute modification, produis un plan "
+                                 "numéroté, repère les dépendances et les risques, puis attends ou "
+                                 "poursuis uniquement selon la demande explicite.");
+    } else if (m_mode == QLatin1String("diagnostic")) {
         prompt += QStringLiteral("Mode diagnostic. Inspecte l'état réel, utilise les outils, "
                                  "identifie les causes et propose des corrections vérifiables. "
                                  "Ne modifie rien sans nécessité.");
@@ -228,8 +267,7 @@ QJsonObject UltimateAgent::snapshot() const {
         root.insert(QStringLiteral("harness"),
                     QJsonObject{{QStringLiteral("state"), m_backend->harnessState()},
                                 {QStringLiteral("url"), m_backend->harnessUrl()},
-                                {QStringLiteral("detail"), m_backend->harnessDetail()},
-                                {QStringLiteral("dsh"), m_backend->dshBinary()}});
+                                {QStringLiteral("detail"), m_backend->harnessDetail()}});
     }
     if (m_connections) {
         QJsonArray providers;
@@ -245,6 +283,12 @@ QJsonObject UltimateAgent::snapshot() const {
                                 {QStringLiteral("defaultModel"), m_connections->defaultModel()},
                                 {QStringLiteral("deepseekConfigured"), m_connections->deepseekConfigured()},
                                 {QStringLiteral("envPath"), m_connections->envPath()}});
+    }
+    if (m_notes) {
+        root.insert(QStringLiteral("notes"),
+                    QJsonObject{{QStringLiteral("vault"), m_notes->vaultPath()},
+                                {QStringLiteral("count"), m_notes->count()},
+                                {QStringLiteral("tags"), m_notes->tags().size()}});
     }
     if (m_bots) {
         QJsonArray bots;
@@ -754,6 +798,38 @@ QString UltimateAgent::conversationMarkdown(const QString &id) const {
     return out;
 }
 
+int UltimateAgent::contextPercent() const {
+    int characters = 0;
+    for (const QJsonValue &value : m_api) {
+        const QJsonObject message = value.toObject();
+        characters += message.value(QStringLiteral("content")).toString().size();
+        characters += message.value(QStringLiteral("content")).toArray().size() * 800;
+        characters += message.value(QStringLiteral("tool_calls")).toArray().size() * 400;
+    }
+    return qBound(0, (characters / 4) * 100 / 128000, 100);
+}
+
+void UltimateAgent::compactConversation() {
+    if (m_busy)
+        cancel();
+    QJsonArray compacted;
+    int kept = 0;
+    for (int i = m_api.size() - 1; i >= 0 && kept < 8; --i) {
+        const QJsonObject message = m_api.at(i).toObject();
+        const QString role = message.value(QStringLiteral("role")).toString();
+        if (role == QLatin1String("tool"))
+            continue;
+        compacted.prepend(message);
+        ++kept;
+        if (role == QLatin1String("user") && kept >= 2)
+            break;
+    }
+    m_api = compacted;
+    setStatus(tr("Contexte compacté"));
+    emit messagesChanged();
+    save();
+}
+
 void UltimateAgent::copyText(const QString &text) {
     if (QGuiApplication::clipboard())
         QGuiApplication::clipboard()->setText(text);
@@ -783,8 +859,9 @@ void UltimateAgent::toggleSkill(const QString &id) {
 }
 
 void UltimateAgent::setMode(const QString &mode) {
-    static const QStringList allowed = {QStringLiteral("assistant"), QStringLiteral("diagnostic"),
-                                        QStringLiteral("build"), QStringLiteral("review")};
+    static const QStringList allowed = {QStringLiteral("assistant"), QStringLiteral("plan"),
+                                        QStringLiteral("diagnostic"), QStringLiteral("build"),
+                                        QStringLiteral("review")};
     if (!allowed.contains(mode) || m_mode == mode)
         return;
     m_mode = mode;
@@ -932,11 +1009,11 @@ IDENTITY AND MISSION
 
 SYSTEM MAP
 - App: Qt 6/QML, C++ backend. Data: ~/.config/Crasy/deepcrasy-h and ~/.local/share/Crasy/deepcrasy-h.
-- DSH runtime: /usr/lib/crasy/dsh/node_modules/.bin/dsh (fallback to dsh in PATH or a local install).
-- Harness: dsh web, patched with connections.patch.yml, mcp-memory.patch.yml and mcp-servers.patch.yml.
-- Providers: connections.patch.yml + ~/.dsh/.credentials.yaml. The DeepSeek key is the single source and is propagated to agent.env.
+- Runtime: Ultimate Agent is native; no embedded web harness. Jobs run the same binary in headless mode.
+- Providers: managed in the Providers hub and persisted through connections.patch.yml and credentials. The DeepSeek key is the single source and is propagated to agent.env.
 - Memory: SQLite/FTS5 via the memory MCP server. Skills: ~/.agents/skills and project skills.
-- Bots: persistent native operators in SQLite, executed through dsh headless, exposed on a loopback HTTP API and through the ultimate-iah-bots MCP bridge.
+- Bots: persistent operators in SQLite, executed by the native agent job runner, exposed on a loopback HTTP API and through the ultimate-iah-bots MCP bridge.
+- Notes: local Markdown vault, wiki-links, tags, backlinks, graph and daily notes.
 - Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, bots, installation, settings.
 - Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+B Bots, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
 
@@ -956,6 +1033,7 @@ TOOL STRATEGY
 - Use ultimate_connections for DeepSeek/provider/default/restart.
 - Use ultimate_services for the harness lifecycle.
 - Use ultimate_bots to inspect, create, run, schedule or remove native bots.
+- Use ultimate_notes to search, read, create, update or delete Markdown notes in the local vault.
 - Use ultimate_install for setup and dependency gaps.
 - Use ultimate_memory to search and remember. Use ultimate_skills to inspect or create skills.
 - Use ultimate_terminal/git/files for real project work. Prefer read-only inspection before writing.
@@ -1091,7 +1169,7 @@ QJsonArray UltimateAgent::tools() {
                     properties({{QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("audit"), QStringLiteral("system"),
-                                               QStringLiteral("install_dsh")})}}),
+                                               QStringLiteral("dependencies")})}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_bots"),
                     QStringLiteral("Inspect, create, run, schedule or remove native Ultimate IAH bots; control their local API."),
@@ -1111,6 +1189,21 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("title"), agentProperty(QStringLiteral("string"), QStringLiteral("Schedule title."))},
                                 {QStringLiteral("intervalMinutes"), agentProperty(QStringLiteral("integer"), QStringLiteral("Schedule interval in minutes."))},
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to remove a bot."))}}),
+                    {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_notes"),
+                    QStringLiteral("Search, read, create, update or delete Markdown notes in the Ultimate IAH vault."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("list"), QStringLiteral("search"), QStringLiteral("read"),
+                                               QStringLiteral("create"), QStringLiteral("update"),
+                                               QStringLiteral("delete"), QStringLiteral("daily"),
+                                               QStringLiteral("tags")})},
+                                {QStringLiteral("path"), agentProperty(QStringLiteral("string"), QStringLiteral("Note path relative to the vault."))},
+                                {QStringLiteral("title"), agentProperty(QStringLiteral("string"), QStringLiteral("Note title."))},
+                                {QStringLiteral("folder"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional folder."))},
+                                {QStringLiteral("content"), agentProperty(QStringLiteral("string"), QStringLiteral("Markdown content."))},
+                                {QStringLiteral("query"), agentProperty(QStringLiteral("string"), QStringLiteral("Search query."))},
+                                {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to delete a note."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_settings"),
                     QStringLiteral("Read or change app theme, language, startup view and harness autostart."),
@@ -1137,6 +1230,8 @@ QJsonArray UltimateAgent::tools() {
 }
 
 QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &arguments) {
+    if (m_permissionMode == QLatin1String("read-only") && !readOnlyToolAllowed(name, arguments))
+        return errorResult(tr("Action refusée : ce job est en lecture seule."));
     const QString action = arguments.value(QStringLiteral("action")).toString();
     const QString workspace = m_backend ? m_backend->workspace() : QDir::homePath();
 
@@ -1489,9 +1584,64 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         }
         if (!m_installation) return errorResult(tr("Installation indisponible."));
         if (action == QLatin1String("system")) m_installation->installSystemDependencies();
-        else if (action == QLatin1String("install_dsh")) m_installation->installDsh();
+        else if (action == QLatin1String("dependencies")) m_installation->installSystemDependencies();
         else return errorResult(tr("Action installation inconnue : %1").arg(action));
         return okResult({{QStringLiteral("started"), true}, {QStringLiteral("action"), action}});
+    }
+
+    if (name == QLatin1String("ultimate_notes")) {
+        if (!m_notes)
+            return errorResult(tr("Le vault Notes est indisponible."));
+        if (action == QLatin1String("list") || action.isEmpty()) {
+            return okResult({{QStringLiteral("vault"), m_notes->vaultPath()},
+                             {QStringLiteral("count"), m_notes->count()},
+                             {QStringLiteral("notes"), QJsonArray::fromVariantList(m_notes->notes())},
+                             {QStringLiteral("tags"), QJsonArray::fromVariantList(m_notes->tags())}});
+        }
+        if (action == QLatin1String("search")) {
+            return okResult({{QStringLiteral("notes"),
+                              QJsonArray::fromVariantList(m_notes->searchNotes(arguments.value(QStringLiteral("query")).toString()))}});
+        }
+        if (action == QLatin1String("tags")) {
+            return okResult({{QStringLiteral("tags"), QJsonArray::fromVariantList(m_notes->tags())}});
+        }
+        if (action == QLatin1String("daily")) {
+            const QString path = m_notes->dailyNote();
+            return path.isEmpty() ? errorResult(m_notes->error())
+                                  : okResult({{QStringLiteral("path"), path},
+                                              {QStringLiteral("content"), m_notes->contentOf(path)}});
+        }
+        if (action == QLatin1String("read")) {
+            const QString path = arguments.value(QStringLiteral("path")).toString();
+            const QString content = m_notes->contentOf(path);
+            return content.isEmpty() ? errorResult(tr("Note introuvable : %1").arg(path))
+                                     : okResult({{QStringLiteral("path"), path},
+                                                 {QStringLiteral("content"), content}});
+        }
+        if (action == QLatin1String("create")) {
+            const QString path = m_notes->createNote(arguments.value(QStringLiteral("title")).toString(),
+                                                     arguments.value(QStringLiteral("folder")).toString());
+            if (path.isEmpty())
+                return errorResult(m_notes->error());
+            const QString content = arguments.value(QStringLiteral("content")).toString();
+            if (!content.trimmed().isEmpty() && !m_notes->saveNote(path, content))
+                return errorResult(m_notes->error());
+            return okResult({{QStringLiteral("path"), path},
+                             {QStringLiteral("content"), m_notes->contentOf(path)}});
+        }
+        if (action == QLatin1String("update")) {
+            const QString path = arguments.value(QStringLiteral("path")).toString();
+            return m_notes->saveNote(path, arguments.value(QStringLiteral("content")).toString())
+                ? okResult({{QStringLiteral("path"), path}, {QStringLiteral("saved"), true}})
+                : errorResult(m_notes->error());
+        }
+        if (action == QLatin1String("delete")) {
+            if (auto error = confirmOrError(tr("supprimer cette note")); !error.isEmpty()) return error;
+            const QString path = arguments.value(QStringLiteral("path")).toString();
+            return m_notes->deleteNote(path) ? okResult({{QStringLiteral("deleted"), path}})
+                                             : errorResult(m_notes->error());
+        }
+        return errorResult(tr("Action Notes inconnue : %1").arg(action));
     }
 
     if (name == QLatin1String("ultimate_bots")) {
@@ -1631,6 +1781,8 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
         return tr("Installation · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_bots"))
         return tr("Bots · %1").arg(arguments.value(QStringLiteral("action")).toString());
+    if (name == QLatin1String("ultimate_notes"))
+        return tr("Notes · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_settings"))
         return tr("Réglages · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_agents"))

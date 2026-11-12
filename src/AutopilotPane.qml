@@ -52,7 +52,7 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("Autopilote")
-                description: qsTr("Des tâches planifiées, exécutées une à une par le harness, avec mémoire et reprise.")
+                description: qsTr("Des tâches planifiées, exécutées une à une par Ultimate Agent, avec mémoire et reprise.")
                 icon: "icons/autopilot.svg"
                 accent: theme.orange
                 Switch {
@@ -103,12 +103,12 @@ Item {
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
-                        Text { text: "dsh headless"; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
+                        Text { text: qsTr("moteur agent"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
                     }
                     Text {
                         id: runningText
                         Layout.fillWidth: true
-                        text: autopilot.lastOutput !== "" ? autopilot.lastOutput.slice(-1200) : qsTr("Le harness travaille…")
+                        text: autopilot.lastOutput !== "" ? autopilot.lastOutput.slice(-1200) : qsTr("L'agent travaille…")
                         color: theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: design.textMicro
@@ -148,7 +148,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: 10
                         visible: promptArea.text === ""
-                        text: qsTr("La tâche confiée au harness. La mémoire pertinente du projet est ajoutée automatiquement.")
+                        text: qsTr("La tâche confiée à Ultimate Agent. La mémoire pertinente du projet est ajoutée automatiquement.")
                         color: theme.dimText
                         font.pixelSize: 10
                         wrapMode: Text.Wrap

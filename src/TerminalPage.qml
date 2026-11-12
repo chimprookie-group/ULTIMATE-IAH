@@ -60,28 +60,6 @@ Item {
         return "'" + String(value).replace(/'/g, "'\\''") + "'"
     }
 
-    function runAgentTask() {
-        const text = agentInput.text.trim()
-        if (text === "")
-            return
-        arm()
-        const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
-        const env = connections.envPath
-        const prefix = "set -a; if [ -f " + shellQuote(env) + " ]; then . " + shellQuote(env) + "; fi; set +a; "
-        const context = memory.recall(backend.workspace, text, 8)
-        const full = context !== ""
-              ? "Mémoire persistante du projet (contexte fiable, ne la répète pas) :\n" + context + "\n\nTâche :\n" + text
-              : text
-        terminal.run(prefix + binary + " headless " + shellQuote(full))
-        agentInput.text = ""
-        Qt.callLater(function () {
-            if (!web)
-                return
-            web.forceActiveFocus()
-            web.runJavaScript("window.termFocus && window.termFocus()")
-        })
-    }
-
     function restart() {
         if (web)
             web.runJavaScript("window.termReset && window.termReset()")
@@ -164,52 +142,6 @@ Item {
                     icon: "icons/reload.svg"
                     hint: qsTr("Restart the shell")
                     onClicked: root.restart()
-                }
-            }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 44
-            color: theme.background
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                width: parent.width
-                height: 1
-                color: theme.border
-            }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: design.space4
-                anchors.rightMargin: design.space2
-                spacing: design.space2
-
-                ThemedIcon {
-                    source: "icons/harness.svg"
-                    width: 14
-                    height: 14
-                    color: theme.accent
-                }
-                TextField {
-                    id: agentInput
-                    Layout.fillWidth: true
-                    placeholderText: qsTr("Confier une tâche au harness dans ce terminal…")
-                    color: theme.text
-                    font.pixelSize: design.textLabel
-                    selectByMouse: true
-                    onAccepted: root.runAgentTask()
-                    background: Rectangle {
-                        radius: Math.min(6, theme.radius)
-                        color: theme.raised
-                        border.width: 1
-                        border.color: agentInput.activeFocus ? theme.accent : theme.border
-                    }
-                }
-                ActionButton {
-                    text: qsTr("Exécuter")
-                    onClicked: root.runAgentTask()
                 }
             }
         }

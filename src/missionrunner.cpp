@@ -296,17 +296,17 @@ void MissionRunner::runStep(int missionId, int stepId) {
     connect(m_process, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
         if (error != QProcess::FailedToStart || !m_process)
             return;
-        m_lastOutput += tr("\nLe binaire dsh est introuvable.\n");
+        m_lastOutput += tr("\nLe moteur agent est introuvable.\n");
         finishStep(false, -1);
     });
     m_timeout.start();
     const int position = step.value("position").toInt();
     const QString permission = (position == 0 || position == 2)
         ? QStringLiteral("read-only") : QStringLiteral("workspace-write");
-    m_process->start(m_dshBinary, {QStringLiteral("headless"),
-                                   QStringLiteral("--permission-mode"), permission,
-                                   QStringLiteral("--approval-policy"), QStringLiteral("never"),
-                                   stepPrompt(mission, step, previous)});
+    m_process->start(m_dshBinary, {QStringLiteral("--agent-job"),
+                                   QStringLiteral("--agent-prompt"), stepPrompt(mission, step, previous),
+                                   QStringLiteral("--workspace"), mission.value("project").toString(),
+                                   QStringLiteral("--permission"), permission});
 }
 
 void MissionRunner::finishStep(bool success, int exitCode) {

@@ -31,7 +31,7 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("Installation")
-                description: qsTr("Le runtime DSH, les dépendances, MCP, la mémoire et les entrées de bureau.")
+                description: qsTr("Le moteur agent, les dépendances, MCP, la mémoire, les notes et les entrées de bureau.")
                 icon: "icons/shield.svg"
                 accent: theme.green
                 ActionButton { text: qsTr("Vérifier tout"); onClicked: root.refresh() }
@@ -105,7 +105,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Les dépendances système passent par pkexec. DSH s'installe localement dans les données de l'application.")
+                    text: qsTr("Les dépendances système passent par pkexec. Ultimate Agent et ses outils restent locaux.")
                     color: theme.dimText
                     font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
@@ -119,11 +119,6 @@ Item {
                         text: qsTr("Dépendances système")
                         enabled: !installation.installing
                         onClicked: installation.installSystemDependencies()
-                    }
-                    ActionButton {
-                        text: qsTr("Installer DSH")
-                        enabled: !installation.installing && !backend.dshAvailable
-                        onClicked: installation.installDsh()
                     }
                 }
 

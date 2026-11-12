@@ -148,18 +148,15 @@ Item {
                     onClicked: backend.setView("bots")
                 }
 
-                SidebarGroup { title: qsTr("INTELLIGENCE"); compact: root.compact }
+                SidebarGroup { title: qsTr("CONNAISSANCE"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/notes.svg"; label: qsTr("Notes"); hint: qsTr("Vault Markdown (Ctrl+Alt+N)"); active: backend.view === "notes"; onClicked: backend.setView("notes") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/memory.svg"; label: qsTr("Mémoire"); hint: qsTr("Mémoire persistante (Ctrl+Alt+M)"); active: backend.view === "memory"; onClicked: backend.setView("memory") }
-                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/autopilot.svg"; label: qsTr("Autopilote"); hint: qsTr("Tâches autonomes (Ctrl+Alt+A)"); active: backend.view === "autopilot"; onClicked: backend.setView("autopilot") }
-                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/agents.svg"; label: qsTr("Agents"); hint: qsTr("Missions plan → exécution → revue (Ctrl+Alt+G)"); active: backend.view === "agents"; onClicked: backend.setView("agents") }
 
-                SidebarGroup { title: qsTr("RUNTIME"); compact: root.compact }
-                SidebarItem {
-                    Layout.fillWidth: true; compact: root.compact; icon: "icons/harness.svg"; label: qsTr("Harness"); hint: qsTr("DeepSeek Harness (Ctrl+1)")
-                    active: backend.view === "harness"
-                    statusColor: backend.harnessState === "running" ? theme.green : (backend.harnessState === "starting" ? theme.yellow : theme.dimText)
-                    onClicked: backend.setView("harness")
-                }
+                SidebarGroup { title: qsTr("AUTOMATISATION"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/agents.svg"; label: qsTr("Agents"); hint: qsTr("Missions plan → exécution → revue (Ctrl+Alt+G)"); active: backend.view === "agents"; onClicked: backend.setView("agents") }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/autopilot.svg"; label: qsTr("Autopilote"); hint: qsTr("Tâches autonomes (Ctrl+Alt+A)"); active: backend.view === "autopilot"; onClicked: backend.setView("autopilot") }
+
+                SidebarGroup { title: qsTr("EXÉCUTION"); compact: root.compact }
                 SidebarItem {
                     Layout.fillWidth: true; compact: root.compact; icon: "icons/terminal.svg"; label: qsTr("Terminal agent"); hint: qsTr("Terminal agent (Ctrl+2)")
                     active: backend.view === "terminal"

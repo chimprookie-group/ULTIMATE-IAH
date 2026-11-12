@@ -7,11 +7,12 @@
         <file>ActionButton.qml</file>
         <file>IconButton.qml</file>
         <file>StatusDot.qml</file>
-        <file>HarnessPane.qml</file>
         <file>EcosystemPane.qml</file>
         <file>BotsPane.qml</file>
         <file>ProviderCatalog.js</file>
         <file>ConnectionsPane.qml</file>
+        <file>NoteGraph.qml</file>
+        <file>NotesPane.qml</file>
         <file>McpPane.qml</file>
         <file>PageHeader.qml</file>
         <file>BrandMark.qml</file>
@@ -54,6 +55,8 @@
         <file>icons/stop.svg</file>
         <file>icons/plus.svg</file>
         <file>icons/history.svg</file>
+        <file>icons/notes.svg</file>
+        <file>icons/eye.svg</file>
         <file>icons/close.svg</file>
         <file>icons/check.svg</file>
         <file>icons/chevron.svg</file>

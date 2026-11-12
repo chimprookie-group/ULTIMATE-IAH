@@ -1,5 +1,6 @@
 #include "botrunner.h"
 
+#include <QCoreApplication>
 #include <QFile>
 
 #include <QFileInfo>
@@ -50,7 +51,8 @@ void BotRunner::start(int runId, const QString &botName, const QString &prompt,
         emit finished(runId, false, {}, tr("Le workspace est introuvable : %1").arg(workspace));
         return;
     }
-    const QString binary = dshBinary.trimmed().isEmpty() ? QStringLiteral("dsh") : dshBinary;
+    const QString binary = dshBinary.trimmed().isEmpty()
+        ? QCoreApplication::applicationFilePath() : dshBinary;
     m_runId = runId;
     m_output.clear();
     m_cancelled = false;
@@ -86,7 +88,7 @@ void BotRunner::start(int runId, const QString &botName, const QString &prompt,
         }
         const QString error = success ? QString()
             : (m_diagnostics.trimmed().isEmpty()
-               ? tr("DSH a échoué (code %1).").arg(code)
+               ? tr("Le moteur agent a échoué (code %1).").arg(code)
                : m_diagnostics.trimmed().right(4000));
         const int run = m_runId;
         const QString output = m_output;
@@ -98,15 +100,15 @@ void BotRunner::start(int runId, const QString &botName, const QString &prompt,
             return;
         const int run = m_runId;
         cleanup();
-        emit finished(run, false, {}, tr("Le binaire DSH est introuvable ou ne peut pas démarrer."));
+        emit finished(run, false, {}, tr("Le moteur agent est introuvable ou ne peut pas démarrer."));
     });
     m_timeout.start();
     const QString mode = permission == QLatin1String("workspace-write")
         ? QStringLiteral("workspace-write") : QStringLiteral("read-only");
-    m_process->start(binary, {QStringLiteral("headless"),
-                              QStringLiteral("--permission-mode"), mode,
-                              QStringLiteral("--approval-policy"), QStringLiteral("never"),
-                              prompt});
+    m_process->start(binary, {QStringLiteral("--agent-job"),
+                              QStringLiteral("--agent-prompt"), prompt,
+                              QStringLiteral("--workspace"), workspace,
+                              QStringLiteral("--permission"), mode});
 }
 
 void BotRunner::cancel() {

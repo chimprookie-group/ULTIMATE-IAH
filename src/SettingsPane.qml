@@ -35,7 +35,7 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("Réglages")
-                description: qsTr("Le harness, son terminal, les agents et votre espace de travail.")
+                description: qsTr("Ultimate Agent, son terminal, les agents et votre espace de travail.")
                 icon: "icons/sliders.svg"
                 accent: theme.mutedText
                 ActionButton { text: qsTr("Retour au cockpit"); onClicked: backend.setView("home") }
@@ -131,7 +131,6 @@ Item {
                         model: [
                             { "id": "last", "label": qsTr("Dernière vue") },
                             { "id": "home", "label": qsTr("Cockpit") },
-                            { "id": "harness", "label": qsTr("Harness") },
                             { "id": "terminal", "label": qsTr("Terminal agent") },
                             { "id": "ecosystem", "label": qsTr("Projet") },
                             { "id": "workspace", "label": qsTr("Fichiers") },
@@ -166,20 +165,6 @@ Item {
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 1
-                        Text { text: qsTr("Démarrer le harness avec l'application"); color: theme.text; font.pixelSize: 11 }
-                        Text { text: qsTr("Lance dsh web avec la fenêtre."); color: theme.dimText; font.pixelSize: 9 }
-                    }
-                    Switch {
-                        checked: backend.autoStartHarness
-                        onToggled: backend.setAutoStartHarness(checked)
-                    }
-                }
             }
 
             SettingsSection {
@@ -204,72 +189,28 @@ Item {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Le harness et le terminal agent travaillent dans ce dossier.")
+                    text: qsTr("Ultimate Agent et le terminal travaillent dans ce dossier.")
                     color: theme.dimText
                     font.pixelSize: design.textCaption
                 }
             }
 
             SettingsSection {
-                title: qsTr("Harness")
+                title: qsTr("Ultimate Agent")
                 Layout.fillWidth: true
-
-                RowLayout {
+                Text {
                     Layout.fillWidth: true
-                    spacing: 8
-                    SettingsField {
-                        id: dshField
-                        Layout.fillWidth: true
-                        text: backend.dshBinary
-                        placeholderText: qsTr("Binaire dsh")
-                        onEditingFinished: backend.setDshBinary(text)
-                    }
-                    Rectangle {
-                        width: badge.implicitWidth + 16
-                        height: 24
-                        radius: 12
-                        color: theme.background
-                        border.width: 1
-                        border.color: backend.dshAvailable ? theme.green : theme.red
-                        Text {
-                            id: badge
-                            anchors.centerIn: parent
-                            text: backend.dshAvailable ? qsTr("trouvé") : qsTr("absent")
-                            color: backend.dshAvailable ? theme.green : theme.red
-                            font.pixelSize: design.textCaption
-                        }
-                    }
+                    text: qsTr("Le moteur agent est natif : discussions, images, skills, notes, MCP, missions et bots utilisent les providers configurés dans Providers.")
+                    color: theme.mutedText
+                    font.pixelSize: design.textCaption
+                    wrapMode: Text.Wrap
                 }
-
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
-                    SettingsField {
-                        id: profileField
-                        Layout.fillWidth: true
-                        text: backend.harnessProfile
-                        placeholderText: qsTr("Profil harness")
-                        onEditingFinished: backend.setHarnessProfile(text)
-                    }
-                    Text {
-                        text: backend.harnessState + " · " + backend.harnessDetail
-                        color: root.stateColor(backend.harnessState)
-                        font.pixelSize: design.textCaption
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-                    Button { text: qsTr("Tester"); flat: true; onClicked: backend.testHarness() }
-                    Button { text: qsTr("Redémarrer"); flat: true; onClicked: backend.restartHarness() }
+                    spacing: design.space2
+                    Button { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
+                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
                     Button { text: qsTr("Diagnostics"); flat: true; onClicked: backend.runDiagnostics() }
-                    Item { Layout.fillWidth: true }
-                    Text {
-                        text: backend.harnessHealth
-                        color: backend.harnessHealth === "ok" ? theme.green : theme.dimText
-                        font.pixelSize: design.textCaption
-                    }
                 }
             }
 
@@ -279,7 +220,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Les providers du harness se configurent dans Providers. MCP et la mémoire sont gérés directement par l'application.")
+                    text: qsTr("Les providers d'Ultimate Agent se configurent dans Providers. MCP et la mémoire sont gérés directement par l'application.")
                     color: theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
@@ -288,7 +229,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Button { text: qsTr("Providers du harness"); flat: true; onClicked: backend.setView("connections") }
+                    Button { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
                     Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
                     Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
                     Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
@@ -320,7 +261,7 @@ Item {
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Harness-only, construit pour Omarchy · MIT")
+                            text: qsTr("Ultimate Agent, construit pour Omarchy · MIT")
                             color: theme.dimText
                             font.pixelSize: design.textMicro
                         }
@@ -328,7 +269,7 @@ Item {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Raccourcis : Ctrl+0 cockpit · Ctrl+1 harness · Ctrl+2 terminal agent · Ctrl+4 réglages · Ctrl+K palette · ? aide")
+                    text: qsTr("Raccourcis : Ctrl+0 cockpit · Ctrl+1 Ultimate Agent · Ctrl+2 terminal · Ctrl+Alt+N notes · Ctrl+K palette · ? aide")
                     color: theme.dimText
                     font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap

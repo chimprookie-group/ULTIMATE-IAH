@@ -23,6 +23,7 @@
 #include "autopilot.h"
 #include "botstore.h"
 #include "agentconversationstore.h"
+#include "notestore.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -101,9 +102,9 @@ private slots:
     {
         QTemporaryDir dir;
         Config config(dir.path() + "/config.json");
-        config.setView("harness");
+        config.setView("notes");
         config.setView("bogus");
-        QCOMPARE(config.view(), QString("harness"));
+        QCOMPARE(config.view(), QString("notes"));
     }
 
     void gitStatusParsesBranchAndChanges()
@@ -569,6 +570,32 @@ private slots:
         QVERIFY(store.remove(first));
         QVERIFY(store.conversations().isEmpty());
         QVERIFY(store.lastConversationId().isEmpty());
+    }
+
+    void noteStoreBuildsLinksTagsAndGraph()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        NoteStore store(dir.path() + "/vault");
+        QVERIFY2(store.error().isEmpty(), qPrintable(store.error()));
+        QVERIFY(store.count() >= 1);
+        const QString alpha = store.createNote("Alpha");
+        QVERIFY(!alpha.isEmpty());
+        QVERIFY(store.saveNote(alpha, "# Alpha\n\nVoir [[Beta]] #projet #test"));
+        const QString beta = store.createNote("Beta");
+        QVERIFY(!beta.isEmpty());
+        QVERIFY(store.saveNote(beta, "# Beta\n\nRetour vers [[Alpha]] #projet"));
+        QVERIFY(store.renameNote(beta, "Beta renommée"));
+        QVERIFY(store.searchNotes("Alpha").size() >= 1);
+        QVERIFY(store.tags().size() >= 2);
+        store.selectNote(alpha);
+        const QVariantList backlinks = store.backlinks();
+        QVERIFY(backlinks.size() >= 1);
+        QVERIFY(store.graph().value("nodes").toList().size() >= 3);
+        QVERIFY(store.graph().value("edges").toList().size() >= 1);
+        QVERIFY(store.deleteNote(alpha));
+        QVERIFY(store.count() >= 2);
+        QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
     }
 
     void originalOneShotPolicyIsEmbedded()

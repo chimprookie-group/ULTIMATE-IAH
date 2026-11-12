@@ -100,8 +100,7 @@ Item {
                                  providerApi.currentIndex === 1 ? "anthropic-messages" : "openai-completions")
         if (connections.error === "") {
             editor.close()
-            backend.restartHarness()
-            Window.window.showToast(qsTr("Provider enregistré. Le harness redémarre."))
+            Window.window.showToast(qsTr("Provider enregistré."))
         }
     }
 
@@ -112,15 +111,13 @@ Item {
         connections.saveDeepSeek(deepseekKey.text)
         if (connections.error === "") {
             deepseekKey.text = ""
-            backend.restartHarness()
-            Window.window.showToast(qsTr("DeepSeek enregistré. Le harness redémarre."))
+            Window.window.showToast(qsTr("DeepSeek enregistré."))
         }
     }
 
     function setDefault(provider, model) {
         connections.setDefault(provider, model)
         if (connections.error === "") {
-            backend.restartHarness()
             Window.window.showToast(qsTr("Modèle par défaut : %1/%2").arg(provider).arg(model))
         }
     }
@@ -148,7 +145,7 @@ Item {
                 description: qsTr("Le centre unique des providers et des modèles de l'écosystème.")
                 icon: "icons/providers.svg"
                 accent: theme.orange
-                ActionButton { text: qsTr("Redémarrer le harness"); onClicked: backend.restartHarness() }
+                ActionButton { text: qsTr("Rafraîchir"); onClicked: connections.refresh() }
             }
 
             Text {
@@ -186,7 +183,7 @@ Item {
                 }
                 Rectangle { Layout.fillWidth: true; implicitHeight: 74; radius: design.radiusMd; color: theme.surface; border.width: 1; border.color: theme.border
                     ColumnLayout { anchors.fill: parent; anchors.margins: design.space3; spacing: 1
-                        Text { text: qsTr("Harness"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        Text { text: qsTr("Runtime"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                         Text { text: backend.harnessState; color: root.stateColor(backend.harnessState); font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
                     }
                 }
@@ -199,8 +196,8 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: connections.deepseekConfigured
-                          ? qsTr("Clé active : propagée automatiquement à DSH et au terminal.")
-                          : qsTr("Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH et au terminal.")
+                          ? qsTr("Clé active : propagée automatiquement à Ultimate Agent et au terminal.")
+                          : qsTr("Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à Ultimate Agent et au terminal.")
                     color: connections.deepseekConfigured ? theme.green : theme.mutedText
                     font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
@@ -347,7 +344,7 @@ Item {
                                 }
                                 Text { text: modelData.hasKey ? modelData.keyMasked : qsTr("sans clé"); color: modelData.hasKey ? theme.green : theme.yellow; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                                 Button { visible: !modelData.builtin; text: qsTr("Modifier"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openEdit(modelData) }
-                                Button { visible: !modelData.builtin; text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { connections.removeProvider(modelData.id); backend.restartHarness() } }
+                                Button { visible: !modelData.builtin; text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { connections.removeProvider(modelData.id) } }
                             }
                             Text { Layout.fillWidth: true; text: modelData.baseURL + "  ·  " + (modelData.api !== undefined ? modelData.api : "openai-completions"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
                             Flow {
@@ -376,7 +373,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { Layout.fillWidth: true; text: connectionDoctor.summary !== "" ? connectionDoctor.summary : qsTr("Vérifiez DSH, clé DeepSeek, providers, MCP et workspace."); color: connectionDoctor.failed > 0 ? theme.orange : theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                    Text { Layout.fillWidth: true; text: connectionDoctor.summary !== "" ? connectionDoctor.summary : qsTr("Vérifiez la clé DeepSeek, les providers, MCP et le workspace."); color: connectionDoctor.failed > 0 ? theme.orange : theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
                     Button { text: root.showDiagnostics ? qsTr("Masquer") : qsTr("Afficher"); flat: true; font.pixelSize: design.textCaption; onClicked: root.showDiagnostics = !root.showDiagnostics }
                     ActionButton { text: connectionDoctor.running ? qsTr("Vérification…") : qsTr("Vérifier"); enabled: !connectionDoctor.running; onClicked: connectionDoctor.run() }
                 }
@@ -479,7 +476,7 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { visible: root.editingProviderId !== ""; text: qsTr("Supprimer"); flat: true; onClicked: { connections.removeProvider(root.editingProviderId); editor.close(); backend.restartHarness() } }
+                Button { visible: root.editingProviderId !== ""; text: qsTr("Supprimer"); flat: true; onClicked: { connections.removeProvider(root.editingProviderId); editor.close() } }
                 Item { Layout.fillWidth: true }
                 Button { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
                 ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveProvider() }

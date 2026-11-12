@@ -21,6 +21,7 @@ class InstallationDoctor;
 class McpManager;
 class MemoryStore;
 class MissionRunner;
+class NoteStore;
 class SkillManager;
 class TerminalSession;
 
@@ -44,13 +45,14 @@ class UltimateAgent : public QObject {
     Q_PROPERTY(QVariantList availableSkills READ availableSkills NOTIFY skillsChanged)
     Q_PROPERTY(QStringList activeSkills READ activeSkills NOTIFY skillsChanged)
     Q_PROPERTY(QString mode READ mode WRITE setMode NOTIFY modeChanged)
+    Q_PROPERTY(int contextPercent READ contextPercent NOTIFY messagesChanged)
 
 public:
     UltimateAgent(Backend *backend, HarnessConnections *connections,
                   McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                   AgentManager *agents, MissionRunner *missions,
                   TerminalSession *terminal, InstallationDoctor *installation,
-                  ConnectionDoctor *connectionDoctor, BotManager *bots,
+                  ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes,
                   QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
@@ -69,6 +71,8 @@ public:
     QStringList activeSkills() const { return m_activeSkills; }
     QString mode() const { return m_mode; }
     void setMode(const QString &mode);
+    void setPermissionMode(const QString &mode) { m_permissionMode = mode == "read-only" ? "read-only" : "workspace-write"; }
+    int contextPercent() const;
 
     Q_INVOKABLE void sendMessage(const QString &text);
     Q_INVOKABLE void clearConversation();
@@ -87,6 +91,7 @@ public:
     Q_INVOKABLE void removeAttachment(int index);
     Q_INVOKABLE void clearAttachments();
     Q_INVOKABLE void toggleSkill(const QString &id);
+    Q_INVOKABLE void compactConversation();
 
     static QJsonArray tools();
     static QString staticKnowledge();
@@ -156,6 +161,7 @@ private:
     InstallationDoctor *m_installation = nullptr;
     ConnectionDoctor *m_connectionDoctor = nullptr;
     BotManager *m_bots = nullptr;
+    NoteStore *m_notes = nullptr;
     AgentConversationStore *m_conversations = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;
@@ -175,6 +181,7 @@ private:
     QVariantList m_pendingAttachments;
     QStringList m_activeSkills;
     QString m_mode = QStringLiteral("assistant");
+    QString m_permissionMode = QStringLiteral("workspace-write");
     bool m_busy = false;
     int m_round = 0;
     int m_requestSerial = 0;

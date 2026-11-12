@@ -8,9 +8,8 @@
 class Backend;
 class MemoryStore;
 
-// Full-install audit: system DSH runtime, Node/npm/Python/PyYAML, QtWebEngine,
-// portal, memory MCP, desktop entries and writable app data. It can perform
-// user-level installs and the existing pkexec dependency action.
+// Full-install audit: native agent runtime, Node/npm/Python/PyYAML,
+// QtWebEngine, portal, memory MCP, notes, desktop entries and app data.
 class InstallationDoctor : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList checks READ checks NOTIFY changed)
@@ -39,7 +38,6 @@ public:
 
     Q_INVOKABLE void check();
     Q_INVOKABLE void installSystemDependencies();
-    Q_INVOKABLE void installDsh();
 
 signals:
     void changed();

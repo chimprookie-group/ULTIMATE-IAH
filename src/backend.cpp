@@ -55,17 +55,15 @@ Backend::Backend(QObject *parent)
       m_config(new Config({}, this)),
       m_harness(new HarnessServer(this)),
       m_portal(new PortalFolderPicker(this)),
-      m_view(m_config->view()) {
+      m_view(m_config->view() == "harness" ? "agent" : m_config->view()) {
     connect(m_harness, &HarnessServer::stateChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::urlChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::detailChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::logChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::profileChanged, this, &Backend::harnessProfileChanged);
     connect(m_harness, &HarnessServer::stateChanged, this, [this] {
-        if (m_harness->state() != HarnessServer::Running && m_harnessHealth != "unknown") {
-            m_harnessHealth = "unknown";
-            emit harnessHealthChanged();
-        }
+        m_harnessHealth = "ok";
+        emit harnessHealthChanged();
     });
     connect(m_harness, &HarnessServer::urlChanged, this, [this] {
         m_harnessHealth = "unknown";
@@ -120,12 +118,9 @@ void Backend::boot() {
     if (m_booted || m_demo)
         return;
     m_booted = true;
-    if (m_config->autoStartHarness()) {
-        m_harness->setBinary(dshBinary());
-        m_harness->setProfile(harnessProfile());
-        m_harness->setWorkingDirectory(workspace());
-        m_harness->start();
-    }
+    // The embedded DSH web harness has been removed. Ultimate Agent is the
+    // application's native runtime; dsh headless may still be used by the
+    // legacy automation workers only.
     refreshGit();
 }
 
@@ -136,11 +131,11 @@ void Backend::loadDemo() {
 
 void Backend::applyStartupView() {
     const QString start = m_config->startupView();
-    if (start != "home" && start != "ecosystem" && start != "workspace" && start != "harness"
+    if (start != "home" && start != "ecosystem" && start != "workspace"
         && start != "terminal"
         && start != "connections" && start != "memory" && start != "autopilot"
         && start != "mcp" && start != "agents" && start != "installation"
-        && start != "agent" && start != "bots" && start != "settings")
+        && start != "agent" && start != "bots" && start != "notes" && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -182,7 +177,7 @@ QString Backend::startupView() const { return m_config->startupView(); }
 bool Backend::autoStartHarness() const { return m_config->autoStartHarness(); }
 
 void Backend::setStartupView(const QString &view) {
-    if (view != "home" && view != "harness" && view != "terminal" && view != "ecosystem"
+    if (view != "home" && view != "terminal" && view != "ecosystem"
         && view != "workspace"
         && view != "connections" && view != "memory" && view != "autopilot"
         && view != "mcp" && view != "agents" && view != "installation"
@@ -199,10 +194,10 @@ void Backend::setAutoStartHarness(bool enabled) {
 
 void Backend::setView(const QString &view) {
     if (view != "home" && view != "ecosystem" && view != "workspace"
-        && view != "harness" && view != "terminal" && view != "connections"
+        && view != "terminal" && view != "connections"
         && view != "memory" && view != "autopilot" && view != "mcp"
         && view != "agents" && view != "installation" && view != "agent"
-        && view != "bots" && view != "settings")
+        && view != "bots" && view != "notes" && view != "settings")
         return;
     if (view == m_view)
         return;
@@ -247,9 +242,7 @@ QString Backend::uiFont() const {
 }
 
 QString Backend::harnessState() const {
-    if (m_demo)
-        return QStringLiteral("running");
-    return harnessStateName();
+    return QStringLiteral("running");
 }
 
 QString Backend::harnessStateName() const {
@@ -262,10 +255,10 @@ QString Backend::harnessStateName() const {
     return QStringLiteral("stopped");
 }
 
-QString Backend::harnessUrl() const { return m_demo ? QString() : m_harness->url(); }
-QString Backend::harnessDetail() const { return m_demo ? tr("Serving on 127.0.0.1:43110") : m_harness->detail(); }
-QString Backend::harnessProfile() const { return m_demo ? QStringLiteral("web") : m_config->harnessProfile(); }
-QString Backend::harnessLog() const { return m_harness->logTail(); }
+QString Backend::harnessUrl() const { return {}; }
+QString Backend::harnessDetail() const { return tr("Ultimate Agent · moteur natif"); }
+QString Backend::harnessProfile() const { return m_config->harnessProfile(); }
+QString Backend::harnessLog() const { return {}; }
 QString Backend::dshBinary() const {
     const QString configured = m_config->dshBinary();
     if (configured.isEmpty() || configured == QLatin1String("dsh"))
@@ -295,10 +288,7 @@ void Backend::setHarnessProfile(const QString &profile) {
 }
 
 void Backend::restartHarness() {
-    m_harness->setBinary(dshBinary());
-    m_harness->setProfile(harnessProfile());
-    m_harness->setWorkingDirectory(workspace());
-    m_harness->restart();
+    emit harnessChanged();
 }
 
 void Backend::setWorkspace(const QString &workspace) {

@@ -423,7 +423,7 @@ Item {
                                     }
                                     Text {
                                         Layout.fillWidth: true
-                                        text: qsTr("Ultimate Agent connaît l'état réel d'Ultimate IAH et agit sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.")
+                                        text: qsTr("Ultimate Agent connaît l'état réel d'Ultimate IAH et agit sur les providers, MCP, la mémoire, les skills, les notes, le terminal et l'installation.")
                                         color: theme.mutedText
                                         font.pixelSize: root.compact ? design.textCaption : design.textBody
                                         lineHeight: 1.32
@@ -436,7 +436,7 @@ Item {
                                 width: parent.width
                                 spacing: design.space2
                                 Repeater {
-                                    model: [qsTr("DSH"), qsTr("DeepSeek"), "MCP", qsTr("Mémoire"), qsTr("Skills"), qsTr("Terminal"), qsTr("Images"), qsTr("Installation")]
+                                    model: [qsTr("Providers"), qsTr("MCP"), qsTr("Mémoire"), qsTr("Skills"), qsTr("Notes"), qsTr("Terminal"), qsTr("Images")]
                                     Rectangle {
                                         width: chip.implicitWidth + design.space3
                                         height: 22
@@ -464,14 +464,14 @@ Item {
                                     model: [
                                         { label: qsTr("Diagnostiquer"), detail: qsTr("État réel du système"), icon: "icons/shield.svg",
                                           prompt: qsTr("Fais un diagnostic complet d'Ultimate IAH et de son écosystème. Utilise les outils réels, puis résume les problèmes et propose les corrections.") },
-                                        { label: qsTr("Réparer"), detail: qsTr("DSH · DeepSeek · MCP"), icon: "icons/plug.svg",
-                                          prompt: qsTr("Vérifie les connexions DSH, DeepSeek et MCP. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.") },
+                                        { label: qsTr("Réparer"), detail: qsTr("Providers · MCP · workspace"), icon: "icons/plug.svg",
+                                          prompt: qsTr("Vérifie les providers, MCP, le workspace et les composants d'Ultimate IAH. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.") },
                                         { label: qsTr("Construire"), detail: qsTr("Implémenter et vérifier"), icon: "icons/spark.svg",
                                           prompt: qsTr("Implémente la prochaine étape utile de mon projet dans le workspace, puis lance les vérifications réelles et rapporte les preuves.") },
                                         { label: qsTr("Revue"), detail: qsTr("Trouver les régressions"), icon: "icons/branch.svg",
                                           prompt: qsTr("Fais une revue rigoureuse des changements récents : erreurs, régressions, risques et correctifs exacts classés par gravité.") },
                                         { label: qsTr("Providers"), detail: qsTr("Catalogue et modèles"), icon: "icons/connections.svg",
-                                          prompt: qsTr("Audite les providers, les modèles par défaut et la synchronisation du harness. Corrige ce qui est incohérent.") },
+                                          prompt: qsTr("Audite les providers, les modèles par défaut et la configuration d'Ultimate Agent. Corrige ce qui est incohérent.") },
                                         { label: qsTr("Expliquer"), detail: qsTr("Capacités et limites"), icon: "icons/help.svg",
                                           prompt: qsTr("Explique précisément ce que tu peux faire dans Ultimate IAH, tes outils, tes limites et les options disponibles.") }
                                     ]
@@ -715,13 +715,19 @@ Item {
                     Text { Layout.fillWidth: true; text: qsTr("Options de l'agent"); color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
                     IconButton { icon: "icons/close.svg"; hint: qsTr("Fermer"); onClicked: optionsDialog.close() }
                 }
-                Text { text: qsTr("Mode de travail"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { Layout.fillWidth: true; text: qsTr("Mode de travail"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    Text { text: qsTr("Contexte %1 %").arg(ultimateAgent.contextPercent); color: ultimateAgent.contextPercent > 80 ? theme.orange : theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    Button { text: qsTr("Compacter"); flat: true; font.pixelSize: design.textMicro; onClicked: ultimateAgent.compactConversation() }
+                }
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: design.space1
                     Repeater {
                         model: [
                             { id: "assistant", label: qsTr("Assistant") },
+                            { id: "plan", label: qsTr("Plan") },
                             { id: "diagnostic", label: qsTr("Diagnostic") },
                             { id: "build", label: qsTr("Construction") },
                             { id: "review", label: qsTr("Revue") }

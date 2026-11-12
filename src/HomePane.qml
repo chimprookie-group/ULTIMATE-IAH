@@ -88,7 +88,7 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("Cockpit")
-                description: qsTr("Le harness, ses agents, sa mémoire et votre projet.")
+                description: qsTr("Ultimate Agent, ses discussions, ses notes et votre projet.")
                 icon: "icons/home.svg"
                 brandMark: true
 
@@ -96,11 +96,12 @@ Item {
                     spacing: design.space3
                     Repeater {
                         model: [
-                            { label: qsTr("Harness"), state: backend.harnessState },
+                            { label: qsTr("Ultimate Agent"), state: "running" },
                             { label: qsTr("Terminal"), state: terminal.running ? "running" : "stopped" },
                             { label: "DeepSeek", state: connections.deepseekConfigured ? "running" : "stopped" },
                             { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" },
-                            { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" }
+                            { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" },
+                            { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -148,7 +149,7 @@ Item {
                         spacing: design.space3
                         StatusDot { color: root.stateColor(backend.harnessState) }
                         Text {
-                            text: qsTr("MISSION INPUT")
+                            text: qsTr("AGENT INPUT")
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro
@@ -162,7 +163,7 @@ Item {
                             elide: Text.ElideRight
                         }
                         Text {
-                            text: "dsh headless"
+                            text: qsTr("runtime natif")
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro
@@ -178,7 +179,7 @@ Item {
                             anchors.right: parent.right
                             anchors.topMargin: design.space4
                             visible: taskInput.text === ""
-                            text: qsTr("Décrivez une tâche pour le harness…")
+                            text: qsTr("Décrivez une tâche pour Ultimate Agent…")
                             color: theme.dimText
                             font.family: "iA Writer Duospace"
                             font.pixelSize: 18
@@ -209,9 +210,8 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: design.space2
-                        Button { text: qsTr("Ouvrir le harness"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("harness") }
+                        Button { text: qsTr("Ouvrir Ultimate Agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("agent") }
                         Button { text: qsTr("Terminal agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
-                        Button { text: qsTr("Ultimate Agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("agent") }
                         Item { Layout.fillWidth: true }
                         Text {
                             visible: root.wide
@@ -294,7 +294,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Le shell réel du workspace. Le harness y reçoit des tâches via dsh headless, avec la mémoire du projet.")
+                            text: qsTr("Le shell réel du workspace, partagé avec Ultimate Agent et le projet.")
                             color: theme.mutedText
                             font.pixelSize: design.textCaption
                             lineHeight: 1.3
@@ -410,13 +410,13 @@ Item {
 
                             ServiceRow {
                                 Layout.fillWidth: true
-                                name: qsTr("Harness")
+                                name: qsTr("Ultimate Agent")
                                 detail: backend.harnessDetail
                                 stateColor: root.stateColor(backend.harnessState)
-                                actionLabel: backend.harnessState === "running" ? qsTr("Ouvrir") : qsTr("Démarrer")
+                                actionLabel: qsTr("Ouvrir")
                                 actionEnabled: backend.harnessState !== "starting"
                                 onAction: {
-                                    if (backend.harnessState === "running") backend.setView("harness")
+                                    if (backend.harnessState === "running") backend.setView("agent")
                                     else backend.restartHarness()
                                 }
                             }
@@ -440,14 +440,6 @@ Item {
                             }
                             ServiceRow {
                                 Layout.fillWidth: true
-                                name: qsTr("Ultimate Agent")
-                                detail: connections.deepseekConfigured ? qsTr("prêt · DeepSeek") : qsTr("à configurer")
-                                stateColor: connections.deepseekConfigured ? theme.green : theme.dimText
-                                actionLabel: qsTr("Ouvrir")
-                                onAction: backend.setView("agent")
-                            }
-                            ServiceRow {
-                                Layout.fillWidth: true
                                 name: "MCP"
                                 detail: mcpManager.builtins.length > 0
                                         ? qsTr("Mémoire intégrée · %n serveur(s) personnalisé(s)", "", mcpManager.servers.length)
@@ -466,6 +458,15 @@ Item {
                                 stateColor: bots.serverRunning ? theme.green : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("bots")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Notes")
+                                detail: qsTr("%n note(s) · vault Markdown", "", noteStore.count)
+                                stateColor: noteStore.count > 0 ? theme.yellow : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("notes")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }

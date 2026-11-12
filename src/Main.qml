@@ -30,7 +30,6 @@ ApplicationWindow {
         if (backend.view === "home") return qsTr("Cockpit")
         if (backend.view === "ecosystem") return qsTr("Écosystème")
         if (backend.view === "workspace") return qsTr("Fichiers")
-        if (backend.view === "harness") return qsTr("Harness")
         if (backend.view === "terminal") return qsTr("Terminal agent")
         if (backend.view === "connections") return qsTr("Providers")
         if (backend.view === "memory") return qsTr("Mémoire")
@@ -38,6 +37,7 @@ ApplicationWindow {
         if (backend.view === "agents") return qsTr("Agents")
         if (backend.view === "agent") return qsTr("Ultimate Agent")
         if (backend.view === "bots") return qsTr("Bots")
+        if (backend.view === "notes") return qsTr("Notes")
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
@@ -69,15 +69,13 @@ ApplicationWindow {
         const text = String(prompt).trim()
         if (text === "")
             return
-        const binary = backend.dshBinary !== "" ? backend.dshBinary : "dsh"
-        const env = connections.envPath
-        const prefix = "set -a; if [ -f " + shellQuote(env) + " ]; then . " + shellQuote(env) + "; fi; set +a; "
         const context = memory.recall(backend.workspace, text, 8)
         const full = context !== ""
-              ? "Mémoire persistante du projet (contexte fiable, ne la répète pas) :\n" + context + "\n\nTâche :\n" + text
+              ? qsTr("Mémoire persistante du projet :\n") + context + qsTr("\n\nTâche :\n") + text
               : text
-        backend.setView("terminal")
-        terminal.run(prefix + binary + " headless " + shellQuote(full))
+        backend.setView("agent")
+        agentDockOpen = false
+        ultimateAgent.sendMessage(full)
     }
 
     function requestQuit() {
@@ -102,25 +100,24 @@ ApplicationWindow {
 
         add(qsTr("Navigation"), qsTr("Home"), "Ctrl+0", "view:home", "icons/home.svg")
         add(qsTr("Navigation"), qsTr("Cockpit"), "Ctrl+0", "view:home", "icons/home.svg")
-        add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/harness.svg")
+        add(qsTr("Navigation"), qsTr("Ultimate Agent"), "Ctrl+1", "view:agent", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Écosystème"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), qsTr("Providers"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
-        add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
+        add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/agents.svg")
         add(qsTr("Agent"), qsTr("Ultimate Agent"), "Ctrl+Alt+U", "view:agent", "icons/spark.svg")
         add(qsTr("Agent"), qsTr("Bots"), "Ctrl+Alt+B", "view:bots", "icons/agents.svg")
+        add(qsTr("Connaissance"), qsTr("Notes"), "Ctrl+Alt+N", "view:notes", "icons/notes.svg")
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
         add(qsTr("Navigation"), qsTr("Réglages"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
-        add(qsTr("Actions"), qsTr("Restart the harness"), "Ctrl+R", "action:restart-harness", "icons/reload.svg")
         add(qsTr("Actions"), qsTr("Change workspace"), "", "action:workspace", "icons/folder.svg")
         add(qsTr("Actions"), qsTr("Run diagnostics"), "", "action:diagnostics", "icons/plug.svg")
-        add(qsTr("Actions"), qsTr("Harness connections"), "", "action:mcp", "icons/plug.svg")
-        add(qsTr("Actions"), qsTr("Open the harness in a browser"), "", "action:browser", "icons/external.svg")
+        add(qsTr("Actions"), qsTr("Providers"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Actions"), qsTr("Show shortcuts"), "?", "action:shortcuts", "icons/help.svg")
 
         add(qsTr("Appearance"), qsTr("Follow Omarchy"), "", "theme:", "icons/palette.svg")
@@ -145,29 +142,19 @@ ApplicationWindow {
             backend.setTheme(id.substring(6))
         } else if (id.indexOf("lang:") === 0) {
             backend.setLanguage(id.substring(5))
-        } else if (id === "action:restart-harness") {
-            backend.restartHarness()
         } else if (id === "action:workspace") {
             backend.pickWorkspace()
         } else if (id === "action:diagnostics") {
             backend.runDiagnostics()
             if (backend.view !== "home")
                 win.showToast(qsTr("Diagnostics updated."))
-        } else if (id === "action:browser") {
-            if (backend.harnessUrl !== "")
-                Qt.openUrlExternally(backend.harnessUrl)
-        } else if (id === "action:mcp") {
-            backend.setView("settings")
         } else if (id === "action:shortcuts") {
             win.helpVisible = true
         }
     }
 
-    // The harness WebEngine lives for the whole session and is unloaded while
-    // another view is active.
-
     Shortcut { sequence: "Ctrl+0"; context: Qt.ApplicationShortcut; onActivated: backend.setView("home") }
-    Shortcut { sequence: "Ctrl+1"; context: Qt.ApplicationShortcut; onActivated: backend.setView("harness") }
+    Shortcut { sequence: "Ctrl+1"; context: Qt.ApplicationShortcut; onActivated: backend.setView("agent") }
     Shortcut { sequence: "Ctrl+2"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
     Shortcut { sequence: "Ctrl+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("settings") }
     Shortcut { sequence: "Ctrl+5"; context: Qt.ApplicationShortcut; onActivated: backend.setView("terminal") }
@@ -191,6 +178,7 @@ ApplicationWindow {
     }
     Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
     Shortcut { sequence: "Ctrl+Alt+B"; context: Qt.ApplicationShortcut; onActivated: backend.setView("bots") }
+    Shortcut { sequence: "Ctrl+Alt+N"; context: Qt.ApplicationShortcut; onActivated: backend.setView("notes") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
     Shortcut {
@@ -198,12 +186,6 @@ ApplicationWindow {
         context: Qt.ApplicationShortcut
         enabled: !win.terminalFocused
         onActivated: commandPalette.opened ? commandPalette.close() : commandPalette.open()
-    }
-    Shortcut {
-        sequence: "Ctrl+R"
-        context: Qt.ApplicationShortcut
-        enabled: !win.typing && !win.terminalFocused
-        onActivated: backend.restartHarness()
     }
     Shortcut { sequence: "Ctrl+Q"; context: Qt.ApplicationShortcut; onActivated: win.requestQuit() }
     Shortcut {
@@ -363,9 +345,9 @@ ApplicationWindow {
                         id: liveRow
                         anchors.centerIn: parent
                         spacing: design.space2
-                        StatusDot { size: 5; color: win.stateColor(backend.harnessState) }
+                        StatusDot { size: 5; color: theme.green }
                         Text {
-                            text: qsTr("harness")
+                            text: qsTr("agent")
                             color: theme.mutedText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro
@@ -374,7 +356,7 @@ ApplicationWindow {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: backend.setView("harness")
+                        onClicked: backend.setView("agent")
                     }
                 }
 
@@ -418,25 +400,6 @@ ApplicationWindow {
                 Layout.rightMargin: win.agentDockOpen && backend.view !== "agent"
                                      && win.width >= 1280 ? agentDock.width : 0
 
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 0
-                    visible: backend.view !== "settings" && backend.view !== "home"
-                             && backend.view !== "terminal" && backend.view !== "ecosystem"
-                             && backend.view !== "workspace" && backend.view !== "connections"
-                             && backend.view !== "memory" && backend.view !== "autopilot"
-                             && backend.view !== "mcp" && backend.view !== "agents"
-                             && backend.view !== "installation" && backend.view !== "agent"
-                             && backend.view !== "bots"
-
-                    HarnessPane {
-                        id: harnessPane
-                        visible: backend.view === "harness"
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                    }
-                }
-
                 TerminalPage {
                     anchors.fill: parent
                     visible: backend.view === "terminal"
@@ -473,6 +436,11 @@ ApplicationWindow {
                 BotsPane {
                     anchors.fill: parent
                     visible: backend.view === "bots"
+                }
+
+                NotesPane {
+                    anchors.fill: parent
+                    visible: backend.view === "notes"
                 }
 
                 AgentsPane {
@@ -564,7 +532,7 @@ ApplicationWindow {
 
                 Repeater {
                     model: [
-                        { label: "Harness", color: win.stateColor(backend.harnessState) },
+                        { label: "Agent", color: theme.green },
                         { label: "Terminal", color: terminal.running ? theme.green : theme.dimText },
                         { label: "Agent", color: connections.deepseekConfigured ? theme.green : theme.dimText }
                     ]

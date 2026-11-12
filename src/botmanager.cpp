@@ -7,6 +7,7 @@
 #include "memorystore.h"
 
 #include <QClipboard>
+#include <QCoreApplication>
 
 #include <QDateTime>
 #include <QDir>
@@ -26,8 +27,7 @@ BotManager::BotManager(Backend *backend, MemoryStore *memory, QObject *parent)
       m_store(new BotStore({}, this)),
       m_runner(new BotRunner(this)),
       m_server(new BotServer(this, this)) {
-    m_dshBinary = backend && !backend->dshBinary().isEmpty()
-        ? backend->dshBinary() : QStringLiteral("dsh");
+    m_dshBinary = QCoreApplication::applicationFilePath();
     ensureToken();
 
     connectStore();
@@ -57,9 +57,11 @@ BotManager::BotManager(Backend *backend, MemoryStore *memory, QObject *parent)
     connect(&m_scheduleTimer, &QTimer::timeout, this, &BotManager::checkSchedules);
     m_scheduleTimer.start();
 
-    m_server->setToken(m_token);
-    m_server->start(8790);
-    ensureMcpBridge();
+    if (qEnvironmentVariableIsEmpty("ULTIMATE_IAH_AGENT_JOB")) {
+        m_server->setToken(m_token);
+        m_server->start(8790);
+        ensureMcpBridge();
+    }
 }
 
 BotManager::~BotManager() = default;

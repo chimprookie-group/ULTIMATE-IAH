@@ -387,7 +387,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Des instructions réutilisables, découvertes par le harness dans ~/.agents/skills et dans le projet.")
+                    text: qsTr("Des instructions réutilisables, découvertes par l'agent dans ~/.agents/skills et dans le projet.")
                     color: theme.dimText
                     font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap

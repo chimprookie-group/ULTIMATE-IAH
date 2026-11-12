@@ -12,11 +12,11 @@
 namespace {
 const QStringList kViews = {
     QStringLiteral("home"), QStringLiteral("ecosystem"), QStringLiteral("workspace"),
-    QStringLiteral("harness"), QStringLiteral("terminal"),
+    QStringLiteral("terminal"),
     QStringLiteral("connections"),
     QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
     QStringLiteral("agents"), QStringLiteral("installation"),
-    QStringLiteral("agent"), QStringLiteral("bots"), QStringLiteral("settings")
+    QStringLiteral("agent"), QStringLiteral("bots"), QStringLiteral("notes"), QStringLiteral("settings")
 };
 }
 

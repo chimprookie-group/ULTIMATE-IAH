@@ -10,21 +10,22 @@ Item {
     property var rows: [
         { keys: "Ctrl+0", what: qsTr("Ultimate IAH cockpit") },
         { keys: "Ctrl+K", what: qsTr("Command palette") },
-        { keys: "Ctrl+1", what: qsTr("DeepSeek Harness") },
+        { keys: "Ctrl+1", what: qsTr("Ultimate Agent") },
         { keys: "Ctrl+2", what: qsTr("Terminal agent") },
         { keys: "Ctrl+6", what: qsTr("Ecosystem") },
         { keys: "Ctrl+7", what: qsTr("Files and diffs") },
-        { keys: "Ctrl+8", what: qsTr("Harness connections") },
+        { keys: "Ctrl+8", what: qsTr("Providers") },
         { keys: "Ctrl+Alt+C", what: qsTr("Serveurs MCP") },
         { keys: "Ctrl+Alt+G", what: qsTr("Agents et missions") },
         { keys: "Ctrl+Alt+U", what: qsTr("Ultimate Agent") },
         { keys: "Ctrl+Alt+I", what: qsTr("Installation complète") },
         { keys: "Ctrl+Alt+B", what: qsTr("Bots de l'écosystème") },
+        { keys: "Ctrl+Alt+N", what: qsTr("Notes et vault Markdown") },
         { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
         { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
-        { keys: "Ctrl+Enter", what: qsTr("Run a harness task in the terminal") },
-        { keys: "Ctrl+R", what: qsTr("Restart the harness") },
+
+
         { keys: "?", what: qsTr("This help") },
         { keys: "Q", what: qsTr("Quit") }
     ]
@@ -102,7 +103,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless.")
+                text: qsTr("Tout se pilote au clavier. Ultimate Agent est le centre de l'application ; le terminal reste un vrai shell.")
                 wrapMode: Text.Wrap
                 color: theme.mutedText
                 font.pixelSize: design.textCaption

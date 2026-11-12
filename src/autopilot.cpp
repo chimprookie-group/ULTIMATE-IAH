@@ -424,7 +424,7 @@ void Autopilot::startJob(int id) {
         QSqlQuery update(m_db);
         update.prepare(QStringLiteral(
             "UPDATE autopilot_jobs SET status='failed', last_error=?, updated_at=? WHERE id=?"));
-        update.addBindValue(tr("Le binaire dsh est introuvable ou ne peut pas démarrer."));
+        update.addBindValue(tr("Le moteur agent est introuvable ou ne peut pas démarrer."));
         update.addBindValue(nowIso());
         update.addBindValue(id);
         update.exec();
@@ -437,10 +437,10 @@ void Autopilot::startJob(int id) {
         emit toast(tr("Tâche autonome impossible à démarrer."));
     });
     m_timeout.start();
-    m_process->start(m_dshBinary, {QStringLiteral("headless"),
-                                   QStringLiteral("--permission-mode"), QStringLiteral("workspace-write"),
-                                   QStringLiteral("--approval-policy"), QStringLiteral("never"),
-                                   enrichedPrompt(job)});
+    m_process->start(m_dshBinary, {QStringLiteral("--agent-job"),
+                                   QStringLiteral("--agent-prompt"), enrichedPrompt(job),
+                                   QStringLiteral("--workspace"), project,
+                                   QStringLiteral("--permission"), QStringLiteral("workspace-write")});
 }
 
 QString Autopilot::projectOfJob(int id) const {
