@@ -3,19 +3,16 @@ pkgname=ultimate-hai
 provides=('ultimate-hai' 'deepcrasy-h')
 conflicts=('deepcrasy-h')
 replaces=('deepcrasy-h')
-pkgver=1.2.2
+pkgver=1.3.2
 pkgrel=1
 pkgdesc='Ultimate HAI — agentic DeepSeek Harness cockpit'
 arch=('x86_64' 'aarch64')
 url='https://github.com/iatexplique-debug/DeepCrasy-H'
 license=('MIT')
-depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-webchannel' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme')
+depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-webchannel' 'qt6-wayland' 'qt6-svg' 'hicolor-icon-theme' 'xdg-desktop-portal' 'xdg-utils' 'polkit' 'nodejs' 'npm' 'python' 'python-yaml' 'git')
 optdepends=(
-  'dsh: DeepSeek Harness web server (dsh web)'
-  'git: branch and changes in the cockpit'
-  'nodejs: run the integrated 9Router service'
-  'npm: install 9Router from the 9Router view'
-  'python-yaml: write the harness provider patch'
+  'dsh: system DeepSeek Harness runtime (otherwise install it locally from Installation)'
+  'crasy: system DSH runtime shipped by the harness package'
 )
 makedepends=('gcc' 'make' 'qt6-base' 'qt6-svg')
 source=()

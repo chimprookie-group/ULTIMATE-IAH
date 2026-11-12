@@ -137,7 +137,8 @@ Item {
                             { "id": "memory", "label": qsTr("Mémoire") },
                             { "id": "autopilot", "label": qsTr("Autopilote") },
                             { "id": "mcp", "label": "MCP" },
-                            { "id": "agents", "label": qsTr("Agents") }
+                            { "id": "agents", "label": qsTr("Agents") },
+                            { "id": "installation", "label": qsTr("Installation") }
                         ]
                         Rectangle {
                             width: startupLabel.implicitWidth + 24
@@ -288,6 +289,7 @@ Item {
                     Button { text: qsTr("Connexions du harness"); flat: true; onClicked: backend.setView("connections") }
                     Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
                     Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
+                    Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
                     Button { text: "9Router"; flat: true; onClicked: backend.setView("ninerouter") }
                     Button { text: "MausBot"; flat: true; onClicked: backend.setView("mausbot") }
                     Item { Layout.fillWidth: true }

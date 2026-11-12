@@ -139,7 +139,8 @@ void Backend::applyStartupView() {
     if (start != "home" && start != "ecosystem" && start != "workspace" && start != "harness"
         && start != "terminal" && start != "ninerouter" && start != "mausbot"
         && start != "connections" && start != "memory" && start != "autopilot"
-        && start != "mcp" && start != "agents" && start != "settings")
+        && start != "mcp" && start != "agents" && start != "installation"
+        && start != "settings")
         return;
     if (start == m_view)
         return;
@@ -184,7 +185,8 @@ void Backend::setStartupView(const QString &view) {
     if (view != "home" && view != "harness" && view != "terminal" && view != "ecosystem"
         && view != "workspace" && view != "ninerouter" && view != "mausbot"
         && view != "connections" && view != "memory" && view != "autopilot"
-        && view != "mcp" && view != "agents" && view != "settings")
+        && view != "mcp" && view != "agents" && view != "installation"
+        && view != "settings")
         return;
     m_config->setStartupView(view);
     emit optionsChanged();
@@ -200,7 +202,7 @@ void Backend::setView(const QString &view) {
         && view != "ninerouter" && view != "mausbot"
         && view != "harness" && view != "terminal" && view != "connections"
         && view != "memory" && view != "autopilot" && view != "mcp"
-        && view != "agents" && view != "settings")
+        && view != "agents" && view != "installation" && view != "settings")
         return;
     if (view == m_view)
         return;
@@ -264,7 +266,14 @@ QString Backend::harnessUrl() const { return m_demo ? QString() : m_harness->url
 QString Backend::harnessDetail() const { return m_demo ? tr("Serving on 127.0.0.1:43110") : m_harness->detail(); }
 QString Backend::harnessProfile() const { return m_demo ? QStringLiteral("web") : m_config->harnessProfile(); }
 QString Backend::harnessLog() const { return m_harness->logTail(); }
-QString Backend::dshBinary() const { return m_config->dshBinary(); }
+QString Backend::dshBinary() const {
+    const QString configured = m_config->dshBinary();
+    if (configured.isEmpty() || configured == QLatin1String("dsh"))
+        return Config::detectDsh();
+    const QString resolved = resolveBinary(configured);
+    return resolved.isEmpty() ? Config::detectDsh() : resolved;
+}
+
 bool Backend::dshAvailable() const { return !resolveBinary(dshBinary()).isEmpty(); }
 
 QString Backend::harnessAddress() const {

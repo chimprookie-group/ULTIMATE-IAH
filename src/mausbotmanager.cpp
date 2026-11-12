@@ -150,6 +150,7 @@ MausBotManager::MausBotManager(QObject *parent)
 
     detect();
     refresh();
+    QTimer::singleShot(500, this, &MausBotManager::probe);
     if (installed() && QFileInfo::exists(m_configDir + "/openmausbot.enabled"))
         QTimer::singleShot(900, this, &MausBotManager::start);
 }
@@ -295,6 +296,14 @@ bool MausBotManager::verifyDependencies(QString *error) {
         return false;
     }
     return true;
+}
+
+void MausBotManager::probe() {
+    detect();
+    if (!installed() || m_running || m_starting)
+        return;
+    m_probeBeforeStart = false;
+    probeHealth();
 }
 
 void MausBotManager::start() {

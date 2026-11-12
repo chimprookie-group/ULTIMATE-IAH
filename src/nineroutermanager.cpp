@@ -251,7 +251,9 @@ void NineRouterManager::installDependencies() {
     m_privilegedProcess.start(pkexec, {pacman, QStringLiteral("-S"), QStringLiteral("--needed"),
                                        QStringLiteral("--noconfirm"),
                                        QStringLiteral("nodejs"), QStringLiteral("npm"),
-                                       QStringLiteral("python-yaml")});
+                                       QStringLiteral("python"), QStringLiteral("python-yaml"),
+                                       QStringLiteral("git"), QStringLiteral("xdg-utils"),
+                                       QStringLiteral("polkit"), QStringLiteral("xdg-desktop-portal")});
 }
 
 void NineRouterManager::install() {

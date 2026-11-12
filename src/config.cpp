@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -14,7 +15,8 @@ const QStringList kViews = {
     QStringLiteral("harness"), QStringLiteral("terminal"), QStringLiteral("ninerouter"),
     QStringLiteral("mausbot"), QStringLiteral("connections"),
     QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
-    QStringLiteral("agents"), QStringLiteral("settings")
+    QStringLiteral("agents"), QStringLiteral("installation"),
+    QStringLiteral("settings")
 };
 }
 
@@ -35,6 +37,33 @@ QString Config::defaultWorkspace() {
 QString Config::detectBinary(const QString &name) {
     const QString found = QStandardPaths::findExecutable(name);
     return found.isEmpty() ? name : found;
+}
+
+QString Config::detectDsh() {
+    // Prefer the system runtime shipped by the harness package so a fresh
+    // install does not depend on the user's mise/npm state.
+    const QString system = QStringLiteral("/usr/lib/crasy/dsh/node_modules/.bin/dsh");
+    if (QFileInfo(system).isExecutable())
+        return system;
+    const QString path = QStandardPaths::findExecutable(QStringLiteral("dsh"));
+    if (!path.isEmpty())
+        return path;
+    QDir mise(QDir::homePath() + "/.local/share/mise/installs");
+    const QFileInfoList candidates = mise.entryInfoList(
+        {QStringLiteral("npm-deepseek-ai-dsh*")}, QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    for (const QFileInfo &candidate : candidates) {
+        const QDir versions(candidate.absoluteFilePath());
+        for (const QFileInfo &version : versions.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+            const QString binary = version.absoluteFilePath()
+                + "/node_modules/.bin/dsh";
+            if (QFileInfo(binary).isExecutable())
+                return binary;
+        }
+    }
+    const QString local = QDir::homePath() + "/.local/bin/dsh";
+    if (QFileInfo(local).isExecutable())
+        return local;
+    return QStringLiteral("dsh");
 }
 
 bool Config::validView(const QString &view) {

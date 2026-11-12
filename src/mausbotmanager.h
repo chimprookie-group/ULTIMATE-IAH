@@ -52,6 +52,7 @@ public:
     bool pairing() const { return m_pairing; }
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE void probe();
     Q_INVOKABLE void install();
     Q_INVOKABLE void installDependencies();
     Q_INVOKABLE void start();

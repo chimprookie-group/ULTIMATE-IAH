@@ -19,6 +19,7 @@ Item {
         { keys: "Ctrl+8", what: qsTr("Harness connections") },
         { keys: "Ctrl+Alt+C", what: qsTr("Serveurs MCP") },
         { keys: "Ctrl+Alt+G", what: qsTr("Agents et missions") },
+        { keys: "Ctrl+Alt+I", what: qsTr("Installation complète") },
         { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
         { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
         { keys: "Ctrl+9", what: qsTr("9Router") },

@@ -16,6 +16,7 @@ HEADERS += \
     src/memorystore.h \
     src/missionrunner.h \
     src/connectiondoctor.h \
+    src/installationdoctor.h \
     src/mcpmanager.h \
     src/skillmanager.h \
     src/agentmanager.h \
@@ -41,6 +42,7 @@ SOURCES += \
     src/memorystore.cpp \
     src/missionrunner.cpp \
     src/connectiondoctor.cpp \
+    src/installationdoctor.cpp \
     src/mcpmanager.cpp \
     src/skillmanager.cpp \
     src/agentmanager.cpp \

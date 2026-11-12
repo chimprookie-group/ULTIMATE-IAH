@@ -14,6 +14,7 @@
         <file>BrandMark.qml</file>
         <file>SidebarGroup.qml</file>
         <file>AgentsPane.qml</file>
+        <file>InstallationPane.qml</file>
         <file>MemoryPane.qml</file>
         <file>AutopilotPane.qml</file>
         <file>NineRouterPane.qml</file>

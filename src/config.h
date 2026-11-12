@@ -39,6 +39,7 @@ public:
     static QString defaultPath();
     static QString defaultWorkspace();
     static QString detectBinary(const QString &name);
+    static QString detectDsh();
 
 signals:
     void workspaceChanged();

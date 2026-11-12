@@ -37,6 +37,7 @@ ApplicationWindow {
         if (backend.view === "memory") return qsTr("Mémoire")
         if (backend.view === "mcp") return "MCP"
         if (backend.view === "agents") return qsTr("Agents")
+        if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
         return "Ultimate HAI"
@@ -105,6 +106,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
         add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
+        add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
         add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
@@ -171,6 +173,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("connections") }
     Shortcut { sequence: "Ctrl+Alt+C"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mcp") }
     Shortcut { sequence: "Ctrl+Alt+G"; context: Qt.ApplicationShortcut; onActivated: backend.setView("agents") }
+    Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
     Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
@@ -383,6 +386,7 @@ ApplicationWindow {
                              && backend.view !== "workspace" && backend.view !== "connections"
                              && backend.view !== "memory" && backend.view !== "autopilot"
                              && backend.view !== "mcp" && backend.view !== "agents"
+                             && backend.view !== "installation"
                              && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
@@ -424,6 +428,11 @@ ApplicationWindow {
                 AgentsPane {
                     anchors.fill: parent
                     visible: backend.view === "agents"
+                }
+
+                InstallationPane {
+                    anchors.fill: parent
+                    visible: backend.view === "installation"
                 }
 
                 MemoryPane {

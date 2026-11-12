@@ -45,6 +45,13 @@ private slots:
         QVERIFY(HarnessServer::extractUrl("error: --profile <name> is required").isEmpty());
     }
 
+    void configFindsSystemDshRuntime()
+    {
+        const QString dsh = Config::detectDsh();
+        QVERIFY(!dsh.isEmpty());
+        QVERIFY(dsh == QString("dsh") || QFileInfo(dsh).isExecutable());
+    }
+
     void configDefaultsAreUsable()
     {
         QTemporaryDir dir;

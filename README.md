@@ -31,6 +31,14 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 - **Suivi persistant** : chaque mission et chaque étape est stockée dans SQLite,
   avec reprise, annulation et sorties consultables.
 
+## Installation complète
+
+La vue **Installation** (`Ctrl+Alt+I`) audite et installe l'écosystème complet :
+runtime DSH, Node, npm, Python, PyYAML, QtWebEngine, Git, portail fichiers,
+9Router, MausBot, MCP mémoire et entrée de bureau. Le runtime DSH système
+(`/usr/lib/crasy/dsh`) est utilisé en priorité ; sinon DSH peut être installé
+localement sans droits administrateur.
+
 ## Connexions et MCP
 
 ![Connexions](assets/screenshot-connections.png)
@@ -96,7 +104,7 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.2.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.3.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans
