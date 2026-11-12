@@ -40,8 +40,9 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 - **Catalogue providers** : DeepSeek, OpenAI, Anthropic, OpenRouter, Gemini,
   Groq, Mistral, xAI, Ollama, LM Studio, 9Router.
 - **Protocoles** : OpenAI-compatible et Anthropic Messages.
-- **Clés** dans le credential store DSH, environnement privé pour le harness et
-  le terminal.
+- **Clé DeepSeek unique** : une saisie dans Connexions alimente DSH,
+  `agent.env`, le terminal et la connexion upstream 9Router. La propagation est
+  rejouée automatiquement quand 9Router est installé, démarré ou reconnecté.
 - **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
   Fetch / Git, patch automatique pour le harness.
 - **MCP intégrés** : mémoire Ultimate HAI et MausBot.
@@ -95,7 +96,7 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.2.1-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.2.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

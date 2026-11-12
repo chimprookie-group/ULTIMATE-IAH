@@ -603,5 +603,7 @@
   "Ouvrir 9Router": "Ouvrir 9Router",
   "Applique les modèles 9Router au provider unique du harness, avec le modèle par défaut.": "Applique les modèles 9Router au provider unique du harness, avec le modèle par défaut.",
   "Appliquer les modèles": "Appliquer les modèles",
-  "Retirer du harness": "Retirer du harness"
+  "Retirer du harness": "Retirer du harness",
+  "Clé active : propagée automatiquement à DSH, au terminal et à 9Router dès qu'il est disponible.": "Clé active : propagée automatiquement à DSH, au terminal et à 9Router dès qu'il est disponible.",
+  "Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH, au terminal et à 9Router.": "Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH, au terminal et à 9Router."
 }

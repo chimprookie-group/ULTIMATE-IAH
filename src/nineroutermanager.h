@@ -64,6 +64,7 @@ public:
     Q_INVOKABLE void disconnectHarness();
     Q_INVOKABLE void clearError();
     Q_INVOKABLE void adoptSessionCookie(const QString &cookie);
+    Q_INVOKABLE void syncDeepSeekFromDsh();
 
 signals:
     void installedChanged();
@@ -84,6 +85,7 @@ signals:
     void modelsChanged();
     void openCodeApplied();
     void harnessApplied();
+    void deepSeekSynced(bool ok);
     void harnessDisconnected();
 
 private:
@@ -113,6 +115,8 @@ private:
     QString profilePatchPath() const;
     bool writeHarnessFiles(const QStringList &models, bool makeDefault, QString *error,
                            bool remove = false);
+    QString readDeepSeekKey() const;
+    void flushPendingDeepSeek();
     QString pythonHelper() const;
 
     QNetworkAccessManager *m_network = nullptr;
@@ -127,6 +131,10 @@ private:
     QString m_version;
     QString m_cookie;
     QString m_apiKey;
+    QString m_pendingDeepSeekKey;
+    bool m_deepSeekSyncInFlight = false;
+    bool m_deepSeekSynced = false;
+    QString m_syncedDeepSeekKey;
     QString m_keyMasked;
     QString m_error;
     QString m_installLog;

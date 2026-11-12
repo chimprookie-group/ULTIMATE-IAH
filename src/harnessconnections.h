@@ -39,6 +39,7 @@ public:
 signals:
     void changed();
     void errorChanged();
+    void deepSeekChanged();
 
 private:
     bool run(const QJsonObject &request, QJsonObject &result);

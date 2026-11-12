@@ -284,6 +284,7 @@ void NineRouterManager::install() {
 
 void NineRouterManager::start() {
     detect();
+    m_deepSeekSynced = false;
     if (!installed()) {
         setError(tr("9Router is not installed."));
         return;
@@ -331,6 +332,7 @@ void NineRouterManager::stop() {
     setDetail(tr("Stopped"));
     setAuthRequired(false);
     m_cookie.clear();
+    m_deepSeekSynced = false;
 }
 
 void NineRouterManager::refresh() {
@@ -427,6 +429,86 @@ bool NineRouterManager::adoptDashboardSession() {
         return false;
     m_cookie = cookie;
     return true;
+}
+
+QString NineRouterManager::readDeepSeekKey() const {
+    QFile file(qEnvironmentVariable("DSH_HOME", QDir::homePath() + "/.dsh") + "/.credentials.yaml");
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    const QString text = QString::fromUtf8(file.readAll());
+    static const QRegularExpression pattern(QStringLiteral("(?m)^\\s*DEEPSEEK_API_KEY:\\s*(\\S+)"));
+    const auto match = pattern.match(text);
+    if (!match.hasMatch())
+        return {};
+    QString key = match.captured(1).trimmed();
+    key.remove(QRegularExpression(QStringLiteral("^[\"']|[\"']$")));
+    return key;
+}
+
+void NineRouterManager::syncDeepSeekFromDsh() {
+    const QString key = readDeepSeekKey();
+    if (key.isEmpty())
+        return;
+    if (m_deepSeekSynced && key == m_syncedDeepSeekKey)
+        return;
+    m_deepSeekSynced = false;
+    m_pendingDeepSeekKey = key;
+    if (!m_running || m_authRequired || m_deepSeekSyncInFlight)
+        return;
+    flushPendingDeepSeek();
+}
+
+void NineRouterManager::flushPendingDeepSeek() {
+    if (m_pendingDeepSeekKey.isEmpty() || m_deepSeekSyncInFlight || !m_running)
+        return;
+    m_deepSeekSyncInFlight = true;
+    const QString key = m_pendingDeepSeekKey;
+    send("GET", QStringLiteral("/api/providers"), nullptr, true, false, [this, key](QNetworkReply *reply) {
+        int status = 0;
+        const QJsonObject root = readJson(reply, &status);
+        if (status == 401 || status == 403) {
+            m_deepSeekSyncInFlight = false;
+            setAuthRequired(true);
+            return;
+        }
+        if (status < 200 || status >= 300) {
+            m_deepSeekSyncInFlight = false;
+            return;
+        }
+        QString id;
+        for (const QJsonValue &value : root.value("connections").toArray()) {
+            const QJsonObject connection = value.toObject();
+            if (connection.value("provider").toString() == QLatin1String("deepseek"))
+                id = connection.value("id").toString();
+        }
+        const QJsonObject body{{"apiKey", key}, {"isActive", true}};
+        if (id.isEmpty()) {
+            const QJsonObject create{{"provider", "deepseek"}, {"authType", "apikey"},
+                                     {"name", "DeepSeek"}, {"apiKey", key}, {"priority", 1},
+                                     {"isActive", true}};
+            send("POST", QStringLiteral("/api/providers"), &create, true, false, [this, key](QNetworkReply *reply) {
+                m_deepSeekSyncInFlight = false;
+                const int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                m_deepSeekSynced = code >= 200 && code < 300;
+                if (m_deepSeekSynced) {
+                    m_syncedDeepSeekKey = key;
+                    m_pendingDeepSeekKey.clear();
+                }
+                emit deepSeekSynced(m_deepSeekSynced);
+            });
+        } else {
+            send("PUT", QStringLiteral("/api/providers/") + id, &body, true, false, [this, key](QNetworkReply *reply) {
+                m_deepSeekSyncInFlight = false;
+                const int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                m_deepSeekSynced = code >= 200 && code < 300;
+                if (m_deepSeekSynced) {
+                    m_syncedDeepSeekKey = key;
+                    m_pendingDeepSeekKey.clear();
+                }
+                emit deepSeekSynced(m_deepSeekSynced);
+            });
+        }
+    });
 }
 
 void NineRouterManager::authenticate() {
@@ -545,6 +627,7 @@ void NineRouterManager::fetchModels() {
                                       {"ownedBy", model.value("owned_by").toString()}});
         }
         setModels(models);
+        syncDeepSeekFromDsh();
     });
 }
 

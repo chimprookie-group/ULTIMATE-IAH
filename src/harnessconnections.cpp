@@ -258,6 +258,7 @@ void HarnessConnections::saveDeepSeek(const QString &apiKey) {
         return;
     m_defaultModel = result.value("defaultModel").toString();
     refresh();
+    emit deepSeekChanged();
 }
 
 void HarnessConnections::saveProvider(const QString &idValue, const QString &nameValue,

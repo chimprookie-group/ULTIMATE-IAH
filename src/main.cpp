@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.2.1"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.2.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -309,6 +309,8 @@ int main(int argc, char *argv[]) {
     QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
         autopilot.setDshBinary(backend.dshBinary());
     });
+    QObject::connect(&connections, &HarnessConnections::deepSeekChanged, &nineRouter,
+                     [&nineRouter] { nineRouter.syncDeepSeekFromDsh(); });
     QObject::connect(&backend, &Backend::dshBinaryChanged, &missions, [&backend, &missions] {
         missions.setDshBinary(backend.dshBinary());
     });

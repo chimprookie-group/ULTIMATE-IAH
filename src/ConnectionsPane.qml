@@ -166,8 +166,8 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: connections.deepseekConfigured
-                          ? qsTr("Une clé DeepSeek est enregistrée dans le credential store du harness.")
-                          : qsTr("Ajoutez une clé API DeepSeek. Elle est stockée dans les credentials DSH, jamais dans QML.")
+                          ? qsTr("Clé active : propagée automatiquement à DSH, au terminal et à 9Router dès qu'il est disponible.")
+                          : qsTr("Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH, au terminal et à 9Router.")
                     color: connections.deepseekConfigured ? theme.green : theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
