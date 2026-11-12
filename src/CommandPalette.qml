@@ -205,7 +205,7 @@ Item {
                 currentIndex: -1
                 spacing: 2
                 boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                ScrollBar.vertical: AppScrollBar {}
 
                 delegate: Rectangle {
                     id: row

@@ -128,7 +128,7 @@ Item {
                 spacing: design.space3
                 model: ultimateAgent.messages
                 boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                ScrollBar.vertical: AppScrollBar {}
 
                 delegate: Item {
                     width: ListView.view.width

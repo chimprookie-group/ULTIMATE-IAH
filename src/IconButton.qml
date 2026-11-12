@@ -17,7 +17,7 @@ Item {
         source: root.icon
         width: design.iconMd
         height: design.iconMd
-        color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
+        color: root.active ? theme.brightText : (mouse.containsMouse ? (theme.dark ? theme.text : theme.accent) : theme.mutedText)
         opacity: root.active || mouse.containsMouse ? 1 : 0.82
         Behavior on color { ColorAnimation { duration: design.durationFast } }
         Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
@@ -28,6 +28,18 @@ Item {
         id: hoverDelay
         interval: 450
         onTriggered: root.tipVisible = mouse.containsMouse
+    }
+
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 1
+        width: 10
+        height: 2
+        radius: 1
+        color: theme.accent
+        opacity: mouse.containsMouse ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
     MouseArea {

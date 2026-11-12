@@ -28,6 +28,18 @@ Item {
         Behavior on height { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 2
+        width: 12
+        height: 2
+        radius: 1
+        color: theme.accent
+        opacity: mouse.containsMouse ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: root.compact ? 0 : design.space4
@@ -40,7 +52,7 @@ Item {
             source: root.icon
             width: design.iconMd
             height: design.iconMd
-            color: root.active ? theme.accent : (mouse.containsMouse ? theme.brightText : theme.mutedText)
+            color: root.active ? theme.accent : (mouse.containsMouse ? (theme.dark ? theme.brightText : theme.accent) : theme.mutedText)
             opacity: root.active || mouse.containsMouse ? 1 : 0.82
             Behavior on color { ColorAnimation { duration: design.durationFast } }
             Behavior on opacity { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
@@ -50,7 +62,7 @@ Item {
             Layout.fillWidth: true
             visible: !root.compact
             text: root.label
-            color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
+            color: root.active ? theme.brightText : (mouse.containsMouse ? (theme.dark ? theme.text : theme.accent) : theme.mutedText)
             font.pixelSize: design.textLabel
             font.weight: root.active ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight

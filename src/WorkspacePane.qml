@@ -204,7 +204,7 @@ Item {
                         model: workspaceModel.files
                         boundsBehavior: Flickable.StopAtBounds
 
-                        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                        ScrollBar.vertical: AppScrollBar {}
 
                         delegate: Rectangle {
                             width: ListView.view.width
@@ -397,8 +397,8 @@ Item {
                             contentHeight: codeText.implicitHeight
                             boundsBehavior: Flickable.StopAtBounds
 
-                            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-                            ScrollBar.horizontal: ScrollBar {
+                            ScrollBar.vertical: AppScrollBar {}
+                            ScrollBar.horizontal: AppScrollBar {
                                 policy: root.markdownPreview ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded
                             }
 

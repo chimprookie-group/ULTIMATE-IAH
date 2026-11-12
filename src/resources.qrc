@@ -26,6 +26,7 @@
         <file>HomePane.qml</file>
         <file>SidebarItem.qml</file>
         <file>ServiceRow.qml</file>
+        <file>AppScrollBar.qml</file>
         <file>AppSidebar.qml</file>
         <file>HomeCard.qml</file>
         <file>CommandPalette.qml</file>

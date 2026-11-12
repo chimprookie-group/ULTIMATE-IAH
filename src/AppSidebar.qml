@@ -123,6 +123,7 @@ Item {
             Layout.fillHeight: true
             clip: true
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            ScrollBar.vertical: AppScrollBar {}
             contentWidth: availableWidth
 
             ColumnLayout {
@@ -202,7 +203,7 @@ Item {
                         Layout.fillWidth: root.compact
                         source: "icons/command.svg"
                         width: design.iconSm; height: design.iconSm
-                        color: commandMouse.containsMouse ? theme.text : theme.mutedText
+                        color: commandMouse.containsMouse ? (theme.dark ? theme.text : theme.accent) : theme.mutedText
                         Behavior on color { ColorAnimation { duration: design.durationFast } }
                     }
                     Text {

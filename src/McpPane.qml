@@ -57,6 +57,7 @@ Item {
         clip: true
         contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            ScrollBar.vertical: AppScrollBar {}
 
         ColumnLayout {
             width: root.contentWidth
