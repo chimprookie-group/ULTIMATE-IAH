@@ -712,7 +712,7 @@ bool Backend::loadingSessions() const {
 }
 
 void Backend::setView(const QString &view) {
-    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers" && view != "ninerouter"
+    if (view != "home" && view != "ecosystem" && view != "workspace" && view != "providers" && view != "ninerouter" && view != "mausbot"
         && view != "harness" && view != "opencode" && view != "split" && view != "terminal"
         && view != "settings")
         return;

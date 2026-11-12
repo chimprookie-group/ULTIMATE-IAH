@@ -154,10 +154,18 @@ void HarnessServer::start() {
     // `--patch` is a launcher option. DSH only accepts it with an explicit
     // --profile, before the app arguments; `dsh web --patch p` rejects it.
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    const QString patchPath = configDir + "/nine-router.patch.yml";
-    if (QFileInfo::exists(patchPath)) {
+    QStringList patches;
+    for (const QString &name : {QStringLiteral("nine-router.patch.yml"),
+                                QStringLiteral("openmausbot.patch.yml")}) {
+        const QString path = configDir + "/" + name;
+        if (QFileInfo::exists(path))
+            patches << path;
+    }
+    if (!patches.isEmpty()) {
         const QString profile = (m_profile.isEmpty() ? QStringLiteral("web") : m_profile);
-        arguments << "--profile" << profile << "--patch" << patchPath;
+        arguments << "--profile" << profile;
+        for (const QString &patch : patches)
+            arguments << "--patch" << patch;
     } else if (m_profile != "web" && !m_profile.isEmpty()) {
         arguments << "--profile" << m_profile;
     } else {

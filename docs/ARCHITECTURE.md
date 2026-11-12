@@ -200,6 +200,24 @@ Un marqueur `nine-router.enabled` et la présence du patch permettent de
 redémarrer 9Router avec l'application. Le port reste local et le dashboard
 9Router n'est jamais exposé au réseau.
 
+### MausBot
+
+`MausBotManager` détecte ou installe `openmausbot` dans les données de l'app,
+vérifie `--version`, nettoie les caches npm, puis lance
+`openmausbot serve --port 8799 --data-dir …`. Le health check `/api/health`
+identifie l'application (`app=openmausbot`) avant d'afficher l'UI embarquée.
+
+Quand la page affiche l'écran d'appairage, le WebEngine exécute
+`openmausbot pair --label "DeepCrasy H" --ttl 24h`, charge le lien
+`/pair#code=…` et clique sur **Connect**. Le cookie persiste dans un profil
+WebEngine dédié.
+
+Le pont MCP écrit `mcp.servers.openmausbot` dans OpenCode et un overlay
+`openmausbot.patch.yml` contenant une insertion `dsh-mcp-client`. L'overlay est
+passé à `dsh` avec `--patch`, puis le harness et OpenCode redémarrent. Les outils
+sont exposés sous `mcp__openmausbot__*`; le serveur MCP local fonctionne en
+confiance loopback (lecture et actions locales).
+
 ### Gestionnaire de providers
 
 `ProviderManager` lit et écrit `~/.config/opencode/opencode.json`. Chaque

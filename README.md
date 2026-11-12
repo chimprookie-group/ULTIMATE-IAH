@@ -81,6 +81,34 @@ lance `pkexec pacman -S --needed --noconfirm nodejs npm python-yaml`. La
 fenêtre polkit demande le mot de passe administrateur ; l'application ne le
 voit jamais et l'installation locale de 9Router reste sans root.
 
+## MausBot : équipe de bots et pont MCP
+
+![MausBot dans DeepCrasy H](assets/screenshot-mausbot.png)
+
+`Ctrl+Shift+M` ouvre **MausBot** comme un service local géré par DeepCrasy H.
+Son application web complète est embarquée : équipes de bots, canaux, modèles,
+ordinateurs, approbations et applications connectées. Le serveur reste sur
+`127.0.0.1:8799` et ses données dans l'installation de l'application.
+
+L'appairage du navigateur est automatisé : quand MausBot affiche son écran de
+connexion, DeepCrasy H exécute `openmausbot pair`, charge le lien à usage unique
+et clique sur **Connect**. Le bouton **Appairer le navigateur** permet de
+recommencer. La session reste dans le profil WebEngine persistant.
+
+Le panneau **Pont MCP** expose l'équipe MausBot aux deux agents :
+
+- **OpenCode** : ajout de `mcp.servers.openmausbot` (`openmausbot mcp`) ;
+- **Harness** : insertion d'un client MCP `dsh-mcp-client` via un overlay
+  `openmausbot.patch.yml`, puis redémarrage du harness.
+
+Les outils apparaissent sous `mcp__openmausbot__*` : lecture des bots/canaux,
+envoi de travail, création de bots, attente de fin de conversation, changement
+de modèle. Vérifié : **20 outils MCP**, initialisation réussie dans OpenCode et
+dans DSH, y compris le démarrage du harness avec les deux overlays.
+
+MausBot utilise les CLI **Claude, Codex et Grok** déjà installés. L'installation
+npm locale ne demande pas root ; les dépendances système passent par `pkexec`.
+
 ## Providers : n'importe quelle API
 
 ![Gestion des providers](assets/screenshot-providers.png)
@@ -251,6 +279,8 @@ d'échec, le résultat est aussi lu dans sa sortie.
   connexion provider depuis la carte d'erreur.
 - **9Router intégré** : service local, dashboard embarqué, 864 modèles,
   connexion OpenCode et harness, choix des modèles exposés.
+- **MausBot intégré** : service local, dashboard embarqué, appairage automatique,
+  pont MCP vers OpenCode et le harness.
 - **Gestionnaire de providers** : n'importe quelle API compatible OpenAI,
   clé masquée, test `/models`, modèles, comptes OpenCode.
 - **Catalogue de modèles complet**, pièces jointes, historique de prompts et
@@ -385,6 +415,9 @@ Le chat et le sélecteur de modèle :
 - `Ecosystem::refreshModels()` charge `opencode models` et `opencode auth list`
   pour le catalogue et le provider. Le composer assemble les pièces jointes en
   blocs `<file>` et garde 50 prompts d'historique.
+- `MausBotManager` lance `openmausbot serve`, automatise `openmausbot pair`,
+  embarque l'UI dans WebEngine et écrit le MCP OpenCode + un overlay
+  `dsh-mcp-client` pour le harness. `HarnessServer` accepte plusieurs `--patch`.
 - `NineRouterManager` lance le service local, s'authentifie, récupère la clé et
   les modèles, puis appelle l'endpoint OpenCode natif de 9Router. Pour le
   harness, il génère un patch `llm-pi-ai` et un fichier d'environnement ;
