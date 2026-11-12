@@ -57,6 +57,18 @@ Item {
         running: true
     }
 
+    BrandMark {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: design.space6
+        anchors.bottomMargin: design.space3
+        width: Math.min(360, parent.width * 0.32)
+        height: width * 0.85
+        size: width
+        markOpacity: 0.035
+        accent: false
+    }
+
     ScrollView {
         anchors.fill: parent
         clip: true
@@ -77,6 +89,7 @@ Item {
                 title: qsTr("Cockpit")
                 description: qsTr("Le harness, ses agents, sa mémoire et votre projet.")
                 icon: "icons/home.svg"
+                brandMark: true
 
                 RowLayout {
                     spacing: design.space3

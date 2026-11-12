@@ -48,11 +48,10 @@ Item {
                         color: theme.raised
                         border.width: 1
                         border.color: theme.border
-                        Image {
+                        BrandMark {
                             anchors.centerIn: parent
-                            source: "assets/icon-128.png"
-                            sourceSize.width: 30
-                            sourceSize.height: 30
+                            size: 30
+                            accent: true
                         }
                     }
 

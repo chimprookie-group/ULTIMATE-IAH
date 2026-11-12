@@ -62,6 +62,8 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
 
+                BrandMark { width: 28; height: 28; size: 28; accent: true }
+
                 Text {
                     Layout.fillWidth: true
                     text: qsTr("Raccourcis")

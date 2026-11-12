@@ -12,6 +12,7 @@ Item {
     property string icon: ""
     property string index: ""
     property color accent: theme.accent
+    property bool brandMark: false
 
     default property alias actions: actionRow.data
 
@@ -33,8 +34,15 @@ Item {
                 border.width: 1
                 border.color: theme.border
             }
+            BrandMark {
+                anchors.centerIn: parent
+                visible: root.brandMark
+                size: design.iconLg + 8
+                accent: true
+            }
             ThemedIcon {
                 anchors.centerIn: parent
+                visible: !root.brandMark
                 source: root.icon
                 width: design.iconLg
                 height: design.iconLg

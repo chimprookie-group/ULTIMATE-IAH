@@ -8,6 +8,14 @@ un terminal réel, un autopilote borné et un centre de connexions providers/MCP
 
 ![Cockpit Ultimate HAI](assets/screenshot-home.png)
 
+## Identité
+
+Le cavalier et sa baleine sont le logo d'Ultimate HAI. Le fond noir a été
+détouré : l'application utilise une variante blanche sur les thèmes sombres et
+une variante encre sur les thèmes clairs. L'icône applicative conserve une
+tuile encre avec un trait d'accent. Le logo apparaît dans le rail, les en-têtes
+de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
+
 ## Agentique
 
 ![Agents et missions](assets/screenshot-agents.png)
@@ -87,7 +95,7 @@ un terminal réel, un autopilote borné et un centre de connexions providers/MCP
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.1.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.1.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

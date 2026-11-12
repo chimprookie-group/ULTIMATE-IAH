@@ -185,6 +185,15 @@ Item {
                 }
             }
 
+            BrandMark {
+                Layout.alignment: Qt.AlignHCenter
+                width: 48
+                height: 42
+                size: 48
+                accent: true
+                markOpacity: 0.7
+                visible: autopilot.jobs.length === 0
+            }
             Text {
                 Layout.fillWidth: true
                 visible: autopilot.jobs.length === 0

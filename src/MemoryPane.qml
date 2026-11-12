@@ -193,6 +193,15 @@ Item {
                 wrapMode: Text.Wrap
             }
 
+            BrandMark {
+                Layout.alignment: Qt.AlignHCenter
+                width: 54
+                height: 46
+                size: 54
+                accent: true
+                markOpacity: 0.75
+                visible: root.shown.length === 0
+            }
             Text {
                 Layout.fillWidth: true
                 visible: root.shown.length === 0

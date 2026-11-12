@@ -104,6 +104,9 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
+                spacing: design.space2
+
+                BrandMark { width: 26; height: 26; size: 26; accent: true }
 
                 Text {
                     Layout.fillWidth: true

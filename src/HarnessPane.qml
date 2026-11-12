@@ -120,11 +120,18 @@ Item {
                 spacing: 14
                 visible: backend.harnessState === "starting" || backend.harnessState === "stopped"
 
+                BrandMark {
+                    width: 58
+                    height: 50
+                    size: 58
+                    accent: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
                 BusyIndicator {
                     running: visible
                     anchors.horizontalCenter: parent.horizontalCenter
-                    implicitWidth: 30
-                    implicitHeight: 30
+                    implicitWidth: 22
+                    implicitHeight: 22
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -159,6 +166,7 @@ Item {
 
                     RowLayout {
                         spacing: 8
+                        BrandMark { width: 30; height: 30; size: 30; accent: true }
                         ThemedIcon {
                             source: "icons/alert.svg"
                             width: 16

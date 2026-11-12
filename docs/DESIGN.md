@@ -19,6 +19,9 @@ Les tokens vivent dans `designtokens.h` et sont exposés à QML sous `design`.
 - Couleurs : uniquement la palette Omarchy active. L'accent sert aux actions et
   au vivant ; cyan/vert/ambre/rouge aux états. Aucun dégradé décoratif.
 - Icônes : un seul jeu SVG, viewBox 24, trait 1.5, bouts arrondis.
+- Logo : le cavalier et sa baleine, détourés sur fond transparent. Variante
+  blanche pour les thèmes sombres, variante encre pour les thèmes clairs. Icône
+  applicative sur tuile encre avec un trait d'accent.
 - Largeurs : rail 236 / 68, en-tête 60, statut 30, contenu max 1180.
 
 ## Structure

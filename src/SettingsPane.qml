@@ -302,17 +302,26 @@ Item {
             SettingsSection {
                 title: qsTr("À propos")
                 Layout.fillWidth: true
-                Text {
+                RowLayout {
                     Layout.fillWidth: true
-                    text: "Ultimate HAI " + backend.appVersion
-                    color: theme.text
-                    font.pixelSize: 12
-                }
-                Text {
-                    Layout.fillWidth: true
-                    text: qsTr("Harness-only, construit pour Omarchy · MIT")
-                    color: theme.dimText
-                    font.pixelSize: 9
+                    spacing: design.space3
+                    BrandMark { width: 52; height: 52; size: 52; accent: true }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Ultimate HAI " + backend.appVersion
+                            color: theme.text
+                            font.pixelSize: design.textBody
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Harness-only, construit pour Omarchy · MIT")
+                            color: theme.dimText
+                            font.pixelSize: design.textMicro
+                        }
+                    }
                 }
                 Text {
                     Layout.fillWidth: true

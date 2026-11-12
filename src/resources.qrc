@@ -11,6 +11,7 @@
         <file>ConnectionsPane.qml</file>
         <file>McpPane.qml</file>
         <file>PageHeader.qml</file>
+        <file>BrandMark.qml</file>
         <file>SidebarGroup.qml</file>
         <file>AgentsPane.qml</file>
         <file>MemoryPane.qml</file>
@@ -31,6 +32,8 @@
         <file>ThemeCard.qml</file>
         <file>HelpOverlay.qml</file>
         <file alias="assets/icon-128.png">../assets/icon-128.png</file>
+        <file alias="assets/logo-ride-dark.png">../assets/logo-ride-dark.png</file>
+        <file alias="assets/logo-ride-light.png">../assets/logo-ride-light.png</file>
         <file alias="assets/icon-256.png">../assets/icon-256.png</file>
         <file>icons/terminal.svg</file>
         <file>icons/chat.svg</file>
