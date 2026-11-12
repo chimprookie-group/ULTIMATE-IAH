@@ -62,7 +62,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Crasy Harness suit le thème Omarchy actif. Choisissez un autre thème installé pour l'application seule.")
+                    text: qsTr("Ultimate HAI suit le thème Omarchy actif. Choisissez un autre thème installé pour l'application seule.")
                     color: theme.mutedText
                     font.pixelSize: 11
                     wrapMode: Text.Wrap
@@ -93,7 +93,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Automatique suit Omarchy, puis le navigateur embarqué. Un choix manuel ne s'applique qu'à Crasy Harness.")
+                    text: qsTr("Automatique suit Omarchy, puis le navigateur embarqué. Un choix manuel ne s'applique qu'à Ultimate HAI.")
                     color: theme.mutedText
                     font.pixelSize: 11
                     wrapMode: Text.Wrap
@@ -151,7 +151,9 @@ Item {
                             { "id": "ecosystem", "label": qsTr("Projet") },
                             { "id": "workspace", "label": qsTr("Fichiers") },
                             { "id": "memory", "label": qsTr("Mémoire") },
-                            { "id": "autopilot", "label": qsTr("Autopilote") }
+                            { "id": "autopilot", "label": qsTr("Autopilote") },
+                            { "id": "mcp", "label": "MCP" },
+                            { "id": "agents", "label": qsTr("Agents") }
                         ]
                         Rectangle {
                             width: startupLabel.implicitWidth + 24
@@ -300,6 +302,8 @@ Item {
                     Layout.fillWidth: true
                     spacing: 6
                     Button { text: qsTr("Connexions du harness"); flat: true; onClicked: backend.setView("connections") }
+                    Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
+                    Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
                     Button { text: "9Router"; flat: true; onClicked: backend.setView("ninerouter") }
                     Button { text: "MausBot"; flat: true; onClicked: backend.setView("mausbot") }
                     Item { Layout.fillWidth: true }
@@ -316,7 +320,7 @@ Item {
                 Layout.fillWidth: true
                 Text {
                     Layout.fillWidth: true
-                    text: "Crasy Harness " + backend.appVersion
+                    text: "Ultimate HAI " + backend.appVersion
                     color: theme.text
                     font.pixelSize: 12
                 }

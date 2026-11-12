@@ -23,7 +23,7 @@ Item {
         id: profileComponent
 
         WebEngineProfile {
-            storageName: "deepcrasy-h"
+            storageName: "ultimate-hai"
             offTheRecord: false
             persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
         }

@@ -25,7 +25,7 @@ void PortalFolderPicker::open(const QString &title) {
 
     // The token must be unique per request and is part of the object path the
     // portal will call back on.
-    const QString token = QStringLiteral("deepcrasy%1_%2")
+    const QString token = QStringLiteral("ultimatehai%1_%2")
                               .arg(QCoreApplication::applicationPid())
                               .arg(++m_counter);
     QVariantMap options;

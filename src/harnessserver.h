@@ -7,7 +7,7 @@
 
 // Owns the `dsh web` process that serves the DeepSeek Harness browser UI and
 // extracts the one-time tokenized URL it prints on startup. The app embeds that
-// URL in a WebEngineView, so the harness lives inside DeepCrasy H instead of a
+// URL in a WebEngineView, so the harness lives inside Ultimate HAI instead of a
 // separate browser tab.
 class HarnessServer : public QObject {
     Q_OBJECT

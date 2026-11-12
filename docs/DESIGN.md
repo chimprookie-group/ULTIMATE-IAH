@@ -1,4 +1,4 @@
-# Direction visuelle — DeepCrasy H
+# Direction visuelle — Ultimate HAI
 
 **But** : un poste de pilotage pour développeur qui fait tourner plusieurs agents locaux.
 **Public** : utilisateur Omarchy qui veut voir, lancer et connecter ses agents sans perdre le fil.

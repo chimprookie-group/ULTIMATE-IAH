@@ -1,47 +1,63 @@
-# Crasy Harness
+# Ultimate HAI
 
-**Le cockpit DeepSeek Harness pour Omarchy.** Un seul agent, son terminal, ses
-connexions et votre projet — sans OpenCode.
+**Le cockpit agentique du DeepSeek Harness pour Omarchy.**
 
-![Cockpit Crasy Harness](assets/screenshot-home.png)
+Ultimate HAI réunit le harness, des agents orchestrés, une mémoire persistante,
+un terminal réel, un autopilote borné et un centre de connexions providers/MCP
+— sans OpenCode.
+
+![Cockpit Ultimate HAI](assets/screenshot-home.png)
+
+## Agentique
+
+![Agents et missions](assets/screenshot-agents.png)
+
+- **Profils d'agents** : planificateur, exécutant, réviseur, chercheur, et rôles
+  personnalisés.
+- **Missions Plan → Exécution → Revue** : trois appels `dsh headless` successifs,
+  avec mémoire et résultats intermédiaires transmis.
+- **Permissions adaptées** : planificateur et réviseur en lecture seule ;
+  exécutant en `workspace-write` ; approbation `never` pour le mode headless.
+- **Suivi persistant** : chaque mission et chaque étape est stockée dans SQLite,
+  avec reprise, annulation et sorties consultables.
+
+## Connexions et MCP
+
+![Connexions](assets/screenshot-connections.png)
+
+![Serveurs MCP](assets/screenshot-mcp.png)
+
+- **Catalogue providers** : DeepSeek, OpenAI, Anthropic, OpenRouter, Gemini,
+  Groq, Mistral, xAI, Ollama, LM Studio, 9Router.
+- **Protocoles** : OpenAI-compatible et Anthropic Messages.
+- **Clés** dans le credential store DSH, environnement privé pour le harness et
+  le terminal.
+- **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
+  Fetch / Git, patch automatique pour le harness.
+- **MCP intégrés** : mémoire Ultimate HAI et MausBot.
+
+## Mémoire
 
 ![Mémoire persistante](assets/screenshot-memory.png)
 
+- SQLite WAL + FTS5, par projet : faits, décisions, préférences, résultats.
+- Recherche plein texte, épinglage, intégrité, sauvegarde.
+- Outils MCP : `memory_search`, `memory_remember`, `memory_recent`.
+- Mémoire injectée dans les missions, l'autopilote et les tâches du terminal.
+
+## Autopilote
+
 ![Autopilote](assets/screenshot-autopilot.png)
 
-## Connexions
+- File de tâches, exécution une à une via `dsh headless`, intervalle ou manuel.
+- Timeout, reprise, écriture des résultats en mémoire.
+- Autonomie opt-in : elle tourne tant que l'application est ouverte.
 
-![Connexions du harness](assets/screenshot-connections.png)
+## Terminal et harness
 
-Le centre **Connexions** gère les providers du harness directement : clé
-DeepSeek, endpoints OpenAI-compatible, modèles et modèle par défaut. Les clés
-vont dans le credential store DSH, les routes dans un overlay `llm-pi-ai`
-consommé par le harness. 9Router et MausBot restent accessibles comme sources
-et ponts MCP.
-
-## Mémoire et autonomie
-
-- **Mémoire persistante** : SQLite + FTS5, par projet, avec faits, décisions,
-  préférences et résultats. Recherche plein texte, épinglage, intégrité et
-  outils MCP (`memory_search`, `memory_remember`, `memory_recent`) pour le
-  harness interactif.
-- **Autopilote** : file de tâches bornée, exécutée une à une par `dsh headless`
-  dans le workspace, avec mémoire injectée, timeout, reprise et journal. Le
-  mode autonome est désactivé par défaut et s'active explicitement.
-- **Tâches manuelles** : le terminal agent injecte aussi la mémoire pertinente.
-
-## Le socle
-
-- **Harness** : le web UI DeepSeek Harness est embarqué, avec son logo, son
-  profil, son adresse locale et son cycle de vie.
-- **Terminal agent** : un vrai PTY (bash, zsh, fish) avec xterm.js. Une barre
-  au-dessus envoie une tâche au harness via `dsh headless "<tâche>"` dans le
-  workspace courant.
-- **Cockpit** : bloc de tâche harness, projet Git, services et raccourcis.
-- **Projet / Fichiers** : lecture des fichiers, diff Git, commandes projet,
-  contexte prêt à confier au harness.
-- **Connexions** : 9Router, MausBot et le harness. 9Router peut exposer ses
-  modèles au harness ; MausBot expose son équipe via MCP.
+- Web UI DeepSeek Harness embarqué, profil et workspace partagés.
+- Terminal PTY réel (bash, zsh, fish) avec barre de tâche harness.
+- Projet, Git, fichiers, diff, outils et skills.
 
 ## Raccourcis
 
@@ -53,10 +69,14 @@ et ponts MCP.
 | `Ctrl+4` | Réglages |
 | `Ctrl+6` | Projet |
 | `Ctrl+7` | Fichiers |
+| `Ctrl+8` | Connexions |
 | `Ctrl+9` | 9Router |
+| `Ctrl+Alt+A` | Autopilote |
+| `Ctrl+Alt+C` | MCP |
+| `Ctrl+Alt+G` | Agents et missions |
+| `Ctrl+Alt+M` | Mémoire |
 | `Ctrl+Shift+M` | MausBot |
 | `Ctrl+K` | Palette de commandes |
-| `Ctrl+R` | Redémarrer le harness |
 | `?` | Aide |
 
 ## Installer
@@ -64,31 +84,22 @@ et ponts MCP.
 ```sh
 ./bin/build
 ./bin/test
-./bin/install-user
 cd pkgbuild && makepkg -f
+sudo pacman -U ultimate-hai-1.0.2-1-x86_64.pkg.tar.zst
 ```
 
-Le paquet Arch/Omarchy installe le binaire, le `.desktop`, l'icône et les
-licences. Le harness (`dsh`) et le shell restent des dépendances système.
+Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans
+les chemins historiques (`~/.config/Crasy/deepcrasy-h` et
+`~/.local/share/Crasy/deepcrasy-h`) pour ne rien perdre : mémoire, providers,
+MCP, 9Router, MausBot, missions et autopilote restent en place.
 
-![Mémoire persistante](assets/screenshot-memory.png)
+## Limites
 
-![Autopilote](assets/screenshot-autopilot.png)
-
-## Connexions
-
-- **Harness** : configurez le provider et le modèle dans le web UI embarqué
-  (Réglages → Modèles) ou via 9Router → Appliquer au harness.
-- **9Router** : dashboard local complet, 40+ providers, modèles exposés au
-  harness.
-- **MausBot** : dashboard local, pont MCP `dsh-mcp-client` vers le harness.
-- **MCP** : les serveurs MCP du harness sont configurés via les overlays DSH.
-
-## Règles d'installation
-
-Voir [AGENTS.md](AGENTS.md) et [docs/DESIGN.md](docs/DESIGN.md) : nettoyage
-après installation, vérification réelle, `pkexec` pour toute action
-administrative, aucun mot de passe stocké.
+- L'autopilote est **borné** : tâches créées par l'utilisateur, une à la fois,
+  opt-in, et l'application doit rester ouverte.
+- La mémoire est **lexicale FTS5**, sans embeddings ni synchronisation cloud.
+- MCP exécute des serveurs avec les permissions de votre session : n'activez
+  que des commandes contrôlées.
 
 ## Licence
 

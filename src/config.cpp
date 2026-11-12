@@ -13,7 +13,8 @@ const QStringList kViews = {
     QStringLiteral("home"), QStringLiteral("ecosystem"), QStringLiteral("workspace"),
     QStringLiteral("harness"), QStringLiteral("terminal"), QStringLiteral("ninerouter"),
     QStringLiteral("mausbot"), QStringLiteral("connections"),
-    QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("settings")
+    QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
+    QStringLiteral("agents"), QStringLiteral("settings")
 };
 }
 

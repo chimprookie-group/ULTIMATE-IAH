@@ -318,8 +318,8 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             text: nineRouter.installed
-                                  ? qsTr("Start the local router, then configure your providers in its dashboard. DeepCrasy H exposes its models to the harness.")
-                                  : qsTr("9Router is a local AI router that connects 40+ providers and keeps one OpenAI-compatible endpoint. Install it locally inside DeepCrasy H; no root access and no global npm change.")
+                                  ? qsTr("Start the local router, then configure your providers in its dashboard. Ultimate HAI exposes its models to the harness.")
+                                  : qsTr("9Router is a local AI router that connects 40+ providers and keeps one OpenAI-compatible endpoint. Install it locally inside Ultimate HAI; no root access and no global npm change.")
                             color: theme.mutedText
                             font.pixelSize: 10
                             wrapMode: Text.Wrap

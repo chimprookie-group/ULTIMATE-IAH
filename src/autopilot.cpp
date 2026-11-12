@@ -437,7 +437,10 @@ void Autopilot::startJob(int id) {
         emit toast(tr("Tâche autonome impossible à démarrer."));
     });
     m_timeout.start();
-    m_process->start(m_dshBinary, {QStringLiteral("headless"), enrichedPrompt(job)});
+    m_process->start(m_dshBinary, {QStringLiteral("headless"),
+                                   QStringLiteral("--permission-mode"), QStringLiteral("workspace-write"),
+                                   QStringLiteral("--approval-policy"), QStringLiteral("never"),
+                                   enrichedPrompt(job)});
 }
 
 QString Autopilot::projectOfJob(int id) const {

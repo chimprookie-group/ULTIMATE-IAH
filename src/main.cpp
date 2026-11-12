@@ -1,4 +1,4 @@
-// deepcrasy-h — Crasy Harness, the DeepSeek Harness cockpit for Omarchy.
+// Ultimate HAI, the DeepSeek Harness cockpit for Omarchy.
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -28,6 +28,9 @@
 
 #include "backend.h"
 #include "memorystore.h"
+#include "mcpmanager.h"
+#include "agentmanager.h"
+#include "missionrunner.h"
 #include "autopilot.h"
 #include "ecosystem.h"
 #include "iconprovider.h"
@@ -112,17 +115,17 @@ int runDoctor(bool json) {
 }
 
 QString skillText() {
-    return QStringLiteral(R"(# DeepCrasy H
+    return QStringLiteral(R"(# Ultimate HAI
 
-Crasy Harness is an Omarchy desktop cockpit for the DeepSeek Harness, with a
+Ultimate HAI is an Omarchy desktop cockpit for the DeepSeek Harness, with a
 real terminal agent and project-aware tools.
 
 ## Commands
 
-- `deepcrasy-h open [folder]` opens the GUI, optionally rooted at a folder.
-- `deepcrasy-h doctor --json` checks that `dsh`, QtWebEngine, and the desktop
+- `ultimate-hai open [folder]` opens the GUI, optionally rooted at a folder.
+- `ultimate-hai doctor --json` checks that `dsh`, QtWebEngine, and the desktop
   portal are available. Exit code 0 means everything is ready.
-- `deepcrasy-h skill install` writes this file.
+- `ultimate-hai skill install` writes this file.
 
 ## What it does
 
@@ -136,7 +139,7 @@ Use it when the user wants the DeepSeek Harness plus a terminal agent.
 }
 
 int installSkill() {
-    const QString directory = QDir::homePath() + "/.agents/skills/deepcrasy-h";
+    const QString directory = QDir::homePath() + "/.agents/skills/ultimate-hai";
     QDir().mkpath(directory);
     QFile file(directory + "/SKILL.md");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -152,8 +155,11 @@ int installSkill() {
 } // namespace
 
 int main(int argc, char *argv[]) {
+    // Keep the legacy application name and organization: they define the
+    // stable config/data paths that hold the user's memory, providers and
+    // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.24.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.0.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -218,15 +224,15 @@ int main(int argc, char *argv[]) {
 
     QGuiApplication app(argc, argv);
 
-    // Matches the window to deepcrasy-h.desktop, so the compositor (Wayland
+    // Matches the window to ultimate-hai.desktop, so the compositor (Wayland
     // app_id) and the launcher pick up the installed icon.
-    app.setDesktopFileName(QStringLiteral("deepcrasy-h"));
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("deepcrasy-h")));
+    app.setDesktopFileName(QStringLiteral("ultimate-hai"));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("ultimate-hai")));
 
     // One window per user: a second launch must raise the existing one, not
     // spawn another QtWebEngine profile and fight over the same portal id.
     QQuickWindow *mainWindow = nullptr;
-    const QString instanceName = QStringLiteral("deepcrasy-h-%1").arg(QString::number(getuid()));
+    const QString instanceName = QStringLiteral("ultimate-hai-%1").arg(QString::number(getuid()));
     QLocalServer instanceServer;
     if (screenshot.isEmpty() && !demo) {
         QLocalSocket probe;
@@ -274,6 +280,10 @@ int main(int argc, char *argv[]) {
     MausBotManager mausBot;
     HarnessConnections connections;
     MemoryStore memory;
+    McpManager mcpManager;
+    AgentManager agents;
+    MissionRunner missions(MissionRunner::defaultPath(), &agents, &memory);
+    missions.setDshBinary(backend.dshBinary());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
     autopilot.setDshBinary(backend.dshBinary());
@@ -287,6 +297,9 @@ int main(int argc, char *argv[]) {
     translator.setOverride(backend.languagePreference());
     QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
         autopilot.setDshBinary(backend.dshBinary());
+    });
+    QObject::connect(&backend, &Backend::dshBinaryChanged, &missions, [&backend, &missions] {
+        missions.setDshBinary(backend.dshBinary());
     });
     QObject::connect(&backend, &Backend::languageChanged, &translator, [&backend, &translator] {
         translator.setOverride(backend.languagePreference());
@@ -302,6 +315,9 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("mausBot", &mausBot);
     engine.rootContext()->setContextProperty("connections", &connections);
     engine.rootContext()->setContextProperty("memory", &memory);
+    engine.rootContext()->setContextProperty("mcpManager", &mcpManager);
+    engine.rootContext()->setContextProperty("agents", &agents);
+    engine.rootContext()->setContextProperty("missions", &missions);
     engine.rootContext()->setContextProperty("autopilot", &autopilot);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);

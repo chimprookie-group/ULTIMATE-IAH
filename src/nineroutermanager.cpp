@@ -439,7 +439,7 @@ void NineRouterManager::loadKeyAndModels() {
         for (const QJsonValue &value : keys) {
             const QJsonObject key = value.toObject();
             if (key.value("isActive").toBool(false) || !key.contains("isActive")) {
-                if (key.value("name").toString() == QStringLiteral("deepcrasy-h")) {
+                if (key.value("name").toString() == QStringLiteral("ultimate-hai")) {
                     chosen = key.value("key").toString();
                     break;
                 }
@@ -452,7 +452,7 @@ void NineRouterManager::loadKeyAndModels() {
             fetchModels();
             return;
         }
-        QJsonObject body{{"name", QStringLiteral("deepcrasy-h")}};
+        QJsonObject body{{"name", QStringLiteral("ultimate-hai")}};
         send("POST", QStringLiteral("/api/keys"), &body, true, false, [this](QNetworkReply *reply) {
             int status = 0;
             const QJsonObject created = readJson(reply, &status);
@@ -620,7 +620,7 @@ void NineRouterManager::send(const QByteArray &method, const QString &path,
                              const QJsonObject *body, bool cookie, bool bearer,
                              const std::function<void(QNetworkReply *)> &callback) {
     QNetworkRequest request(QUrl(QStringLiteral("http://127.0.0.1:%1%2").arg(m_port).arg(path)));
-    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("DeepCrasyH/1.0"));
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateHAI/1.0"));
     request.setRawHeader("Accept", "application/json");
     if (cookie && !m_cookie.isEmpty())
         request.setRawHeader("Cookie", m_cookie.toUtf8());

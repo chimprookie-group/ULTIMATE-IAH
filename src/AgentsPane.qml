@@ -1,0 +1,369 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+
+Item {
+    id: root
+
+    readonly property int contentWidth: Math.max(340, Math.min(1000, width - 64))
+
+    function startMission() {
+        if (missionTask.text.trim() === "") {
+            Window.window.showToast(qsTr("Décrivez la mission."))
+            return
+        }
+        const title = missionTitle.text.trim() !== "" ? missionTitle.text.trim() : qsTr("Mission du %1").arg(new Date().toLocaleString(Qt.locale(), "dd/MM HH:mm"))
+        missions.startMissionWithAgents(title, missionTask.text.trim(), backend.workspace,
+                                        plannerBox.currentValue, builderBox.currentValue, reviewerBox.currentValue)
+        if (missions.error === "") {
+            missionTitle.text = ""
+            missionTask.text = ""
+        }
+    }
+
+    function addProfile() {
+        agents.addProfile(profileName.text, "custom", profilePrompt.text)
+        if (agents.error === "") {
+            profileName.text = ""
+            profilePrompt.text = ""
+            Window.window.showToast(qsTr("Profil d'agent ajouté."))
+        }
+    }
+
+    function latestOutput(steps) {
+        for (let i = steps.length - 1; i >= 0; --i)
+            if (steps[i].output !== "")
+                return steps[i].output
+        return ""
+    }
+
+    function statusColor(status) {
+        if (status === "running") return theme.yellow
+        if (status === "done") return theme.green
+        if (status === "failed") return theme.red
+        if (status === "cancelled") return theme.dimText
+        return theme.accent
+    }
+
+    Component.onCompleted: { agents.refresh(); missions.refresh() }
+    onVisibleChanged: if (visible) { agents.refresh(); missions.refresh() }
+
+    ScrollView {
+        anchors.fill: parent
+        clip: true
+        contentWidth: availableWidth
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+        ColumnLayout {
+            width: root.contentWidth
+            x: Math.max(24, (parent.width - width) / 2)
+            spacing: 14
+
+            Item { Layout.fillWidth: true; Layout.preferredHeight: 26 }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 14
+                Item {
+                    width: 54
+                    height: 54
+                    Rectangle { anchors.centerIn: parent; width: 52; height: 52; radius: 26; color: theme.accent; opacity: 0.12 }
+                    ThemedIcon { anchors.centerIn: parent; source: "icons/harness.svg"; width: 22; height: 22; color: theme.accent }
+                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+                    Text {
+                        text: qsTr("Agents")
+                        color: theme.brightText
+                        font.family: "iA Writer Duospace"
+                        font.pixelSize: 26
+                        font.weight: Font.Bold
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Planifier, exécuter, relire : une mission orchestrée par plusieurs rôles.")
+                        color: theme.mutedText
+                        font.pixelSize: 11
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                visible: missions.running
+                height: runningColumn.implicitHeight + 20
+                radius: Math.min(8, theme.radius)
+                color: theme.surface
+                border.width: 1
+                border.color: theme.yellow
+                ColumnLayout {
+                    id: runningColumn
+                    x: 12
+                    y: 10
+                    width: parent.width - 24
+                    spacing: 4
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+                        StatusDot { color: theme.yellow }
+                        Text {
+                            Layout.fillWidth: true
+                            text: missions.currentTitle + "  ·  " + missions.currentStep
+                            color: theme.text
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
+                        }
+                        Button { text: qsTr("Annuler"); flat: true; font.pixelSize: 8; onClicked: missions.cancel() }
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: missions.lastOutput !== "" ? missions.lastOutput.slice(-1200) : qsTr("L'agent travaille…")
+                        color: theme.dimText
+                        font.family: backend.monoFont
+                        font.pixelSize: 8
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 8
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Nouvelle mission")
+                Layout.fillWidth: true
+
+                SettingsField {
+                    id: missionTitle
+                    Layout.fillWidth: true
+                    placeholderText: qsTr("Titre — ex. Corriger le login et vérifier")
+                }
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 96
+                    radius: Math.min(6, theme.radius)
+                    color: theme.background
+                    border.width: 1
+                    border.color: missionTask.activeFocus ? theme.accent : theme.border
+                    TextArea {
+                        id: missionTask
+                        anchors.fill: parent
+                        anchors.margins: 7
+                        color: theme.text
+                        font.pixelSize: 10
+                        wrapMode: TextArea.Wrap
+                        background: null
+                    }
+                    Text {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        visible: missionTask.text === ""
+                        text: qsTr("La tâche complète. Le planificateur, l'exécutant et le réviseur travaillent dans ce projet.")
+                        color: theme.dimText
+                        font.pixelSize: 10
+                        wrapMode: Text.Wrap
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    Text { text: qsTr("Plan"); color: theme.dimText; font.pixelSize: 8 }
+                    ComboBox { id: plannerBox; Layout.fillWidth: true; model: agents.profiles; textRole: "name"; valueRole: "id"; font.pixelSize: 8 }
+                    Text { text: qsTr("Exécution"); color: theme.dimText; font.pixelSize: 8 }
+                    ComboBox {
+                        id: builderBox
+                        Layout.fillWidth: true
+                        model: agents.profiles
+                        textRole: "name"
+                        valueRole: "id"
+                        font.pixelSize: 8
+                        currentIndex: 1
+                    }
+                    Text { text: qsTr("Revue"); color: theme.dimText; font.pixelSize: 8 }
+                    ComboBox {
+                        id: reviewerBox
+                        Layout.fillWidth: true
+                        model: agents.profiles
+                        textRole: "name"
+                        valueRole: "id"
+                        font.pixelSize: 8
+                        currentIndex: 2
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Séquence : Plan → Exécution → Revue · mémoire injectée à chaque étape")
+                        color: theme.dimText
+                        font.pixelSize: 8
+                        wrapMode: Text.Wrap
+                    }
+                    ActionButton {
+                        text: qsTr("Lancer la mission")
+                        enabled: !missions.running
+                        onClicked: root.startMission()
+                    }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    visible: missions.error !== ""
+                    text: missions.error
+                    color: theme.red
+                    font.pixelSize: 9
+                    wrapMode: Text.Wrap
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: missions.missions.length === 0
+                text: qsTr("Aucune mission. Le premier plan apparaîtra ici.")
+                color: theme.dimText
+                font.pixelSize: 9
+            }
+
+            Repeater {
+                model: missions.missions
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: missionBody.implicitHeight + 22
+                    radius: Math.min(10, theme.radius)
+                    color: theme.surface
+                    border.width: 1
+                    border.color: modelData.status === "running" ? theme.yellow : theme.border
+
+                    ColumnLayout {
+                        id: missionBody
+                        x: 12
+                        y: 10
+                        width: parent.width - 24
+                        spacing: 5
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 7
+                            StatusDot { color: root.statusColor(modelData.status) }
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.title
+                                color: theme.text
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                text: modelData.status
+                                color: root.statusColor(modelData.status)
+                                font.pixelSize: 8
+                                font.weight: Font.DemiBold
+                            }
+                            Button {
+                                text: qsTr("Supprimer")
+                                flat: true
+                                font.pixelSize: 8
+                                enabled: !missions.running
+                                onClicked: missions.removeMission(modelData.id)
+                            }
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: modelData.task
+                            color: theme.mutedText
+                            font.pixelSize: 9
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            Repeater {
+                                model: modelData.steps
+                                Rectangle {
+                                    width: stepLabel.implicitWidth + 16
+                                    height: 20
+                                    radius: 10
+                                    color: step.status === "done" ? Qt.rgba(theme.green.r, theme.green.g, theme.green.b, 0.14)
+                                         : (step.status === "running" ? Qt.rgba(theme.yellow.r, theme.yellow.g, theme.yellow.b, 0.14) : theme.chip)
+                                    Text {
+                                        id: stepLabel
+                                        anchors.centerIn: parent
+                                        text: step.title
+                                        color: step.status === "done" ? theme.green
+                                             : (step.status === "running" ? theme.yellow : theme.dimText)
+                                        font.pixelSize: 8
+                                        font.weight: Font.DemiBold
+                                    }
+                                }
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                visible: modelData.error !== ""
+                                text: modelData.error
+                                color: theme.red
+                                font.pixelSize: 8
+                                elide: Text.ElideRight
+                                Layout.maximumWidth: 360
+                            }
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            visible: root.latestOutput(modelData.steps) !== ""
+                            text: root.latestOutput(modelData.steps)
+                            color: theme.dimText
+                            font.family: backend.monoFont
+                            font.pixelSize: 8
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 5
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Profils d'agents")
+                Layout.fillWidth: true
+
+                Repeater {
+                    model: agents.profiles
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.role; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
+                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                        }
+                        Button {
+                            visible: !modelData.builtin
+                            text: qsTr("Supprimer")
+                            flat: true
+                            font.pixelSize: 8
+                            onClicked: agents.removeProfile(modelData.id)
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    SettingsField { id: profileName; Layout.preferredWidth: 170; placeholderText: qsTr("Nom du profil") }
+                    SettingsField { id: profilePrompt; Layout.fillWidth: true; placeholderText: qsTr("Prompt du rôle personnalisé") }
+                    ActionButton { text: qsTr("Ajouter"); onClicked: root.addProfile() }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    visible: agents.error !== ""
+                    text: agents.error
+                    color: theme.red
+                    font.pixelSize: 9
+                }
+            }
+        }
+    }
+}

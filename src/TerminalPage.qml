@@ -260,7 +260,7 @@ Item {
         function onStarted() {
             root.applyTheme()
             if (Qt.application.arguments.indexOf("--terminal-demo") !== -1)
-                terminal.input("clear; echo 'Crasy Harness'; ls -1\n")
+                terminal.input("clear; echo 'Ultimate HAI'; ls -1\n")
         }
     }
 

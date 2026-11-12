@@ -10,7 +10,7 @@ class QNetworkReply;
 class QTimer;
 
 // Runs 9Router as a local service and connects it to the two model surfaces of
-// DeepCrasy H's DeepSeek Harness (llm-pi-ai provider patch and local key).
+// Ultimate HAI's DeepSeek Harness (llm-pi-ai provider patch and local key).
 class NineRouterManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool installed READ installed NOTIFY installedChanged)

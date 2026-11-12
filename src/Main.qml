@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 720
     minimumHeight: 600
     visible: true
-    title: backend.demo ? qsTr("Crasy Harness") : "Crasy Harness — " + backend.workspaceName
+    title: backend.demo ? qsTr("Ultimate HAI") : "Ultimate HAI — " + backend.workspaceName
     color: theme.background
     background: Rectangle {
         gradient: Gradient {
@@ -41,9 +41,11 @@ ApplicationWindow {
         if (backend.view === "terminal") return qsTr("Terminal agent")
         if (backend.view === "connections") return qsTr("Connexions")
         if (backend.view === "memory") return qsTr("Mémoire")
+        if (backend.view === "mcp") return "MCP"
+        if (backend.view === "agents") return qsTr("Agents")
         if (backend.view === "autopilot") return qsTr("Autopilote")
         if (backend.view === "settings") return qsTr("Réglages")
-        return "DeepCrasy H"
+        return "Ultimate HAI"
     }
     property bool helpVisible: false
     property bool quitConfirm: false
@@ -107,6 +109,8 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Projet"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
+        add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
+        add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
         add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
@@ -171,6 +175,8 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+6"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ecosystem") }
     Shortcut { sequence: "Ctrl+7"; context: Qt.ApplicationShortcut; onActivated: backend.setView("workspace") }
     Shortcut { sequence: "Ctrl+8"; context: Qt.ApplicationShortcut; onActivated: backend.setView("connections") }
+    Shortcut { sequence: "Ctrl+Alt+C"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mcp") }
+    Shortcut { sequence: "Ctrl+Alt+G"; context: Qt.ApplicationShortcut; onActivated: backend.setView("agents") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
     Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
@@ -342,6 +348,7 @@ ApplicationWindow {
                              && backend.view !== "terminal" && backend.view !== "ecosystem"
                              && backend.view !== "workspace" && backend.view !== "connections"
                              && backend.view !== "memory" && backend.view !== "autopilot"
+                             && backend.view !== "mcp" && backend.view !== "agents"
                              && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
@@ -373,6 +380,16 @@ ApplicationWindow {
                 ConnectionsPane {
                     anchors.fill: parent
                     visible: backend.view === "connections"
+                }
+
+                McpPane {
+                    anchors.fill: parent
+                    visible: backend.view === "mcp"
+                }
+
+                AgentsPane {
+                    anchors.fill: parent
+                    visible: backend.view === "agents"
                 }
 
                 MemoryPane {

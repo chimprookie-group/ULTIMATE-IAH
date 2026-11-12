@@ -28,7 +28,8 @@ public:
     Q_INVOKABLE void saveDeepSeek(const QString &apiKey);
     Q_INVOKABLE void saveProvider(const QString &id, const QString &name,
                                   const QString &baseUrl, const QString &apiKey,
-                                  const QString &modelsText, bool makeDefault);
+                                  const QString &modelsText, bool makeDefault,
+                                  const QString &api = QStringLiteral("openai-completions"));
     Q_INVOKABLE void removeProvider(const QString &id);
     Q_INVOKABLE void setDefault(const QString &provider, const QString &model);
     Q_INVOKABLE void clearError();

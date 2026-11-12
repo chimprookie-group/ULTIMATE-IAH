@@ -326,12 +326,12 @@ void MausBotManager::launchProcess() {
     QDir().mkpath(dataDir);
     m_process.start(m_binary, {QStringLiteral("serve"), QStringLiteral("--port"), QString::number(m_port),
                                QStringLiteral("--data-dir"), dataDir,
-                               QStringLiteral("--label"), QStringLiteral("DeepCrasy H")});
+                               QStringLiteral("--label"), QStringLiteral("Ultimate HAI")});
 }
 
 void MausBotManager::probeHealth() {
     QNetworkRequest request(QUrl(QStringLiteral("http://127.0.0.1:%1/api/health").arg(m_port)));
-    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("DeepCrasyH/1.0"));
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateHAI/1.0"));
     QNetworkReply *reply = m_network->get(request);
     QTimer::singleShot(4000, reply, [reply] { reply->abort(); });
     connect(reply, &QNetworkReply::finished, this, [this, reply] {
@@ -420,7 +420,7 @@ void MausBotManager::pair() {
     environment.insert("OMB_PORT", QString::number(m_port));
     m_pairProcess.setProcessEnvironment(environment);
     m_pairProcess.start(m_binary, {QStringLiteral("pair"), QStringLiteral("--label"),
-                                   QStringLiteral("DeepCrasy H"), QStringLiteral("--ttl"),
+                                   QStringLiteral("Ultimate HAI"), QStringLiteral("--ttl"),
                                    QStringLiteral("24h")});
 }
 

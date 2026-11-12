@@ -99,7 +99,7 @@ Item {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Le harness, son terminal agent et votre projet. Rien d'autre.")
+                        text: qsTr("Le harness, ses agents, sa mémoire et votre projet.")
                         color: theme.mutedText
                         font.pixelSize: 11
                         wrapMode: Text.Wrap

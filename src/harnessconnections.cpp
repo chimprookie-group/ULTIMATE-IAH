@@ -114,6 +114,7 @@ def provider_summary(provider_id, entry):
         "id": provider_id,
         "name": entry.get("displayName") or provider_id,
         "baseURL": entry.get("baseURL", ""),
+        "api": entry.get("api", "openai-completions"),
         "models": ids,
         "hasKey": bool(key),
         "keyMasked": ("••••" + key[-4:]) if key else "",
@@ -138,11 +139,12 @@ elif op == "saveProvider":
         models.append({"id": item["id"], "name": item.get("name") or item["id"]})
     providers[provider_id] = {
         "displayName": data["name"],
-        "apiKeyEnv": ref,
-        "api": "openai-completions",
+        "api": data.get("api") or "openai-completions",
         "baseURL": data["baseURL"],
         "models": models,
     }
+    if key or ref in refs:
+        providers[provider_id]["apiKeyEnv"] = ref
     if data.get("makeDefault") and models:
         default_provider, default_model = provider_id, models[0]["id"]
 elif op == "removeProvider":
@@ -260,7 +262,8 @@ void HarnessConnections::saveDeepSeek(const QString &apiKey) {
 
 void HarnessConnections::saveProvider(const QString &idValue, const QString &nameValue,
                                       const QString &baseUrl, const QString &apiKey,
-                                      const QString &modelsText, bool makeDefault) {
+                                      const QString &modelsText, bool makeDefault,
+                                      const QString &apiValue) {
     const QString id = idValue.trimmed().toLower();
     static const QRegularExpression idPattern(QStringLiteral("^[a-z0-9][a-z0-9_-]{0,40}$"));
     if (!idPattern.match(id).hasMatch()) {
@@ -290,10 +293,13 @@ void HarnessConnections::saveProvider(const QString &idValue, const QString &nam
         setError(tr("Add at least one model ID."));
         return;
     }
+    const QString api = apiValue == "anthropic-messages"
+        ? QStringLiteral("anthropic-messages") : QStringLiteral("openai-completions");
     QJsonObject request{{"op", "saveProvider"}, {"id", id},
                         {"name", nameValue.trimmed().isEmpty() ? id : nameValue.trimmed()},
                         {"baseURL", baseUrl.trimmed()}, {"apiKey", apiKey},
                         {"apiKeyEnv", "HARNESS_" + id.toUpper().replace('-', '_') + "_API_KEY"},
+                        {"api", api},
                         {"models", models}, {"makeDefault", makeDefault}};
     QJsonObject result;
     if (!run(request, result))

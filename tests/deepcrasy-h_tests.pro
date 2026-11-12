@@ -1,6 +1,6 @@
 QT += network core gui sql testlib
 CONFIG += c++17 testcase
-TARGET = deepcrasy-h_tests
+TARGET = ultimate-hai-tests
 TEMPLATE = app
 
 INCLUDEPATH += ../src
@@ -11,6 +11,9 @@ HEADERS += \
     ../src/harnessserver.h \
     ../src/harnessconnections.h \
     ../src/memorystore.h \
+    ../src/missionrunner.h \
+    ../src/mcpmanager.h \
+    ../src/agentmanager.h \
     ../src/autopilot.h \
     ../src/nineroutermanager.h \
     ../src/mausbotmanager.h \
@@ -30,6 +33,9 @@ SOURCES += \
     ../src/harnessserver.cpp \
     ../src/harnessconnections.cpp \
     ../src/memorystore.cpp \
+    ../src/missionrunner.cpp \
+    ../src/mcpmanager.cpp \
+    ../src/agentmanager.cpp \
     ../src/autopilot.cpp \
     ../src/nineroutermanager.cpp \
     ../src/mausbotmanager.cpp \

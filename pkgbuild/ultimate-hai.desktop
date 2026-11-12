@@ -1,12 +1,12 @@
 [Desktop Entry]
 Type=Application
-Name=Crasy Harness
-Name[fr]=Crasy Harness
-Comment=DeepSeek Harness cockpit and terminal agent
+Name=Ultimate HAI
+Name[fr]=Ultimate HAI
+Comment=Agentic DeepSeek Harness cockpit and terminal agent
 Comment[fr]=Cockpit DeepSeek Harness et terminal agent
-Exec=deepcrasy-h %f
-Icon=deepcrasy-h
+Exec=ultimate-hai %f
+Icon=ultimate-hai
 Terminal=false
 Categories=Development;
 Keywords=ai;agent;harness;terminal;code;deepseek;
-StartupWMClass=deepcrasy-h
+StartupWMClass=ultimate-hai

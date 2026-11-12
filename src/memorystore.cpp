@@ -107,15 +107,15 @@ bool MemoryStore::ensureMcpServer() {
     };
     const QString patch =
         QStringLiteral("- insert:\n")
-        + QStringLiteral("    - id: mcp-crasy-memory\n")
+        + QStringLiteral("    - id: mcp-ultimate-hai-memory\n")
         + QStringLiteral("      name: \"@deepseek-ai/dsh-mcp-client\"\n")
         + QStringLiteral("      config:\n")
-        + QStringLiteral("        serverName: crasy-memory\n")
+        + QStringLiteral("        serverName: ultimate-hai-memory\n")
         + QStringLiteral("        transport: stdio\n")
         + QStringLiteral("        command: \"python3\"\n")
         + QStringLiteral("        args: [") + quote(script) + QStringLiteral("]\n")
         + QStringLiteral("        env:\n")
-        + QStringLiteral("          CRASY_MEMORY_DB: ") + quote(m_path) + QStringLiteral("\n");
+        + QStringLiteral("          ULTIMATE_HAI_MEMORY_DB: ") + quote(m_path) + QStringLiteral("\n");
     QDir().mkpath(QFileInfo(mcpPatchPath()).absolutePath());
     QSaveFile patchFile(mcpPatchPath());
     if (!patchFile.open(QIODevice::WriteOnly)) {

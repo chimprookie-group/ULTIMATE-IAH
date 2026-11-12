@@ -12,4 +12,4 @@ touch "$ROOT/src/resources.qrc"
 qmake6 "$ROOT/deepcrasy-h.pro"
 make -j"$(nproc)"
 
-echo "Built $ROOT/build/deepcrasy-h"
+echo "Built $ROOT/build/ultimate-hai"

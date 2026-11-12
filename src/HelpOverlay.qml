@@ -10,13 +10,15 @@ Item {
     signal close()
 
     property var rows: [
-        { keys: "Ctrl+0", what: qsTr("Crasy Harness cockpit") },
+        { keys: "Ctrl+0", what: qsTr("Ultimate HAI cockpit") },
         { keys: "Ctrl+K", what: qsTr("Command palette") },
         { keys: "Ctrl+1", what: qsTr("DeepSeek Harness") },
         { keys: "Ctrl+2", what: qsTr("Terminal agent") },
         { keys: "Ctrl+6", what: qsTr("Project") },
         { keys: "Ctrl+7", what: qsTr("Files and diffs") },
         { keys: "Ctrl+8", what: qsTr("Harness connections") },
+        { keys: "Ctrl+Alt+C", what: qsTr("Serveurs MCP") },
+        { keys: "Ctrl+Alt+G", what: qsTr("Agents et missions") },
         { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
         { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
         { keys: "Ctrl+9", what: qsTr("9Router") },

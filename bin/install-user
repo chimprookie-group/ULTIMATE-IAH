@@ -7,13 +7,13 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 "$ROOT/bin/build"
 
 PREFIX="${HOME}/.local"
-install -Dm755 "$ROOT/build/deepcrasy-h" "$PREFIX/bin/deepcrasy-h"
-install -Dm644 "$ROOT/pkgbuild/deepcrasy-h.desktop" "$PREFIX/share/applications/deepcrasy-h.desktop"
-install -Dm644 "$ROOT/pkgbuild/deepcrasy-h.svg" "$PREFIX/share/icons/hicolor/scalable/apps/deepcrasy-h.svg"
-install -Dm644 "$ROOT/assets/icon-256.png" "$PREFIX/share/icons/hicolor/256x256/apps/deepcrasy-h.png"
-install -Dm644 "$ROOT/assets/icon-512.png" "$PREFIX/share/icons/hicolor/512x512/apps/deepcrasy-h.png"
+install -Dm755 "$ROOT/build/ultimate-hai" "$PREFIX/bin/ultimate-hai"
+install -Dm644 "$ROOT/pkgbuild/ultimate-hai.desktop" "$PREFIX/share/applications/ultimate-hai.desktop"
+install -Dm644 "$ROOT/pkgbuild/ultimate-hai.svg" "$PREFIX/share/icons/hicolor/scalable/apps/ultimate-hai.svg"
+install -Dm644 "$ROOT/assets/icon-256.png" "$PREFIX/share/icons/hicolor/256x256/apps/ultimate-hai.png"
+install -Dm644 "$ROOT/assets/icon-512.png" "$PREFIX/share/icons/hicolor/512x512/apps/ultimate-hai.png"
 
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$PREFIX/share/applications" || true
 command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t "$PREFIX/share/icons/hicolor" || true
 
-echo "Installed into $PREFIX. Launch DeepCrasy H from the app launcher."
+echo "Installed into $PREFIX. Launch Ultimate HAI from the app launcher."

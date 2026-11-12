@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Crasy Harness memory MCP server.
+"""Ultimate HAI memory MCP server.
 
 Newline-delimited JSON-RPC over stdio. The database is the same SQLite/FTS5
 store used by the desktop application, so memories written by the agent are
@@ -11,9 +11,9 @@ import os
 import sqlite3
 import sys
 
-DB = os.environ.get("CRASY_MEMORY_DB", "")
-DEFAULT_PROJECT = os.environ.get("CRASY_MEMORY_PROJECT") or os.getcwd()
-SERVER = {"name": "crasy-memory", "version": "1.0.0"}
+DB = os.environ.get("ULTIMATE_HAI_MEMORY_DB", "")
+DEFAULT_PROJECT = os.environ.get("ULTIMATE_HAI_MEMORY_PROJECT") or os.getcwd()
+SERVER = {"name": "ultimate-hai-memory", "version": "1.0.0"}
 
 TOOLS = [
     {
@@ -227,7 +227,7 @@ def main():
         try:
             handle(json.loads(line))
         except Exception as exc:
-            print(f"crasy-memory: {exc}", file=sys.stderr, flush=True)
+            print(f"ultimate-hai-memory: {exc}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":

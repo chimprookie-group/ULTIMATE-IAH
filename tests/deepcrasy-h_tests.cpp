@@ -15,11 +15,14 @@
 #include "harnessserver.h"
 #include "harnessconnections.h"
 #include "memorystore.h"
+#include "mcpmanager.h"
+#include "agentmanager.h"
+#include "missionrunner.h"
 #include "autopilot.h"
 #include "theme.h"
 #include "translator.h"
 
-class DeepCrasyTests : public QObject {
+class UltimateHAITests : public QObject {
     Q_OBJECT
 
 private slots:
@@ -170,6 +173,49 @@ private slots:
         const QString backup = memory.backupNow();
         QVERIFY2(!backup.isEmpty(), qPrintable(memory.error()));
         QVERIFY(QFileInfo(backup).isFile());
+    }
+
+    void mcpConfigurationsCompileToAPatch()
+    {
+        QTemporaryDir dir;
+        McpManager mcp(dir.path() + "/mcp-servers.json");
+        QVERIFY(mcp.addServer("demo", "stdio", "echo", "hello\nworld", "TOKEN=secret", "", ""));
+        QCOMPARE(mcp.servers().size(), 1);
+        QVERIFY(QFileInfo(mcp.patchPath()).isFile());
+        QFile patch(mcp.patchPath());
+        QVERIFY(patch.open(QIODevice::ReadOnly));
+        const QByteArray content = patch.readAll();
+        QVERIFY(content.contains("serverName: demo"));
+        QVERIFY(content.contains("mcp-demo"));
+        patch.close();
+        QVERIFY(mcp.setEnabled("demo", false));
+        QVERIFY(!QFileInfo::exists(mcp.patchPath()));
+        QVERIFY(mcp.removeServer("demo"));
+        QCOMPARE(mcp.servers().size(), 0);
+    }
+
+    void missionRunsPlannerBuilderReviewer()
+    {
+        QTemporaryDir dir;
+        const QString fake = dir.path() + "/fake-dsh";
+        QFile script(fake);
+        QVERIFY(script.open(QIODevice::WriteOnly));
+        script.write("#!/bin/sh\ncase \"$*\" in *planificateur*) echo PLAN;; *exécutant*) echo BUILD;; *réviseur*) echo REVIEW;; *) echo $*;; esac\n");
+        script.close();
+        QFile::setPermissions(fake, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+
+        AgentManager agents(dir.path() + "/agents.json");
+        MissionRunner missions(dir.path() + "/missions.db", &agents, nullptr);
+        missions.setDshBinary(fake);
+        const int id = missions.startMission("Test mission", "Vérifie le flux.", dir.path());
+        QVERIFY(id > 0);
+        QTRY_VERIFY_WITH_TIMEOUT(!missions.running(), 6000);
+        const QVariantMap mission = missions.missions().at(0).toMap();
+        QCOMPARE(mission.value("status").toString(), QString("done"));
+        QCOMPARE(mission.value("steps").toList().size(), 3);
+        for (const QVariant &step : mission.value("steps").toList())
+            QCOMPARE(step.toMap().value("status").toString(), QString("done"));
+        QVERIFY(mission.value("steps").toList().at(2).toMap().value("output").toString().contains("REVIEW"));
     }
 
     void autopilotPersistsBoundedJobs()
@@ -445,5 +491,5 @@ private:
     }
 };
 
-QTEST_MAIN(DeepCrasyTests)
+QTEST_MAIN(UltimateHAITests)
 #include "deepcrasy-h_tests.moc"

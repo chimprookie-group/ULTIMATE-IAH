@@ -1,8 +1,11 @@
-# Maintainer: Crasy
-pkgname=deepcrasy-h
-pkgver=0.24.2
+# Maintainer: Ultimate HAI
+pkgname=ultimate-hai
+provides=('ultimate-hai' 'deepcrasy-h')
+conflicts=('deepcrasy-h')
+replaces=('deepcrasy-h')
+pkgver=1.0.2
 pkgrel=1
-pkgdesc='Crasy Harness — DeepSeek Harness cockpit with a terminal agent'
+pkgdesc='Ultimate HAI — agentic DeepSeek Harness cockpit'
 arch=('x86_64' 'aarch64')
 url='https://github.com/iatexplique-debug/DeepCrasy-H'
 license=('MIT')
@@ -25,11 +28,11 @@ build() {
 
 package() {
   cd "$startdir/.."
-  install -Dm755 build/deepcrasy-h "$pkgdir/usr/bin/deepcrasy-h"
+  install -Dm755 build/ultimate-hai "$pkgdir/usr/bin/ultimate-hai"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 src/terminal/LICENSE-xterm "$pkgdir/usr/share/licenses/$pkgname/LICENSE-xterm"
-  install -Dm644 pkgbuild/deepcrasy-h.desktop "$pkgdir/usr/share/applications/deepcrasy-h.desktop"
-  install -Dm644 pkgbuild/deepcrasy-h.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/deepcrasy-h.svg"
-  install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/deepcrasy-h.png"
-  install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/deepcrasy-h.png"
+  install -Dm644 pkgbuild/ultimate-hai.desktop "$pkgdir/usr/share/applications/ultimate-hai.desktop"
+  install -Dm644 pkgbuild/ultimate-hai.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/ultimate-hai.svg"
+  install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ultimate-hai.png"
+  install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ultimate-hai.png"
 }

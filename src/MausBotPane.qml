@@ -53,6 +53,7 @@ Item {
             web.runJavaScript("document.body ? document.body.innerText : ''", function (text) {
                 const value = String(text || "")
                 const needsPair = value.indexOf("Pairing code") >= 0
+                    || value.indexOf("Connect to Ultimate HAI") >= 0
                     || value.indexOf("Connect to DeepCrasy") >= 0
                     || value.indexOf("unauthorized") >= 0
                 if (needsPair) {
@@ -256,7 +257,8 @@ Item {
                                     web.runJavaScript("document.body.innerText", function (text) {
                                         const value = String(text || "")
                                         const needsPair = value.indexOf("Pairing code") >= 0
-                                            || value.indexOf("Connect to DeepCrasy H") >= 0
+                                            || value.indexOf("Connect to Ultimate HAI") >= 0
+                                            || value.indexOf("Connect to DeepCrasy") >= 0
                                             || value.indexOf("unauthorized") >= 0
                                         if (needsPair && !root.pairAttempted && !mausBot.pairing) {
                                             root.pairAttempted = true
@@ -301,7 +303,7 @@ Item {
                             Layout.fillWidth: true
                             text: mausBot.installed
                                   ? qsTr("Start the local MausBot workspace and manage your team of bots in its embedded app.")
-                                  : qsTr("MausBot is a local-first team of AI bots (Claude, Codex, Grok) with their own computers and apps. It installs locally in DeepCrasy H, without admin rights.")
+                                  : qsTr("MausBot is a local-first team of AI bots (Claude, Codex, Grok) with their own computers and apps. It installs locally in Ultimate HAI, without admin rights.")
                             color: theme.mutedText
                             font.pixelSize: 10
                             wrapMode: Text.Wrap

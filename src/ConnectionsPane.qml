@@ -17,9 +17,19 @@ Item {
         }
     }
 
+    function applyPreset(preset) {
+        providerId.text = preset.id
+        providerName.text = preset.name
+        providerBase.text = preset.base
+        providerKey.text = ""
+        providerModels.text = preset.models
+        providerApi.currentIndex = preset.api === "anthropic-messages" ? 1 : 0
+    }
+
     function saveProvider() {
         connections.saveProvider(providerId.text, providerName.text, providerBase.text,
-                                 providerKey.text, providerModels.text, makeDefault.checked)
+                                 providerKey.text, providerModels.text, makeDefault.checked,
+                                 providerApi.currentIndex === 1 ? "anthropic-messages" : "openai-completions")
         if (connections.error === "") {
             providerId.text = ""
             providerName.text = ""
@@ -114,6 +124,44 @@ Item {
             }
 
             SettingsSection {
+                title: qsTr("Catalogue")
+                Layout.fillWidth: true
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Choisissez un preset, puis collez votre clé. Les endpoints locaux n'exigent pas de clé.")
+                    color: theme.dimText
+                    font.pixelSize: 9
+                    wrapMode: Text.Wrap
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    Repeater {
+                        model: [
+                            { id: "openai", name: "OpenAI", base: "https://api.openai.com/v1", api: "openai-completions", models: "gpt-4.1=GPT-4.1\no3=o3" },
+                            { id: "anthropic", name: "Anthropic", base: "https://api.anthropic.com/v1", api: "anthropic-messages", models: "claude-sonnet-4-20250514=Claude Sonnet 4" },
+                            { id: "openrouter", name: "OpenRouter", base: "https://openrouter.ai/api/v1", api: "openai-completions", models: "deepseek/deepseek-chat=DeepSeek Chat\nanthropic/claude-sonnet-4=Claude Sonnet 4\nopenai/gpt-4.1=GPT-4.1" },
+                            { id: "gemini", name: "Google Gemini", base: "https://generativelanguage.googleapis.com/v1beta/openai/", api: "openai-completions", models: "gemini-2.5-pro=Gemini 2.5 Pro\ngemini-2.5-flash=Gemini 2.5 Flash" },
+                            { id: "groq", name: "Groq", base: "https://api.groq.com/openai/v1", api: "openai-completions", models: "llama-3.3-70b-versatile=Llama 3.3 70B" },
+                            { id: "mistral", name: "Mistral", base: "https://api.mistral.ai/v1", api: "openai-completions", models: "mistral-large-latest=Mistral Large" },
+                            { id: "xai", name: "xAI", base: "https://api.x.ai/v1", api: "openai-completions", models: "grok-4=Grok 4" },
+                            { id: "ollama", name: "Ollama", base: "http://127.0.0.1:11434/v1", api: "openai-completions", models: "qwen3:8b=Qwen3 8B" },
+                            { id: "lmstudio", name: "LM Studio", base: "http://127.0.0.1:1234/v1", api: "openai-completions", models: "local-model=Local model" },
+                            { id: "9router", name: "9Router", base: "http://127.0.0.1:20128/v1", api: "openai-completions", models: "router/model=Modèle 9Router" }
+                        ]
+                        Button {
+                            text: modelData.name
+                            flat: true
+                            font.pixelSize: 8
+                            onClicked: root.applyPreset(modelData)
+                        }
+                    }
+                }
+            }
+
+            SettingsSection {
                 title: qsTr("Providers du harness")
                 Layout.fillWidth: true
 
@@ -175,7 +223,7 @@ Item {
                             }
                             Text {
                                 Layout.fillWidth: true
-                                text: modelData.baseURL
+                                text: modelData.baseURL + "  ·  " + (modelData.api !== undefined ? modelData.api : "openai-completions")
                                 color: theme.dimText
                                 font.family: backend.monoFont
                                 font.pixelSize: 8
@@ -213,10 +261,20 @@ Item {
                     SettingsField { id: providerId; Layout.fillWidth: true; placeholderText: qsTr("ID (ex. deepseek-direct)") }
                     SettingsField { id: providerName; Layout.fillWidth: true; placeholderText: qsTr("Nom affiché") }
                 }
-                SettingsField {
-                    id: providerBase
+                RowLayout {
                     Layout.fillWidth: true
-                    placeholderText: qsTr("URL de base (ex. https://api.deepseek.com/v1)")
+                    spacing: 6
+                    SettingsField {
+                        id: providerBase
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("URL de base (ex. https://api.deepseek.com/v1)")
+                    }
+                    ComboBox {
+                        id: providerApi
+                        Layout.preferredWidth: 180
+                        model: ["OpenAI-compatible", "Anthropic"]
+                        font.pixelSize: 9
+                    }
                 }
                 SettingsField {
                     id: providerKey

@@ -55,11 +55,11 @@ Item {
                         spacing: 0
                         RowLayout {
                             spacing: 3
-                            Text { text: "Crasy"; color: theme.text; font.family: "iA Writer Duospace"; font.pixelSize: 16; font.weight: Font.Bold }
-                            Text { text: "Harness"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: 16; font.weight: Font.Bold }
+                            Text { text: "Ultimate"; color: theme.text; font.family: "iA Writer Duospace"; font.pixelSize: 15; font.weight: Font.Bold }
+                            Text { text: "HAI"; color: theme.accent; font.family: "iA Writer Duospace"; font.pixelSize: 15; font.weight: Font.Bold }
                         }
                         Text {
-                            text: qsTr("DEEPSEEK HARNESS")
+                            text: qsTr("AGENTIC CONTROL")
                             color: theme.dimText
                             font.pixelSize: 7
                             font.letterSpacing: 0.9
@@ -165,6 +165,15 @@ Item {
                 SidebarItem {
                     Layout.fillWidth: true
                     compact: root.compact
+                    icon: "icons/harness.svg"
+                    label: qsTr("Agents")
+                    hint: qsTr("Missions plan → exécution → revue (Ctrl+Alt+G)")
+                    active: backend.view === "agents"
+                    onClicked: backend.setView("agents")
+                }
+                SidebarItem {
+                    Layout.fillWidth: true
+                    compact: root.compact
                     icon: "icons/terminal.svg"
                     label: qsTr("Terminal agent")
                     hint: qsTr("Terminal agent (Ctrl+2)")
@@ -193,6 +202,15 @@ Item {
                     hint: qsTr("Providers et MCP du harness (Ctrl+8)")
                     active: backend.view === "connections"
                     onClicked: backend.setView("connections")
+                }
+                SidebarItem {
+                    Layout.fillWidth: true
+                    compact: root.compact
+                    icon: "icons/plug.svg"
+                    label: "MCP"
+                    hint: qsTr("Serveurs MCP (Ctrl+Alt+C)")
+                    active: backend.view === "mcp"
+                    onClicked: backend.setView("mcp")
                 }
                 SidebarItem {
                     Layout.fillWidth: true
