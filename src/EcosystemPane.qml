@@ -85,9 +85,9 @@ Item {
                             { name: qsTr("Terminal agent"), detail: terminal.running ? (terminal.shell + " · " + backend.workspaceName) : qsTr("arrêté"), ok: terminal.running, view: "terminal", action: qsTr("Ouvrir") },
                             { name: qsTr("DeepSeek API"), detail: connections.deepseekConfigured ? (connections.defaultModel !== "" ? connections.defaultModel : qsTr("clé configurée")) : qsTr("clé API manquante"), ok: connections.deepseekConfigured, view: "connections", action: qsTr("Configurer") },
                             { name: qsTr("Ultimate Agent"), detail: connections.deepseekConfigured ? qsTr("prêt · DeepSeek") : qsTr("à configurer"), ok: connections.deepseekConfigured, view: "agent", action: qsTr("Ouvrir") },
-                            { name: "MCP", detail: qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length), ok: mcpManager.servers.length > 0, view: "mcp", action: qsTr("Gérer") },
+                            { name: "MCP", detail: mcpManager.builtins.length > 0 ? qsTr("Mémoire intégrée · %n serveur(s) personnalisé(s)", "", mcpManager.servers.length) : qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length), ok: mcpManager.builtins.length > 0 || mcpManager.servers.length > 0, view: "mcp", action: qsTr("Ouvrir") },
                             { name: qsTr("Mémoire persistante"), detail: qsTr("%n entrée(s)", "", memory.stats.total !== undefined ? memory.stats.total : 0), ok: memory.stats.total !== undefined && memory.stats.total > 0, view: "memory", action: qsTr("Ouvrir") },
-                            { name: qsTr("Skills"), detail: qsTr("%n skill(s) disponible(s)", "", ecosystem.skills.length), ok: ecosystem.skills.length > 0, view: "agents", action: qsTr("Gérer") },
+                            { name: qsTr("Skills"), detail: qsTr("%n skill(s) disponible(s)", "", ecosystem.skills.length), ok: ecosystem.skills.length > 0, view: "ecosystem", action: qsTr("Ouvrir") },
                             { name: qsTr("Installation"), detail: installation.summary !== "" ? installation.summary : qsTr("audit disponible"), ok: installation.failed === 0, view: "installation", action: qsTr("Vérifier") }
                         ]
                         ColumnLayout {

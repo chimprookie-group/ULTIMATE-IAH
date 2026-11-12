@@ -398,6 +398,12 @@ Item {
                                     font.weight: Font.Bold
                                 }
                                 Item { Layout.fillWidth: true }
+                                Button {
+                                    text: qsTr("Tout voir")
+                                    flat: true
+                                    font.pixelSize: design.textCaption
+                                    onClicked: backend.setView("ecosystem")
+                                }
                                 Text { text: qsTr("ACTIFS"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
                             }
 
@@ -428,7 +434,7 @@ Item {
                                         ? (connections.defaultModel !== "" ? connections.defaultModel : qsTr("clé configurée"))
                                         : qsTr("clé API manquante")
                                 stateColor: connections.deepseekConfigured ? theme.green : theme.orange
-                                actionLabel: qsTr("Configurer")
+                                actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("connections")
                             }
                             ServiceRow {
@@ -442,9 +448,11 @@ Item {
                             ServiceRow {
                                 Layout.fillWidth: true
                                 name: "MCP"
-                                detail: qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length)
-                                stateColor: mcpManager.servers.length > 0 ? theme.green : theme.dimText
-                                actionLabel: qsTr("Gérer")
+                                detail: mcpManager.builtins.length > 0
+                                        ? qsTr("Mémoire intégrée · %n serveur(s) personnalisé(s)", "", mcpManager.servers.length)
+                                        : qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length)
+                                stateColor: (mcpManager.builtins.length > 0 || mcpManager.servers.length > 0) ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("mcp")
                             }
 

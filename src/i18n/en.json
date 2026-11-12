@@ -827,5 +827,10 @@
   "État réel du système": "Real system state",
   "Ecosystem": "Ecosystem",
   "Molette pour parcourir · Échap pour fermer": "Scroll to browse · Esc to close",
-  "Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless.": "Everything works from the keyboard. The harness keeps its page; the terminal stays a real shell and runs tasks through dsh headless."
+  "Tout se pilote au clavier. Le harness garde sa page ; le terminal reste un vrai shell et exécute les tâches via dsh headless.": "Everything works from the keyboard. The harness keeps its page; the terminal stays a real shell and runs tasks through dsh headless.",
+  "Tout voir": "View all",
+  "Mémoire intégrée · %n serveur(s) personnalisé(s)": {
+    "one": "Built-in memory · %n custom server",
+    "other": "Built-in memory · %n custom servers"
+  }
 }

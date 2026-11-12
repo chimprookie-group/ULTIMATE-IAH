@@ -49,14 +49,35 @@ Item {
             }
         }
 
-        Button {
+        Item {
+            id: actionArea
             visible: root.actionLabel !== ""
-            text: root.actionLabel
-            flat: true
-            enabled: root.actionEnabled
-            font.pixelSize: design.textCaption
-            implicitHeight: design.controlHeightSm
-            onClicked: root.action()
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: Math.max(58, actionText.implicitWidth + design.space3)
+            Layout.preferredHeight: design.controlHeightSm
+
+            Rectangle {
+                anchors.fill: parent
+                radius: design.radiusSm
+                color: actionMouse.containsMouse && root.actionEnabled ? theme.chip : "transparent"
+                Behavior on color { ColorAnimation { duration: design.durationFast } }
+            }
+            Text {
+                id: actionText
+                anchors.centerIn: parent
+                text: root.actionLabel
+                color: root.actionEnabled ? theme.accent : theme.dimText
+                font.pixelSize: design.textCaption
+                font.weight: Font.DemiBold
+            }
+            MouseArea {
+                id: actionMouse
+                anchors.fill: parent
+                enabled: root.actionEnabled
+                hoverEnabled: true
+                cursorShape: root.actionEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                onClicked: root.action()
+            }
         }
     }
 
