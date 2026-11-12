@@ -12,8 +12,8 @@
 namespace {
 const QStringList kViews = {
     QStringLiteral("home"), QStringLiteral("ecosystem"), QStringLiteral("workspace"),
-    QStringLiteral("harness"), QStringLiteral("terminal"), QStringLiteral("ninerouter"),
-    QStringLiteral("mausbot"), QStringLiteral("connections"),
+    QStringLiteral("harness"), QStringLiteral("terminal"),
+    QStringLiteral("connections"),
     QStringLiteral("memory"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
     QStringLiteral("agents"), QStringLiteral("installation"),
     QStringLiteral("agent"), QStringLiteral("settings")
@@ -100,17 +100,24 @@ void Config::load() {
     const QString language = object.value("language").toString();
     if (language == "fr" || language == "en")
         m_language = language;
+    bool needsMigration = false;
     const QString view = object.value("view").toString();
     if (validView(view))
         m_view = view;
+    else if (!view.isEmpty())
+        needsMigration = true;
     const QString start = object.value("startupView").toString();
     if (start == "last" || validView(start))
         m_startupView = start;
+    else if (!start.isEmpty())
+        needsMigration = true;
     if (object.contains("autoStartHarness"))
         m_autoStartHarness = object.value("autoStartHarness").toBool(true);
 
     if (QFileInfo(m_dshBinary).isAbsolute() && !QFileInfo::exists(m_dshBinary))
         m_dshBinary = QStringLiteral("dsh");
+    if (needsMigration)
+        save();
 }
 
 void Config::save() {

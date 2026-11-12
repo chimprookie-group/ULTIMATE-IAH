@@ -18,7 +18,6 @@ Le prompt système est reconstruit à chaque tour avec :
 - version, workspace, Git et vue active ;
 - état du harness, binaire DSH et URL ;
 - providers, modèle par défaut et état de la clé DeepSeek ;
-- état de 9Router et MausBot, modèles et pont MCP ;
 - serveurs MCP personnalisés ;
 - statistiques mémoire, skills et profils d'agents ;
 - raccourcis, chemins de données et règles de sécurité.
@@ -31,8 +30,7 @@ Le prompt système est reconstruit à chaque tour avec :
 | `ultimate_diagnose` | Diagnostic connexions + installation |
 | `ultimate_navigate` | Ouvrir une vue |
 | `ultimate_connections` | Providers, clé DeepSeek, défaut, redémarrage |
-| `ultimate_services` | Harness, 9Router, MausBot |
-| `ultimate_router` | Modèles, apply, login, sync, stop |
+| `ultimate_services` | Cycle de vie du harness |
 | `ultimate_mcp` | Serveurs MCP |
 | `ultimate_memory` | Rechercher/enregistrer la mémoire |
 | `ultimate_skills` | Lister/lire/créer/supprimer un skill |
@@ -55,12 +53,9 @@ Le prompt système est reconstruit à chaque tour avec :
 
 ## Endpoint
 
-L'agent utilise :
-
-1. la clé `DEEPSEEK_API_KEY` du credential store DSH avec `deepseek-chat` ;
-2. sinon 9Router local (`127.0.0.1:20128`) avec `ds/deepseek-chat` si une clé
-   9Router est disponible ;
-3. sinon il affiche une erreur et demande une configuration dans Connexions.
+L'agent utilise la clé `DEEPSEEK_API_KEY` du credential store DSH avec
+`deepseek-chat`. Sans clé, il affiche une erreur et demande une configuration
+dans Connexions.
 
 ## Persistance
 

@@ -1,4 +1,5 @@
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
@@ -451,6 +452,26 @@ private slots:
         QCOMPARE(themes.at(1).toMap().value("label").toString(), QString("Acme Light"));
         QCOMPARE(themes.at(0).toMap().value("accent").toString(), QString("#112233"));
         QCOMPARE(themes.at(1).toMap().value("mode").toString(), QString("light"));
+    }
+
+    void retiredServicesAreAbsentFromBundledUi()
+    {
+        QDirIterator it(QStringLiteral(":/"), QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            const QString path = it.next();
+            if (!(path.endsWith(QStringLiteral(".qml")) || path.endsWith(QStringLiteral(".json"))
+                  || path.endsWith(QStringLiteral(".md")))) {
+                continue;
+            }
+            QFile file(path);
+            if (!file.open(QIODevice::ReadOnly))
+                continue;
+            const QString text = QString::fromUtf8(file.readAll());
+            const QString retiredRouter = QStringLiteral("9") + QStringLiteral("Router");
+            const QString retiredAgent = QStringLiteral("Maus") + QStringLiteral("Bot");
+            QVERIFY2(!text.contains(retiredRouter, Qt::CaseInsensitive), qPrintable(path));
+            QVERIFY2(!text.contains(retiredAgent, Qt::CaseInsensitive), qPrintable(path));
+        }
     }
 
     void originalOneShotPolicyIsEmbedded()

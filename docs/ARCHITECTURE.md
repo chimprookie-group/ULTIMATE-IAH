@@ -7,10 +7,9 @@ Application Qt 6 / QML Harness-only pour Omarchy.
 - **Backend** : configuration, thème, Git, diagnostics, workspace, cycle de vie
   du harness.
 - **HarnessServer** : `dsh web --no-open --port 0`, URL tokenisée dans WebEngine.
-  Overlays chargés : `nine-router.patch.yml`, `openmausbot.patch.yml`,
-  `connections.patch.yml`, `mcp-memory.patch.yml`, `mcp-servers.patch.yml`.
+  Overlays chargés : `connections.patch.yml`, `mcp-memory.patch.yml`,
+  `mcp-servers.patch.yml`.
 - **TerminalSession** : PTY forkpty + xterm.js, chargé à la première ouverture.
-- **NineRouterManager / MausBotManager** : services locaux et ponts harness.
 - **HarnessConnections** : providers `llm-pi-ai`, credentials DSH,
   `agent.env` mode 600 injecté dans `dsh web` et le shell.
 - **McpManager** : serveurs MCP stdio/HTTP, config JSON privée compilée en
@@ -23,8 +22,8 @@ Application Qt 6 / QML Harness-only pour Omarchy.
 
 ## Vues
 
-Cockpit, Projet, Fichiers, Mémoire, Autopilote, Harness, Agents, Terminal
-agent, Connexions, MCP, 9Router, MausBot, Réglages.
+Cockpit, Écosystème, Fichiers, Mémoire, Autopilote, Harness, Agents, Terminal
+agent, Connexions, MCP, Installation, Réglages.
 
 ## Données
 
@@ -37,7 +36,7 @@ agent, Connexions, MCP, 9Router, MausBot, Réglages.
 
 Le nom visible, le binaire, le paquet et le `.desktop` sont **Ultimate HAI**.
 Les chemins historiques sont conservés volontairement pour la migration des
-données et des intégrations existantes.
+données. Les anciens fichiers d'intégration retirés sont supprimés.
 
 ## Règles
 

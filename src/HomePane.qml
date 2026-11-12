@@ -98,8 +98,8 @@ Item {
                         model: [
                             { label: qsTr("Harness"), state: backend.harnessState },
                             { label: qsTr("Terminal"), state: terminal.running ? "running" : "stopped" },
-                            { label: "9Router", state: nineRouter.running ? "running" : (nineRouter.starting ? "starting" : "stopped") },
-                            { label: "MausBot", state: mausBot.running ? "running" : (mausBot.starting ? "starting" : "stopped") }
+                            { label: "DeepSeek", state: connections.deepseekConfigured ? "running" : "stopped" },
+                            { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -391,14 +391,14 @@ Item {
                                 Layout.fillWidth: true
                                 Layout.bottomMargin: design.space2
                                 Text {
-                                    text: qsTr("Services")
+                                    text: qsTr("Composants actifs")
                                     color: theme.brightText
                                     font.family: "iA Writer Duospace"
                                     font.pixelSize: design.textTitle
                                     font.weight: Font.Bold
                                 }
                                 Item { Layout.fillWidth: true }
-                                Text { text: qsTr("LOCAL"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
+                                Text { text: qsTr("ACTIFS"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
                             }
 
                             ServiceRow {
@@ -423,27 +423,29 @@ Item {
                             }
                             ServiceRow {
                                 Layout.fillWidth: true
-                                name: "9Router"
-                                detail: nineRouter.running ? nineRouter.detail : (nineRouter.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
-                                stateColor: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText)
-                                actionLabel: nineRouter.running ? qsTr("Ouvrir") : qsTr("Démarrer")
-                                actionEnabled: !nineRouter.starting && !nineRouter.installing
-                                onAction: {
-                                    backend.setView("ninerouter")
-                                    if (!nineRouter.running) nineRouter.start()
-                                }
+                                name: qsTr("DeepSeek API")
+                                detail: connections.deepseekConfigured
+                                        ? (connections.defaultModel !== "" ? connections.defaultModel : qsTr("clé configurée"))
+                                        : qsTr("clé API manquante")
+                                stateColor: connections.deepseekConfigured ? theme.green : theme.orange
+                                actionLabel: qsTr("Configurer")
+                                onAction: backend.setView("connections")
                             }
                             ServiceRow {
                                 Layout.fillWidth: true
-                                name: "MausBot"
-                                detail: mausBot.running ? mausBot.detail : (mausBot.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
-                                stateColor: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText)
-                                actionLabel: mausBot.running ? qsTr("Ouvrir") : qsTr("Démarrer")
-                                actionEnabled: !mausBot.starting && !mausBot.installing
-                                onAction: {
-                                    backend.setView("mausbot")
-                                    if (!mausBot.running) mausBot.start()
-                                }
+                                name: qsTr("Ultimate Agent")
+                                detail: connections.deepseekConfigured ? qsTr("prêt · DeepSeek") : qsTr("à configurer")
+                                stateColor: connections.deepseekConfigured ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("agent")
+                            }
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: "MCP"
+                                detail: qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length)
+                                stateColor: mcpManager.servers.length > 0 ? theme.green : theme.dimText
+                                actionLabel: qsTr("Gérer")
+                                onAction: backend.setView("mcp")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }

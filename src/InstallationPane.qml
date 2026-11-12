@@ -9,16 +9,6 @@ Item {
 
     function refresh() {
         installation.check()
-        nineRouter.probe()
-        mausBot.probe()
-        probeTimer.restart()
-    }
-
-    Timer {
-        id: probeTimer
-        interval: 1400
-        repeat: false
-        onTriggered: installation.check()
     }
 
     Component.onCompleted: if (visible) refresh()
@@ -41,7 +31,7 @@ Item {
             PageHeader {
                 Layout.fillWidth: true
                 title: qsTr("Installation")
-                description: qsTr("Tout l'écosystème : DSH, Node, Python, 9Router, MausBot, MCP et l'entrée de bureau.")
+                description: qsTr("Le runtime DSH, les dépendances, MCP, la mémoire et les entrées de bureau.")
                 icon: "icons/shield.svg"
                 accent: theme.green
                 ActionButton { text: qsTr("Vérifier tout"); onClicked: root.refresh() }
@@ -115,7 +105,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Les dépendances système passent par pkexec. DSH, 9Router et MausBot s'installent localement dans les données de l'application.")
+                    text: qsTr("Les dépendances système passent par pkexec. DSH s'installe localement dans les données de l'application.")
                     color: theme.dimText
                     font.pixelSize: design.textCaption
                     wrapMode: Text.Wrap
@@ -127,28 +117,13 @@ Item {
 
                     ActionButton {
                         text: qsTr("Dépendances système")
-                        enabled: !installation.installing && !nineRouter.privilegedBusy
+                        enabled: !installation.installing
                         onClicked: installation.installSystemDependencies()
                     }
                     ActionButton {
                         text: qsTr("Installer DSH")
                         enabled: !installation.installing && !backend.dshAvailable
                         onClicked: installation.installDsh()
-                    }
-                    ActionButton {
-                        text: qsTr("Installer 9Router")
-                        enabled: !installation.installing && !nineRouter.installed && !nineRouter.installing
-                        onClicked: installation.installNineRouter()
-                    }
-                    ActionButton {
-                        text: qsTr("Installer MausBot")
-                        enabled: !installation.installing && !mausBot.installed && !mausBot.installing
-                        onClicked: installation.installMausBot()
-                    }
-                    ActionButton {
-                        text: qsTr("Démarrer les services")
-                        enabled: !installation.installing
-                        onClicked: installation.startServices()
                     }
                 }
 
@@ -171,8 +146,7 @@ Item {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    visible: installation.actionLog !== "" || nineRouter.installLog !== ""
-                             || nineRouter.privilegedLog !== "" || mausBot.installLog !== ""
+                    visible: installation.actionLog !== ""
                     implicitHeight: Math.min(220, logColumn.implicitHeight + design.space4)
                     radius: design.radiusSm
                     color: theme.background
@@ -185,8 +159,7 @@ Item {
                         spacing: 2
                         Text {
                             Layout.fillWidth: true
-                            text: installation.actionLog + nineRouter.installLog
-                                  + nineRouter.privilegedLog + mausBot.installLog
+                            text: installation.actionLog
                             color: theme.dimText
                             font.family: backend.monoFont
                             font.pixelSize: design.textMicro

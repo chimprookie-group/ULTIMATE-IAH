@@ -15,11 +15,9 @@ class Backend;
 class ConnectionDoctor;
 class HarnessConnections;
 class InstallationDoctor;
-class MausBotManager;
 class McpManager;
 class MemoryStore;
 class MissionRunner;
-class NineRouterManager;
 class SkillManager;
 class TerminalSession;
 
@@ -39,7 +37,6 @@ class UltimateAgent : public QObject {
 
 public:
     UltimateAgent(Backend *backend, HarnessConnections *connections,
-                  NineRouterManager *nineRouter, MausBotManager *mausBot,
                   McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                   AgentManager *agents, MissionRunner *missions,
                   TerminalSession *terminal, InstallationDoctor *installation,
@@ -104,8 +101,6 @@ private:
 
     Backend *m_backend = nullptr;
     HarnessConnections *m_connections = nullptr;
-    NineRouterManager *m_nineRouter = nullptr;
-    MausBotManager *m_mausBot = nullptr;
     McpManager *m_mcp = nullptr;
     MemoryStore *m_memory = nullptr;
     SkillManager *m_skills = nullptr;

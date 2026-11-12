@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.4.11-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.5.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
@@ -22,32 +22,28 @@ Si aucun runtime n'est présent, ouvrez **Installation** et utilisez
 **Installer DSH** : le paquet npm est installé dans les données de
 l'application, sans droit administrateur.
 
-## Services locaux
+## Composants locaux
 
-- **9Router** : installation npm locale depuis **Installation → Installer
-  9Router**, puis démarrage. Santé attendue sur `127.0.0.1:20128/api/health`.
-- **MausBot** : installation npm locale depuis **Installation → Installer
-  MausBot**, puis démarrage. Santé attendue sur `127.0.0.1:8799/api/health`.
 - **MCP mémoire** : généré automatiquement dans les données de l'application.
+- **MCP personnalisés** : gérés depuis la vue MCP.
 
 Les dépendances système utilisent exclusivement `pkexec pacman`; le mot de
 passe polkit n'est jamais lu ni stocké.
 
 ## Vérification
 
-**Installation** vérifie 18 composants : DSH, Node, npm, Python, PyYAML,
-QtWebEngine, Git, portail fichiers, installations et services 9Router/MausBot,
-dossiers de configuration/données, MCP mémoire et entrée de bureau.
+**Installation** vérifie les composants actifs : DSH, Node, npm, Python, PyYAML,
+QtWebEngine, Git, portail fichiers, dossiers de configuration/données, MCP
+mémoire et entrées de bureau.
 
 ## Poste vierge
 
 1. Installer le paquet Ultimate HAI.
 2. Ouvrir **Installation**.
 3. Lancer **Dépendances système** si nécessaire.
-4. Installer DSH, 9Router et MausBot si absents.
-5. Démarrer les services.
-6. Ouvrir **Connexions**, saisir la clé DeepSeek une seule fois.
-7. Le diagnostic doit afficher 0 élément manquant.
+4. Installer DSH s'il est absent.
+5. Ouvrir **Connexions**, saisir la clé DeepSeek une seule fois.
+6. Le diagnostic doit afficher 0 élément manquant.
 
 Les données utilisateur restent dans `~/.config/Crasy/deepcrasy-h` et
 `~/.local/share/Crasy/deepcrasy-h`. Aucune migration destructive n'est faite.

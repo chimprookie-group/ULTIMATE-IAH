@@ -10,7 +10,6 @@ Ces règles s'appliquent à toutes les sessions et aux installateurs de l'applic
 
 ## Application
 
-- `NineRouterManager` vérifie 9Router après installation, nettoie ses caches temporaires, puis le démarre.
 - Les dépendances système passent par `pkexec pacman` et sont vérifiées après l'installation.
 - Toute nouvelle action privilégiée doit réutiliser ce chemin `pkexec`, jamais `sudo` directement.
 

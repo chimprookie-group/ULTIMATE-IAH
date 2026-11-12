@@ -43,7 +43,6 @@ Item {
 
     function refreshAll() {
         connections.refresh()
-        nineRouter.probe()
         doctorRefresh.restart()
     }
 
@@ -98,7 +97,7 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: connectionDoctor.summary !== "" ? connectionDoctor.summary
-                              : qsTr("Vérifiez chaque maillon : DSH, credentials, providers, 9Router, MausBot, MCP et workspace.")
+                              : qsTr("Vérifiez chaque maillon : DSH, clé DeepSeek, providers, MCP et workspace.")
                         color: connectionDoctor.failed > 0 ? theme.orange : theme.mutedText
                         font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
@@ -106,7 +105,7 @@ Item {
                     ActionButton {
                         text: connectionDoctor.running ? qsTr("Vérification…") : qsTr("Vérifier")
                         enabled: !connectionDoctor.running
-                        onClicked: { nineRouter.probe(); doctorRefresh.restart() }
+                        onClicked: doctorRefresh.restart()
                     }
                 }
 
@@ -167,8 +166,8 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: connections.deepseekConfigured
-                          ? qsTr("Clé active : propagée automatiquement à DSH, au terminal et à 9Router dès qu'il est disponible.")
-                          : qsTr("Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH, au terminal et à 9Router.")
+                          ? qsTr("Clé active : propagée automatiquement à DSH et au terminal.")
+                          : qsTr("Ajoutez une clé API DeepSeek. Elle sera propagée automatiquement à DSH et au terminal.")
                     color: connections.deepseekConfigured ? theme.green : theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
@@ -212,94 +211,13 @@ Item {
                             { id: "mistral", name: "Mistral", base: "https://api.mistral.ai/v1", api: "openai-completions", models: "mistral-large-latest=Mistral Large" },
                             { id: "xai", name: "xAI", base: "https://api.x.ai/v1", api: "openai-completions", models: "grok-4=Grok 4" },
                             { id: "ollama", name: "Ollama", base: "http://127.0.0.1:11434/v1", api: "openai-completions", models: "qwen3:8b=Qwen3 8B" },
-                            { id: "lmstudio", name: "LM Studio", base: "http://127.0.0.1:1234/v1", api: "openai-completions", models: "local-model=Local model" },
-                            { id: "9router", name: "9Router", base: "http://127.0.0.1:20128/v1", api: "openai-completions", models: "router/model=Modèle 9Router" }
+                            { id: "lmstudio", name: "LM Studio", base: "http://127.0.0.1:1234/v1", api: "openai-completions", models: "local-model=Local model" }
                         ]
                         Button {
                             text: modelData.name
                             flat: true
                             font.pixelSize: design.textMicro
                             onClicked: root.applyPreset(modelData)
-                        }
-                    }
-                }
-            }
-
-            SettingsSection {
-                title: "9Router"
-                Layout.fillWidth: true
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: design.space2
-                    StatusDot {
-                        color: nineRouter.running ? (nineRouter.authRequired ? theme.yellow : theme.green) : theme.dimText
-                    }
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 1
-                        Text {
-                            Layout.fillWidth: true
-                            text: nineRouter.installed ? qsTr("Routeur local · %1").arg(nineRouter.detail) : qsTr("9Router non installé")
-                            color: theme.text
-                            font.pixelSize: design.textLabel
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: nineRouter.authRequired
-                                  ? qsTr("Connectez-vous dans le dashboard 9Router pour activer la session.")
-                                  : (nineRouter.keyMasked !== "" ? qsTr("Clé %1 · %2 modèle(s)").arg(nineRouter.keyMasked).arg(nineRouter.models.length)
-                                                                 : qsTr("Aucune clé locale pour le moment."))
-                            color: nineRouter.authRequired ? theme.yellow : theme.dimText
-                            font.pixelSize: design.textCaption
-                            wrapMode: Text.Wrap
-                        }
-                    }
-                    Button { text: qsTr("Ouvrir 9Router"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("ninerouter") }
-                    Button {
-                        text: qsTr("Dashboard")
-                        flat: true
-                        font.pixelSize: design.textCaption
-                        enabled: nineRouter.running
-                        onClicked: Qt.openUrlExternally(nineRouter.dashboardUrl)
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: design.space2
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Applique les modèles 9Router au provider unique du harness, avec le modèle par défaut.")
-                        color: theme.dimText
-                        font.pixelSize: design.textMicro
-                        wrapMode: Text.Wrap
-                    }
-                    ActionButton {
-                        text: qsTr("Appliquer les modèles")
-                        enabled: nineRouter.running && !nineRouter.authRequired && nineRouter.models.length > 0
-                        onClicked: {
-                            const ids = []
-                            for (let i = 0; i < nineRouter.models.length; ++i)
-                                ids.push(nineRouter.models[i].id)
-                            nineRouter.applyToHarness(ids, false)
-                            if (nineRouter.error === "") {
-                                connections.refresh()
-                                backend.restartHarness()
-                                doctorRefresh.restart()
-                            }
-                        }
-                    }
-                    Button {
-                        visible: nineRouter.keyMasked !== ""
-                        text: qsTr("Retirer du harness")
-                        flat: true
-                        font.pixelSize: design.textCaption
-                        onClicked: {
-                            nineRouter.disconnectHarness()
-                            connections.refresh()
-                            backend.restartHarness()
-                            doctorRefresh.restart()
                         }
                     }
                 }
@@ -466,11 +384,11 @@ Item {
             }
 
             SettingsSection {
-                title: qsTr("Intégrations")
+                title: qsTr("Composants actifs")
                 Layout.fillWidth: true
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("9Router peut exposer ses modèles au harness. MausBot expose son équipe par MCP.")
+                    text: qsTr("Les composants actifs se pilotent directement depuis l'application.")
                     color: theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
@@ -478,8 +396,10 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Button { text: "9Router"; flat: true; onClicked: backend.setView("ninerouter") }
-                    Button { text: "MausBot"; flat: true; onClicked: backend.setView("mausbot") }
+                    Button { text: "MCP"; flat: true; onClicked: backend.setView("mcp") }
+                    Button { text: qsTr("Mémoire"); flat: true; onClicked: backend.setView("memory") }
+                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
+                    Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
                     Item { Layout.fillWidth: true }
                     Text {
                         text: connections.defaultModel !== "" ? qsTr("Défaut : %1").arg(connections.defaultModel) : qsTr("Aucun modèle par défaut")

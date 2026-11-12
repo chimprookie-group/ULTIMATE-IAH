@@ -20,8 +20,6 @@
         <file>UltimateAgentDock.qml</file>
         <file>MemoryPane.qml</file>
         <file>AutopilotPane.qml</file>
-        <file>NineRouterPane.qml</file>
-        <file>MausBotPane.qml</file>
         <file>WorkspacePane.qml</file>
         <file>HomePane.qml</file>
         <file>SidebarItem.qml</file>
@@ -67,8 +65,6 @@
         <file>icons/bell.svg</file>
         <file>icons/ecosystem.svg</file>
         <file>icons/providers.svg</file>
-        <file>icons/router.svg</file>
-        <file>icons/mausbot.svg</file>
         <file>icons/files.svg</file>
         <file>icons/harness.svg</file>
         <file>icons/key.svg</file>

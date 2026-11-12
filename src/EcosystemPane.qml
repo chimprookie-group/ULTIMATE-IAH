@@ -63,10 +63,54 @@ Item {
 
             PageHeader {
                 width: parent.width
-                title: qsTr("Projet")
-                description: qsTr("Le projet, ses outils, ses skills et le contexte à confier au harness.")
-                icon: "icons/branch.svg"
+                title: qsTr("Écosystème")
+                description: qsTr("Les composants actifs d'Ultimate HAI, le projet, les outils et le contexte du harness.")
+                icon: "icons/ecosystem.svg"
                 ActionButton { text: qsTr("Rafraîchir"); onClicked: root.refresh(true) }
+            }
+
+            HomeCard {
+                title: qsTr("Runtime actif")
+                icon: "icons/harness.svg"
+                accent: theme.green
+                cardWidth: root.contentWidth
+                Layout.fillWidth: true
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+                    Repeater {
+                        model: [
+                            { name: qsTr("DeepSeek Harness"), detail: backend.harnessState === "running" ? qsTr("en écoute · %1").arg(backend.harnessDetail) : backend.harnessDetail, ok: backend.harnessState === "running", view: "harness", action: qsTr("Ouvrir") },
+                            { name: qsTr("Terminal agent"), detail: terminal.running ? (terminal.shell + " · " + backend.workspaceName) : qsTr("arrêté"), ok: terminal.running, view: "terminal", action: qsTr("Ouvrir") },
+                            { name: qsTr("DeepSeek API"), detail: connections.deepseekConfigured ? (connections.defaultModel !== "" ? connections.defaultModel : qsTr("clé configurée")) : qsTr("clé API manquante"), ok: connections.deepseekConfigured, view: "connections", action: qsTr("Configurer") },
+                            { name: qsTr("Ultimate Agent"), detail: connections.deepseekConfigured ? qsTr("prêt · DeepSeek") : qsTr("à configurer"), ok: connections.deepseekConfigured, view: "agent", action: qsTr("Ouvrir") },
+                            { name: "MCP", detail: qsTr("%n serveur(s) personnalisé(s)", "", mcpManager.servers.length), ok: mcpManager.servers.length > 0, view: "mcp", action: qsTr("Gérer") },
+                            { name: qsTr("Mémoire persistante"), detail: qsTr("%n entrée(s)", "", memory.stats.total !== undefined ? memory.stats.total : 0), ok: memory.stats.total !== undefined && memory.stats.total > 0, view: "memory", action: qsTr("Ouvrir") },
+                            { name: qsTr("Skills"), detail: qsTr("%n skill(s) disponible(s)", "", ecosystem.skills.length), ok: ecosystem.skills.length > 0, view: "agents", action: qsTr("Gérer") },
+                            { name: qsTr("Installation"), detail: installation.summary !== "" ? installation.summary : qsTr("audit disponible"), ok: installation.failed === 0, view: "installation", action: qsTr("Vérifier") }
+                        ]
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.topMargin: index === 0 ? 0 : design.space2
+                                Layout.bottomMargin: design.space2
+                                spacing: design.space2
+                                StatusDot { color: modelData.ok ? theme.green : theme.dimText }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+                                    Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
+                                    Text { Layout.fillWidth: true; text: modelData.detail; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                                }
+                                Button { text: modelData.action; flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView(modelData.view) }
+                            }
+                            Rectangle { Layout.fillWidth: true; height: 1; color: theme.border; opacity: 0.6 }
+                        }
+                    }
+                }
             }
 
             Flow {

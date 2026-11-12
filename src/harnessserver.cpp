@@ -155,8 +155,7 @@ void HarnessServer::start() {
     // --profile, before the app arguments; `dsh web --patch p` rejects it.
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     QStringList patches;
-    for (const QString &name : {QStringLiteral("openmausbot.patch.yml"),
-                                QStringLiteral("connections.patch.yml"),
+    for (const QString &name : {QStringLiteral("connections.patch.yml"),
                                 QStringLiteral("mcp-memory.patch.yml"),
                                 QStringLiteral("mcp-servers.patch.yml")}) {
         const QString path = configDir + "/" + name;
@@ -180,8 +179,7 @@ void HarnessServer::start() {
     // harness must not inherit it or it may advertise the wrong URL.
     environment.remove("DSH_WEB_URL");
 
-    // 9Router integration: an app-owned overlay adds the nine-router provider,
-    // and the key rides in the child environment instead of DSH settings.
+    // Provider keys ride in the child environment instead of DSH settings.
     QFile agentEnv(configDir + "/agent.env");
     if (agentEnv.open(QIODevice::ReadOnly)) {
         const QStringList lines = QString::fromUtf8(agentEnv.readAll()).split('\n', Qt::SkipEmptyParts);
@@ -195,12 +193,6 @@ void HarnessServer::start() {
                 && key.count(QRegularExpression(QStringLiteral("^[A-Za-z_][A-Za-z0-9_]*$"))) == 1)
                 environment.insert(key, value);
         }
-    }
-    QFile envFile(configDir + "/nine-router.env");
-    if (envFile.open(QIODevice::ReadOnly)) {
-        const QString key = QString::fromUtf8(envFile.readAll()).trimmed();
-        if (key.startsWith("NINE_ROUTER_API_KEY="))
-            environment.insert("NINE_ROUTER_API_KEY", key.mid(QStringLiteral("NINE_ROUTER_API_KEY=").size()));
     }
     m_process.setProcessEnvironment(environment);
 

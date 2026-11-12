@@ -7,11 +7,9 @@ class Backend;
 class HarnessConnections;
 class MemoryStore;
 class McpManager;
-class MausBotManager;
-class NineRouterManager;
 
 // Cross-layer connection health: DSH, env, credentials, provider overlay,
-// 9Router, MausBot, MCP and workspace. Each check carries an actionable detail.
+// MCP and workspace. Each check carries an actionable detail.
 class ConnectionDoctor : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList checks READ checks NOTIFY changed)
@@ -22,7 +20,6 @@ class ConnectionDoctor : public QObject {
 
 public:
     ConnectionDoctor(Backend *backend, HarnessConnections *connections,
-                     NineRouterManager *nineRouter, MausBotManager *mausBot,
                      McpManager *mcp, MemoryStore *memory, QObject *parent = nullptr);
 
     QVariantList checks() const { return m_checks; }
@@ -44,8 +41,6 @@ private:
 
     Backend *m_backend = nullptr;
     HarnessConnections *m_connections = nullptr;
-    NineRouterManager *m_nineRouter = nullptr;
-    MausBotManager *m_mausBot = nullptr;
     McpManager *m_mcp = nullptr;
     MemoryStore *m_memory = nullptr;
     QVariantList m_checks;

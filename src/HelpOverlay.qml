@@ -23,8 +23,6 @@ Item {
         { keys: "Ctrl+Alt+I", what: qsTr("Installation complète") },
         { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
         { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
-        { keys: "Ctrl+9", what: qsTr("9Router") },
-        { keys: "Ctrl+Shift+M", what: qsTr("MausBot and its MCP bridge") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
         { keys: "Ctrl+Enter", what: qsTr("Run a harness task in the terminal") },
         { keys: "Ctrl+R", what: qsTr("Restart the harness") },

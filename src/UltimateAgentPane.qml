@@ -272,7 +272,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: qsTr("Ton opérateur intégré : connaît l'état réel d'Ultimate HAI et agit sur DSH, les providers, 9Router, MausBot, MCP, la mémoire, les skills, le terminal et l'installation.")
+                    text: qsTr("Ton opérateur intégré : connaît l'état réel d'Ultimate HAI et agit sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.")
                     color: theme.mutedText
                     font.pixelSize: design.textBody
                     wrapMode: Text.Wrap
@@ -286,7 +286,7 @@ Item {
                     Repeater {
                         model: [
                             { label: qsTr("Diagnostique tout"), prompt: qsTr("Fais un diagnostic complet d'Ultimate HAI et de son écosystème. Utilise les outils réels, puis résume les problèmes et propose les corrections.") },
-                            { label: qsTr("Répare les connexions"), prompt: qsTr("Vérifie les connexions DSH, DeepSeek, 9Router, MausBot et MCP. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.") },
+                            { label: qsTr("Répare les connexions"), prompt: qsTr("Vérifie les connexions DSH, DeepSeek et MCP. Répare ce qui peut l'être sans casser mes données, puis vérifie le résultat.") },
                             { label: qsTr("Explique ton fonctionnement"), prompt: qsTr("Explique précisément ce que tu peux faire dans Ultimate HAI, quels outils tu as, et comment tu peux m'aider sur ce projet.") },
                             { label: qsTr("Installe ce qui manque"), prompt: qsTr("Audite l'installation complète, repère les composants manquants et propose ou lance les installations nécessaires.") }
                         ]

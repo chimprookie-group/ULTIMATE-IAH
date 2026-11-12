@@ -279,7 +279,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Les providers du harness se configurent dans le harness embarqué ou via 9Router. MausBot ajoute son équipe par MCP.")
+                    text: qsTr("Les providers du harness se configurent dans Connexions. MCP et la mémoire sont gérés directement par l'application.")
                     color: theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
@@ -293,12 +293,10 @@ Item {
                     Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
                     Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
                     Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
-                    Button { text: "9Router"; flat: true; onClicked: backend.setView("ninerouter") }
-                    Button { text: "MausBot"; flat: true; onClicked: backend.setView("mausbot") }
                     Item { Layout.fillWidth: true }
                     Text {
-                        text: mausBot.mcpHarness ? qsTr("MCP harness connecté") : qsTr("MCP harness non connecté")
-                        color: mausBot.mcpHarness ? theme.green : theme.dimText
+                        text: connections.deepseekConfigured ? qsTr("DeepSeek connecté") : qsTr("DeepSeek non configuré")
+                        color: connections.deepseekConfigured ? theme.green : theme.dimText
                         font.pixelSize: design.textCaption
                     }
                 }

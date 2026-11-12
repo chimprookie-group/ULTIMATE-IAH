@@ -16,8 +16,6 @@ HEADERS += \
     ../src/skillmanager.h \
     ../src/agentmanager.h \
     ../src/autopilot.h \
-    ../src/nineroutermanager.h \
-    ../src/mausbotmanager.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/workspacemodel.h \
@@ -39,8 +37,6 @@ SOURCES += \
     ../src/skillmanager.cpp \
     ../src/agentmanager.cpp \
     ../src/autopilot.cpp \
-    ../src/nineroutermanager.cpp \
-    ../src/mausbotmanager.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \
     ../src/translator.cpp

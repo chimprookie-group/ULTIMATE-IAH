@@ -35,7 +35,7 @@ de page, la palette, l'aide, les états vides, l'écran Harness et le À propos.
 
 La vue **Installation** (`Ctrl+Alt+I`) audite et installe l'écosystème complet :
 runtime DSH, Node, npm, Python, PyYAML, QtWebEngine, Git, portail fichiers,
-9Router, MausBot, MCP mémoire et entrée de bureau. Le runtime DSH système
+MCP mémoire et entrées de bureau. Le runtime DSH système
 (`/usr/lib/crasy/dsh`) est utilisé en priorité ; sinon DSH peut être installé
 localement sans droits administrateur.
 
@@ -49,8 +49,8 @@ fois, exécuter la vérification réelle et rapporter les preuves.
 
 **Ctrl+Alt+U** ouvre le dock agent, et l'entrée **Ultimate Agent** de la barre
 latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate HAI et agit via
-des outils : diagnostic, providers, DSH, 9Router, MausBot, MCP, mémoire, skills,
-missions, terminal, fichiers, Git, installation et réglages.
+des outils : diagnostic, providers, DSH, MCP, mémoire, skills, missions,
+terminal, fichiers, Git, installation et réglages.
 
 Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité.
 
@@ -69,14 +69,13 @@ masqué pour éviter l'ancienne icône.
 ![Serveurs MCP](assets/screenshot-mcp.png)
 
 - **Catalogue providers** : DeepSeek, OpenAI, Anthropic, OpenRouter, Gemini,
-  Groq, Mistral, xAI, Ollama, LM Studio, 9Router.
+  Groq, Mistral, xAI, Ollama, LM Studio.
 - **Protocoles** : OpenAI-compatible et Anthropic Messages.
 - **Clé DeepSeek unique** : une saisie dans Connexions alimente DSH,
-  `agent.env`, le terminal et la connexion upstream 9Router. La propagation est
-  rejouée automatiquement quand 9Router est installé, démarré ou reconnecté.
+  `agent.env` et le terminal. La clé reste la source unique des providers.
 - **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
   Fetch / Git, patch automatique pour le harness.
-- **MCP intégrés** : mémoire Ultimate HAI et MausBot.
+- **MCP intégré** : mémoire Ultimate HAI.
 
 ## Mémoire
 
@@ -109,15 +108,13 @@ masqué pour éviter l'ancienne icône.
 | `Ctrl+1` | Harness |
 | `Ctrl+2` | Terminal agent |
 | `Ctrl+4` | Réglages |
-| `Ctrl+6` | Projet |
+| `Ctrl+6` | Écosystème |
 | `Ctrl+7` | Fichiers |
 | `Ctrl+8` | Connexions |
-| `Ctrl+9` | 9Router |
 | `Ctrl+Alt+A` | Autopilote |
 | `Ctrl+Alt+C` | MCP |
 | `Ctrl+Alt+G` | Agents et missions |
 | `Ctrl+Alt+M` | Mémoire |
-| `Ctrl+Shift+M` | MausBot |
 | `Ctrl+K` | Palette de commandes |
 | `?` | Aide |
 
@@ -127,13 +124,13 @@ masqué pour éviter l'ancienne icône.
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.4.11-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.5.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans
 les chemins historiques (`~/.config/Crasy/deepcrasy-h` et
-`~/.local/share/Crasy/deepcrasy-h`) pour ne rien perdre : mémoire, providers,
-MCP, 9Router, MausBot, missions et autopilote restent en place.
+`~/.local/share/Crasy/deepcrasy-h`) : mémoire, providers, MCP, missions et
+autopilote restent en place. Les anciens composants retirés sont nettoyés.
 
 ## Limites
 

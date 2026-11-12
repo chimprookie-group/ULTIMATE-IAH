@@ -24,8 +24,6 @@ HEADERS += \
     src/autopilot.h \
     src/iconprovider.h \
     src/portalfolderpicker.h \
-    src/nineroutermanager.h \
-    src/mausbotmanager.h \
     src/terminalsession.h \
     src/theme.h \
     src/workspacemodel.h \
@@ -51,8 +49,6 @@ SOURCES += \
     src/autopilot.cpp \
     src/iconprovider.cpp \
     src/portalfolderpicker.cpp \
-    src/nineroutermanager.cpp \
-    src/mausbotmanager.cpp \
     src/terminalsession.cpp \
     src/theme.cpp \
     src/workspacemodel.cpp \

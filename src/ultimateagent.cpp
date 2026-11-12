@@ -5,11 +5,9 @@
 #include "connectiondoctor.h"
 #include "harnessconnections.h"
 #include "installationdoctor.h"
-#include "mausbotmanager.h"
 #include "mcpmanager.h"
 #include "memorystore.h"
 #include "missionrunner.h"
-#include "nineroutermanager.h"
 #include "skillmanager.h"
 #include "terminalsession.h"
 
@@ -83,13 +81,12 @@ QJsonObject tool(const QString &name, const QString &description,
 } // namespace
 
 UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
-                             NineRouterManager *nineRouter, MausBotManager *mausBot,
                              McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                              AgentManager *agents, MissionRunner *missions,
                              TerminalSession *terminal, InstallationDoctor *installation,
                              ConnectionDoctor *connectionDoctor, QObject *parent)
     : QObject(parent), m_backend(backend), m_connections(connections),
-      m_nineRouter(nineRouter), m_mausBot(mausBot), m_mcp(mcp), m_memory(memory),
+      m_mcp(mcp), m_memory(memory),
       m_skills(skills), m_agents(agents), m_missions(missions), m_terminal(terminal),
       m_installation(installation), m_connectionDoctor(connectionDoctor),
       m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
@@ -144,14 +141,6 @@ UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
                 QStringLiteral("deepseek-chat"), QStringLiteral("DeepSeek Chat"),
                 QStringLiteral("DeepSeek API")};
     }
-    if (m_nineRouter && m_nineRouter->running()) {
-        const QString routerKey = credential(QStringLiteral("NINE_ROUTER_API_KEY"));
-        if (!routerKey.isEmpty()) {
-            return {QStringLiteral("http://127.0.0.1:20128/v1"), routerKey,
-                    QStringLiteral("ds/deepseek-chat"), QStringLiteral("9Router · DeepSeek Chat"),
-                    QStringLiteral("9Router local")};
-        }
-    }
     return {};
 }
 
@@ -195,24 +184,6 @@ QJsonObject UltimateAgent::snapshot() const {
                                 {QStringLiteral("defaultModel"), m_connections->defaultModel()},
                                 {QStringLiteral("deepseekConfigured"), m_connections->deepseekConfigured()},
                                 {QStringLiteral("envPath"), m_connections->envPath()}});
-    }
-    if (m_nineRouter) {
-        root.insert(QStringLiteral("nineRouter"),
-                    QJsonObject{{QStringLiteral("installed"), m_nineRouter->installed()},
-                                {QStringLiteral("running"), m_nineRouter->running()},
-                                {QStringLiteral("authRequired"), m_nineRouter->authRequired()},
-                                {QStringLiteral("keyMasked"), m_nineRouter->keyMasked()},
-                                {QStringLiteral("models"), m_nineRouter->models().size()},
-                                {QStringLiteral("detail"), m_nineRouter->detail()},
-                                {QStringLiteral("version"), m_nineRouter->version()}});
-    }
-    if (m_mausBot) {
-        root.insert(QStringLiteral("mausBot"),
-                    QJsonObject{{QStringLiteral("installed"), m_mausBot->installed()},
-                                {QStringLiteral("running"), m_mausBot->running()},
-                                {QStringLiteral("mcpHarness"), m_mausBot->mcpHarness()},
-                                {QStringLiteral("pairing"), m_mausBot->pairing()},
-                                {QStringLiteral("detail"), m_mausBot->detail()}});
     }
     if (m_mcp) {
         QJsonArray servers;
@@ -527,8 +498,7 @@ QStringList UltimateAgent::views() {
             QStringLiteral("workspace"), QStringLiteral("harness"), QStringLiteral("terminal"),
             QStringLiteral("connects"), QStringLiteral("connections"), QStringLiteral("memory"),
             QStringLiteral("autopilot"), QStringLiteral("mcp"), QStringLiteral("agents"),
-            QStringLiteral("installation"), QStringLiteral("ninerouter"),
-            QStringLiteral("mausbot"), QStringLiteral("settings")};
+            QStringLiteral("installation"), QStringLiteral("settings")};
 }
 
 QString UltimateAgent::staticKnowledge() {
@@ -540,19 +510,18 @@ QString UltimateAgent::staticKnowledge() {
 
 IDENTITY AND MISSION
 - You are not a generic chatbot. You know this exact application, its local ecosystem, its files and its live state.
-- You can operate the application through tools: navigation, providers/connections, DSH harness, 9Router, MausBot, MCP, persistent memory, skills, missions, terminal, workspace files, Git, installation and settings.
+- You can operate the application through tools: navigation, providers/connections, DSH harness, MCP, persistent memory, skills, missions, terminal, workspace files, Git, installation and settings.
 - Answer in the user's language (French by default) and keep the tone direct, technical and useful.
 - Be concise by default, but be complete when diagnosing or changing configuration. Use Markdown and short code blocks.
 
 SYSTEM MAP
 - App: Qt 6/QML, C++ backend. Data: ~/.config/Crasy/deepcrasy-h and ~/.local/share/Crasy/deepcrasy-h.
 - DSH runtime: /usr/lib/crasy/dsh/node_modules/.bin/dsh (fallback to dsh in PATH or a local install).
-- Harness: dsh web, patched with openmausbot.patch.yml, connections.patch.yml, mcp-memory.patch.yml and mcp-servers.patch.yml.
-- Providers: connections.patch.yml + ~/.dsh/.credentials.yaml. DeepSeek key is the single source, and it is propagated to agent.env and 9Router.
-- 9Router: local service on 127.0.0.1:20128. MausBot: local service on 127.0.0.1:8799.
+- Harness: dsh web, patched with connections.patch.yml, mcp-memory.patch.yml and mcp-servers.patch.yml.
+- Providers: connections.patch.yml + ~/.dsh/.credentials.yaml. The DeepSeek key is the single source and is propagated to agent.env.
 - Memory: SQLite/FTS5 via the memory MCP server. Skills: ~/.agents/skills and project skills.
-- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, installation, ninerouter, mausbot, settings.
-- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Project, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+9 9Router, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+Shift+M MausBot, Ctrl+K palette.
+- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, installation, settings.
+- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
 
 ACTION RULES
 - Use tools for actions and facts. Never claim a command, configuration change or service start succeeded without a successful tool result.
@@ -568,7 +537,7 @@ TOOL STRATEGY
 - Start with ultimate_status for any state question.
 - Use ultimate_diagnose for connection/installation problems.
 - Use ultimate_connections for DeepSeek/provider/default/restart.
-- Use ultimate_services for 9Router, MausBot and harness lifecycle.
+- Use ultimate_services for the harness lifecycle.
 - Use ultimate_install for setup and dependency gaps.
 - Use ultimate_memory to search and remember. Use ultimate_skills to inspect or create skills.
 - Use ultimate_terminal/git/files for real project work. Prefer read-only inspection before writing.
@@ -579,7 +548,7 @@ TOOL STRATEGY
 QJsonArray UltimateAgent::tools() {
     QJsonArray out;
     out.append(tool(QStringLiteral("ultimate_status"),
-                    QStringLiteral("Return live Ultimate HAI state: app, workspace, Git, harness, providers, 9Router, MausBot, MCP, memory, skills, agents."),
+                    QStringLiteral("Return live Ultimate HAI state: app, workspace, Git, harness, providers, MCP, memory, skills, agents."),
                     {}));
     out.append(tool(QStringLiteral("ultimate_diagnose"),
                     QStringLiteral("Run the real connection diagnostics and the full installation audit, and return every check with its result."),
@@ -608,11 +577,10 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true for destructive changes."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_services"),
-                    QStringLiteral("Inspect or control the harness, 9Router and MausBot services."),
+                    QStringLiteral("Inspect or control the DSH harness."),
                     properties({{QStringLiteral("target"),
                                  enumProperty(QStringLiteral("Service target."),
-                                              {QStringLiteral("harness"), QStringLiteral("9router"),
-                                               QStringLiteral("mausbot"), QStringLiteral("all")})},
+                                              {QStringLiteral("harness")})},
                                 {QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("status"), QStringLiteral("start"),
@@ -620,23 +588,6 @@ QJsonArray UltimateAgent::tools() {
                                                QStringLiteral("install")})},
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to stop a service."))}}),
                     {QStringLiteral("target"), QStringLiteral("action")}));
-    out.append(tool(QStringLiteral("ultimate_router"),
-                    QStringLiteral("Operate 9Router: status, models, apply models to the harness, login, start/stop, install, sync, disconnect."),
-                    properties({{QStringLiteral("action"),
-                                 enumProperty(QStringLiteral("Operation."),
-                                              {QStringLiteral("status"), QStringLiteral("models"),
-                                               QStringLiteral("apply"), QStringLiteral("start"),
-                                               QStringLiteral("stop"), QStringLiteral("install"),
-                                               QStringLiteral("login"), QStringLiteral("disconnect"),
-                                               QStringLiteral("sync")})},
-                                {QStringLiteral("models"),
-                                 QJsonObject{{QStringLiteral("type"), QStringLiteral("array")},
-                                             {QStringLiteral("description"), QStringLiteral("Model ids to apply. Empty applies all available models.")},
-                                             {QStringLiteral("items"), QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}}}}},
-                                {QStringLiteral("makeDefault"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Set the first model as harness default."))},
-                                {QStringLiteral("password"), agentProperty(QStringLiteral("string"), QStringLiteral("Dashboard password. Never echoed back."))},
-                                {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true for disconnect/stop."))}}),
-                    {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_mcp"),
                     QStringLiteral("Inspect, add, remove or enable/disable custom MCP servers. Built-in servers are read-only."),
                     properties({{QStringLiteral("action"),
@@ -718,12 +669,11 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("path"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional path for diff."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_install"),
-                    QStringLiteral("Audit or install missing ecosystem components: system dependencies, DSH, 9Router, MausBot and services."),
+                    QStringLiteral("Audit or install missing ecosystem components: system dependencies and DSH."),
                     properties({{QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("audit"), QStringLiteral("system"),
-                                               QStringLiteral("install_dsh"), QStringLiteral("install_9router"),
-                                               QStringLiteral("install_mausbot"), QStringLiteral("start_services")})}}),
+                                               QStringLiteral("install_dsh")})}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_settings"),
                     QStringLiteral("Read or change app theme, language, startup view and harness autostart."),
@@ -853,10 +803,6 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         }
         if (action == QLatin1String("sync")) {
             m_connections->refresh();
-            if (m_nineRouter) {
-                m_nineRouter->probe();
-                m_nineRouter->syncDeepSeekFromDsh();
-            }
             if (m_backend) m_backend->restartHarness();
             return okResult({{QStringLiteral("providers"), listJson(m_connections->providers())},
                              {QStringLiteral("defaultModel"), m_connections->defaultModel()},
@@ -870,97 +816,19 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
     }
 
     if (name == QLatin1String("ultimate_services")) {
-        const QString target = arguments.value(QStringLiteral("target")).toString();
         if (action == QLatin1String("status") || action.isEmpty()) {
             return okResult({{QStringLiteral("harness"), m_backend ? m_backend->harnessState() : QString()},
-                             {QStringLiteral("nineRouter"), m_nineRouter ? m_nineRouter->running() : false},
-                             {QStringLiteral("nineRouterDetail"), m_nineRouter ? m_nineRouter->detail() : QString()},
-                             {QStringLiteral("mausBot"), m_mausBot ? m_mausBot->running() : false},
-                             {QStringLiteral("mausBotDetail"), m_mausBot ? m_mausBot->detail() : QString()}});
+                             {QStringLiteral("detail"), m_backend ? m_backend->harnessDetail() : QString()}});
         }
-        if (action == QLatin1String("stop") || action == QLatin1String("restart")
-            || action == QLatin1String("install")) {
-            if (auto error = confirmOrError(tr("%1 le service %2").arg(action, target)); !error.isEmpty()) return error;
+        if (action == QLatin1String("restart") || action == QLatin1String("start")) {
+            if (m_backend) m_backend->restartHarness();
+            return okResult({{QStringLiteral("restarted"), true}});
         }
-        if (target == QLatin1String("harness")) {
-            if (action == QLatin1String("restart") || action == QLatin1String("start")) {
-                if (m_backend) m_backend->restartHarness();
-                return okResult({{QStringLiteral("started"), true}});
-            }
-            return errorResult(tr("Le harness ne peut être que relancé par cet outil."));
-        }
-        if (target == QLatin1String("9router")) {
-            if (action == QLatin1String("start")) { if (m_nineRouter) m_nineRouter->start(); }
-            else if (action == QLatin1String("stop")) { if (m_nineRouter) m_nineRouter->stop(); }
-            else if (action == QLatin1String("install")) { if (m_nineRouter) m_nineRouter->install(); }
-            else return errorResult(tr("Action 9Router inconnue : %1").arg(action));
-            return okResult({{QStringLiteral("started"), action == QLatin1String("start") || action == QLatin1String("install")}});
-        }
-        if (target == QLatin1String("mausbot")) {
-            if (action == QLatin1String("start")) { if (m_mausBot) m_mausBot->start(); }
-            else if (action == QLatin1String("stop")) { if (m_mausBot) m_mausBot->stop(); }
-            else if (action == QLatin1String("install")) { if (m_mausBot) m_mausBot->install(); }
-            else return errorResult(tr("Action MausBot inconnue : %1").arg(action));
-            return okResult({{QStringLiteral("started"), action == QLatin1String("start") || action == QLatin1String("install")}});
-        }
-        if (target == QLatin1String("all")) {
-            if (action == QLatin1String("start")) { if (m_installation) m_installation->startServices(); }
-            else if (action == QLatin1String("install")) {
-                if (m_installation) { m_installation->installNineRouter(); m_installation->installMausBot(); }
-            } else if (action == QLatin1String("stop")) {
-                if (m_nineRouter) m_nineRouter->stop();
-                if (m_mausBot) m_mausBot->stop();
-            } else return errorResult(tr("Action globale inconnue : %1").arg(action));
-            return okResult({{QStringLiteral("started"), true}});
-        }
-        return errorResult(tr("Cible de service inconnue : %1").arg(target));
-    }
-
-    if (name == QLatin1String("ultimate_router")) {
-        if (!m_nineRouter)
-            return errorResult(tr("9Router indisponible."));
-        if (action == QLatin1String("start")) { m_nineRouter->start(); return okResult({{QStringLiteral("starting"), true}}); }
         if (action == QLatin1String("stop")) {
-            if (auto error = confirmOrError(tr("arrêter 9Router")); !error.isEmpty()) return error;
-            m_nineRouter->stop(); return okResult({{QStringLiteral("stopped"), true}});
+            if (auto error = confirmOrError(tr("arrêter le harness")); !error.isEmpty()) return error;
+            return errorResult(tr("Le harness se gère depuis le Cockpit ou Réglages."));
         }
-        if (action == QLatin1String("install")) { m_nineRouter->install(); return okResult({{QStringLiteral("installing"), true}}); }
-        if (action == QLatin1String("disconnect")) {
-            if (auto error = confirmOrError(tr("retirer 9Router du harness")); !error.isEmpty()) return error;
-            m_nineRouter->disconnectHarness(); return okResult({{QStringLiteral("disconnected"), true}});
-        }
-        if (action == QLatin1String("login")) {
-            m_nineRouter->login(arguments.value(QStringLiteral("password")).toString());
-            return okResult({{QStringLiteral("authRequired"), m_nineRouter->authRequired()}});
-        }
-        if (action == QLatin1String("sync")) {
-            m_nineRouter->probe();
-            m_nineRouter->syncDeepSeekFromDsh();
-            return okResult({{QStringLiteral("running"), m_nineRouter->running()},
-                             {QStringLiteral("authRequired"), m_nineRouter->authRequired()}});
-        }
-        if (action == QLatin1String("models")) {
-            return okResult({{QStringLiteral("models"), listJson(m_nineRouter->models())}});
-        }
-        if (action == QLatin1String("apply")) {
-            QStringList models;
-            for (const QJsonValue &value : arguments.value(QStringLiteral("models")).toArray())
-                models.append(value.toString());
-            if (models.isEmpty()) {
-                for (const QVariant &value : m_nineRouter->models())
-                    models.append(value.toMap().value(QStringLiteral("id")).toString());
-            }
-            if (models.isEmpty()) return errorResult(tr("Aucun modèle 9Router disponible."));
-            m_nineRouter->applyToHarness(models, arguments.value(QStringLiteral("makeDefault")).toBool());
-            return okResult({{QStringLiteral("applied"), models.size()},
-                             {QStringLiteral("makeDefault"), arguments.value(QStringLiteral("makeDefault")).toBool()}});
-        }
-        return okResult({{QStringLiteral("installed"), m_nineRouter->installed()},
-                         {QStringLiteral("running"), m_nineRouter->running()},
-                         {QStringLiteral("authRequired"), m_nineRouter->authRequired()},
-                         {QStringLiteral("keyMasked"), m_nineRouter->keyMasked()},
-                         {QStringLiteral("models"), m_nineRouter->models().size()},
-                         {QStringLiteral("detail"), m_nineRouter->detail()}});
+        return errorResult(tr("Action de service inconnue : %1").arg(action));
     }
 
     if (name == QLatin1String("ultimate_mcp")) {
@@ -1185,9 +1053,6 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         if (!m_installation) return errorResult(tr("Installation indisponible."));
         if (action == QLatin1String("system")) m_installation->installSystemDependencies();
         else if (action == QLatin1String("install_dsh")) m_installation->installDsh();
-        else if (action == QLatin1String("install_9router")) m_installation->installNineRouter();
-        else if (action == QLatin1String("install_mausbot")) m_installation->installMausBot();
-        else if (action == QLatin1String("start_services")) m_installation->startServices();
         else return errorResult(tr("Action installation inconnue : %1").arg(action));
         return okResult({{QStringLiteral("started"), true}, {QStringLiteral("action"), action}});
     }
@@ -1256,8 +1121,6 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
     if (name == QLatin1String("ultimate_services"))
         return tr("%1 · %2").arg(arguments.value(QStringLiteral("target")).toString(),
                                    arguments.value(QStringLiteral("action")).toString());
-    if (name == QLatin1String("ultimate_router"))
-        return tr("9Router · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_mcp"))
         return tr("MCP · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_memory"))

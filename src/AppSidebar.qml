@@ -132,7 +132,7 @@ Item {
 
                 SidebarGroup { title: qsTr("OPÉRER"); compact: root.compact }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/home.svg"; label: qsTr("Cockpit"); hint: qsTr("Cockpit (Ctrl+0)"); active: backend.view === "home"; onClicked: backend.setView("home") }
-                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/branch.svg"; label: qsTr("Projet"); hint: qsTr("Projet (Ctrl+6)"); active: backend.view === "ecosystem"; onClicked: backend.setView("ecosystem") }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/branch.svg"; label: qsTr("Écosystème"); hint: qsTr("Écosystème (Ctrl+6)"); active: backend.view === "ecosystem"; onClicked: backend.setView("ecosystem") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/files.svg"; label: qsTr("Fichiers"); hint: qsTr("Fichiers et diffs (Ctrl+7)"); active: backend.view === "workspace"; onClicked: backend.setView("workspace") }
 
                 SidebarGroup { title: qsTr("AGENT"); compact: root.compact }
@@ -157,21 +157,10 @@ Item {
                     onClicked: backend.setView("terminal")
                 }
 
-                SidebarGroup { title: qsTr("RÉSEAU"); compact: root.compact }
-                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/connections.svg"; label: qsTr("Connexions"); hint: qsTr("Providers et connexions (Ctrl+8)"); active: backend.view === "connections"; onClicked: backend.setView("connections") }
+                SidebarGroup { title: qsTr("SYSTÈME"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/connections.svg"; label: qsTr("Connexions"); hint: qsTr("DeepSeek et providers (Ctrl+8)"); active: backend.view === "connections"; onClicked: backend.setView("connections") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/mcp.svg"; label: "MCP"; hint: qsTr("Serveurs MCP (Ctrl+Alt+C)"); active: backend.view === "mcp"; onClicked: backend.setView("mcp") }
-                SidebarItem {
-                    Layout.fillWidth: true; compact: root.compact; icon: "icons/router.svg"; label: "9Router"; hint: qsTr("9Router (Ctrl+9)")
-                    active: backend.view === "ninerouter"
-                    statusColor: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText)
-                    onClicked: backend.setView("ninerouter")
-                }
-                SidebarItem {
-                    Layout.fillWidth: true; compact: root.compact; icon: "icons/mausbot.svg"; label: "MausBot"; hint: qsTr("MausBot (Ctrl+Shift+M)")
-                    active: backend.view === "mausbot"
-                    statusColor: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText)
-                    onClicked: backend.setView("mausbot")
-                }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/shield.svg"; label: qsTr("Installation"); hint: qsTr("Audit et installation (Ctrl+Alt+I)"); active: backend.view === "installation"; onClicked: backend.setView("installation") }
 
                 Item { Layout.preferredHeight: design.space5 }
             }

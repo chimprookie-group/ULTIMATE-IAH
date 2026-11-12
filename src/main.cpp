@@ -39,9 +39,7 @@
 #include "autopilot.h"
 #include "ecosystem.h"
 #include "iconprovider.h"
-#include "nineroutermanager.h"
 #include "harnessconnections.h"
-#include "mausbotmanager.h"
 #include "terminalsession.h"
 #include "theme.h"
 #include "workspacemodel.h"
@@ -214,7 +212,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.4.11"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -339,8 +337,6 @@ int main(int argc, char *argv[]) {
     DesignTokens design;
 
     TerminalSession terminal;
-    NineRouterManager nineRouter;
-    MausBotManager mausBot;
     HarnessConnections connections;
     MemoryStore memory;
     McpManager mcpManager;
@@ -354,12 +350,11 @@ int main(int argc, char *argv[]) {
     missions.setDshBinary(backend.dshBinary());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
-    ConnectionDoctor connectionDoctor(&backend, &connections, &nineRouter,
-                                      &mausBot, &mcpManager, &memory);
-    InstallationDoctor installation(&backend, &nineRouter, &mausBot, &memory);
-    UltimateAgent ultimateAgent(&backend, &connections, &nineRouter, &mausBot,
-                                &mcpManager, &memory, &skills, &agents, &missions,
-                                &terminal, &installation, &connectionDoctor);
+    ConnectionDoctor connectionDoctor(&backend, &connections, &mcpManager, &memory);
+    InstallationDoctor installation(&backend, &memory);
+    UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
+                                &skills, &agents, &missions, &terminal,
+                                &installation, &connectionDoctor);
     autopilot.setDshBinary(backend.dshBinary());
     WorkspaceModel workspaceModel;
     Ecosystem ecosystem;
@@ -372,8 +367,6 @@ int main(int argc, char *argv[]) {
     QObject::connect(&backend, &Backend::dshBinaryChanged, &autopilot, [&backend, &autopilot] {
         autopilot.setDshBinary(backend.dshBinary());
     });
-    QObject::connect(&connections, &HarnessConnections::deepSeekChanged, &nineRouter,
-                     [&nineRouter] { nineRouter.syncDeepSeekFromDsh(); });
     QObject::connect(&backend, &Backend::dshBinaryChanged, &missions, [&backend, &missions] {
         missions.setDshBinary(backend.dshBinary());
     });
@@ -388,8 +381,6 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("design", &design);
     engine.rootContext()->setContextProperty("terminal", &terminal);
-    engine.rootContext()->setContextProperty("nineRouter", &nineRouter);
-    engine.rootContext()->setContextProperty("mausBot", &mausBot);
     engine.rootContext()->setContextProperty("connections", &connections);
     engine.rootContext()->setContextProperty("memory", &memory);
     engine.rootContext()->setContextProperty("mcpManager", &mcpManager);

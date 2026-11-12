@@ -6,13 +6,11 @@
 #include <functional>
 
 class Backend;
-class MausBotManager;
 class MemoryStore;
-class NineRouterManager;
 
 // Full-install audit: system DSH runtime, Node/npm/Python/PyYAML, QtWebEngine,
-// portal, 9Router, MausBot, memory MCP, desktop entry and writable app data.
-// It can perform user-level installs and the existing pkexec dependency action.
+// portal, memory MCP, desktop entries and writable app data. It can perform
+// user-level installs and the existing pkexec dependency action.
 class InstallationDoctor : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList checks READ checks NOTIFY changed)
@@ -26,8 +24,7 @@ class InstallationDoctor : public QObject {
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 
 public:
-    InstallationDoctor(Backend *backend, NineRouterManager *nineRouter,
-                       MausBotManager *mausBot, MemoryStore *memory,
+    InstallationDoctor(Backend *backend, MemoryStore *memory,
                        QObject *parent = nullptr);
 
     QVariantList checks() const { return m_checks; }
@@ -43,9 +40,6 @@ public:
     Q_INVOKABLE void check();
     Q_INVOKABLE void installSystemDependencies();
     Q_INVOKABLE void installDsh();
-    Q_INVOKABLE void installNineRouter();
-    Q_INVOKABLE void installMausBot();
-    Q_INVOKABLE void startServices();
 
 signals:
     void changed();
@@ -63,8 +57,6 @@ private:
     QString probe(const QString &program, const QStringList &args) const;
 
     Backend *m_backend = nullptr;
-    NineRouterManager *m_nineRouter = nullptr;
-    MausBotManager *m_mausBot = nullptr;
     MemoryStore *m_memory = nullptr;
     QVariantList m_checks;
     int m_passed = 0;

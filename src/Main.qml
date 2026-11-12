@@ -28,10 +28,8 @@ ApplicationWindow {
     readonly property real contentWidth: width - sidebarWidth
     readonly property string viewTitle: {
         if (backend.view === "home") return qsTr("Cockpit")
-        if (backend.view === "ecosystem") return qsTr("Projet")
+        if (backend.view === "ecosystem") return qsTr("Écosystème")
         if (backend.view === "workspace") return qsTr("Fichiers")
-        if (backend.view === "ninerouter") return "9Router"
-        if (backend.view === "mausbot") return "MausBot"
         if (backend.view === "harness") return qsTr("Harness")
         if (backend.view === "terminal") return qsTr("Terminal agent")
         if (backend.view === "connections") return qsTr("Connexions")
@@ -103,7 +101,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Cockpit"), "Ctrl+0", "view:home", "icons/home.svg")
         add(qsTr("Navigation"), qsTr("Harness"), "Ctrl+1", "view:harness", "icons/harness.svg")
         add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
-        add(qsTr("Navigation"), qsTr("Projet"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
+        add(qsTr("Navigation"), qsTr("Écosystème"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
         add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
@@ -112,8 +110,6 @@ ApplicationWindow {
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Autopilote"), "Ctrl+Alt+A", "view:autopilot", "icons/reload.svg")
-        add(qsTr("Navigation"), "9Router", "Ctrl+9", "view:ninerouter", "icons/router.svg")
-        add(qsTr("Navigation"), "MausBot", "Ctrl+Shift+M", "view:mausbot", "icons/mausbot.svg")
         add(qsTr("Navigation"), qsTr("Réglages"), "Ctrl+4", "view:settings", "icons/gear.svg")
 
         add(qsTr("Actions"), qsTr("Restart the harness"), "Ctrl+R", "action:restart-harness", "icons/reload.svg")
@@ -192,8 +188,6 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+Alt+I"; context: Qt.ApplicationShortcut; onActivated: backend.setView("installation") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
-    Shortcut { sequence: "Ctrl+9"; context: Qt.ApplicationShortcut; onActivated: backend.setView("ninerouter") }
-    Shortcut { sequence: "Ctrl+Shift+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("mausbot") }
     Shortcut {
         sequence: "Ctrl+K"
         context: Qt.ApplicationShortcut
@@ -428,7 +422,6 @@ ApplicationWindow {
                              && backend.view !== "memory" && backend.view !== "autopilot"
                              && backend.view !== "mcp" && backend.view !== "agents"
                              && backend.view !== "installation" && backend.view !== "agent"
-                             && backend.view !== "ninerouter" && backend.view !== "mausbot"
 
                     HarnessPane {
                         id: harnessPane
@@ -489,16 +482,6 @@ ApplicationWindow {
                 AutopilotPane {
                     anchors.fill: parent
                     visible: backend.view === "autopilot"
-                }
-
-                NineRouterPane {
-                    anchors.fill: parent
-                    visible: backend.view === "ninerouter"
-                }
-
-                MausBotPane {
-                    anchors.fill: parent
-                    visible: backend.view === "mausbot"
                 }
 
                 WorkspacePane {
@@ -572,8 +555,7 @@ ApplicationWindow {
                     model: [
                         { label: "Harness", color: win.stateColor(backend.harnessState) },
                         { label: "Terminal", color: terminal.running ? theme.green : theme.dimText },
-                        { label: "9Router", color: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText) },
-                        { label: "MausBot", color: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText) }
+                        { label: "Agent", color: connections.deepseekConfigured ? theme.green : theme.dimText }
                     ]
                     Row {
                         spacing: design.space2

@@ -1,9 +1,7 @@
 #include "installationdoctor.h"
 
 #include "backend.h"
-#include "mausbotmanager.h"
 #include "memorystore.h"
-#include "nineroutermanager.h"
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -12,11 +10,9 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 
-InstallationDoctor::InstallationDoctor(Backend *backend, NineRouterManager *nineRouter,
-                                       MausBotManager *mausBot, MemoryStore *memory,
+InstallationDoctor::InstallationDoctor(Backend *backend, MemoryStore *memory,
                                        QObject *parent)
-    : QObject(parent), m_backend(backend), m_nineRouter(nineRouter),
-      m_mausBot(mausBot), m_memory(memory) {}
+    : QObject(parent), m_backend(backend), m_memory(memory) {}
 
 QString InstallationDoctor::probe(const QString &program, const QStringList &args) const {
     if (program.isEmpty())
@@ -90,23 +86,6 @@ void InstallationDoctor::check() {
         portal ? tr("xdg-desktop-portal disponible") : tr("portail absent"),
         portal ? QString() : tr("Installez xdg-desktop-portal pour le choix de dossier."));
 
-    if (m_nineRouter) {
-        add(tr("9Router"), tr("Installation"), m_nineRouter->installed(),
-            m_nineRouter->installed()
-                ? (m_nineRouter->version().isEmpty() ? tr("installé") : tr("installé · v%1").arg(m_nineRouter->version()))
-                : tr("non installé"),
-            m_nineRouter->installed() ? QString() : tr("Utilisez « Installer 9Router »."));
-        add(tr("9Router"), tr("Service"), m_nineRouter->running(),
-            m_nineRouter->detail(), m_nineRouter->running() ? QString() : tr("Démarrez les services."));
-    }
-    if (m_mausBot) {
-        add(tr("MausBot"), tr("Installation"), m_mausBot->installed(),
-            m_mausBot->installed() ? tr("installé") : tr("non installé"),
-            m_mausBot->installed() ? QString() : tr("Utilisez « Installer MausBot »."));
-        add(tr("MausBot"), tr("Service"), m_mausBot->running(),
-            m_mausBot->detail(), m_mausBot->running() ? QString() : tr("Démarrez les services."));
-    }
-
     const QString config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     const QString data = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     add(tr("Données"), tr("Dossier de configuration"), QFileInfo(config).isWritable(), config);
@@ -170,8 +149,20 @@ void InstallationDoctor::runAction(const QString &label, const QString &program,
 }
 
 void InstallationDoctor::installSystemDependencies() {
-    if (m_nineRouter)
-        m_nineRouter->installDependencies();
+    const QString pkexec = QStandardPaths::findExecutable(QStringLiteral("pkexec"));
+    const QString pacman = QStandardPaths::findExecutable(QStringLiteral("pacman"));
+    if (pkexec.isEmpty() || pacman.isEmpty()) {
+        setError(tr("pkexec ou pacman est introuvable."));
+        return;
+    }
+    runAction(tr("Installation des dépendances système"), pkexec,
+              {pacman, QStringLiteral("-S"), QStringLiteral("--needed"), QStringLiteral("--noconfirm"),
+               QStringLiteral("qt6-base"), QStringLiteral("qt6-declarative"),
+               QStringLiteral("qt6-webengine"), QStringLiteral("qt6-webchannel"),
+               QStringLiteral("qt6-wayland"), QStringLiteral("qt6-svg"),
+               QStringLiteral("nodejs"), QStringLiteral("npm"), QStringLiteral("python"),
+               QStringLiteral("python-yaml"), QStringLiteral("git"), QStringLiteral("xdg-utils"),
+               QStringLiteral("polkit"), QStringLiteral("xdg-desktop-portal")});
 }
 
 void InstallationDoctor::installDsh() {
@@ -189,23 +180,6 @@ void InstallationDoctor::installDsh() {
                   if (ok)
                       m_backend->setDshBinary(prefix + "/node_modules/.bin/dsh");
               });
-}
-
-void InstallationDoctor::installNineRouter() {
-    if (m_nineRouter && !m_nineRouter->installed())
-        m_nineRouter->install();
-}
-
-void InstallationDoctor::installMausBot() {
-    if (m_mausBot && !m_mausBot->installed())
-        m_mausBot->install();
-}
-
-void InstallationDoctor::startServices() {
-    if (m_nineRouter)
-        m_nineRouter->start();
-    if (m_mausBot)
-        m_mausBot->start();
 }
 
 void InstallationDoctor::setError(const QString &error) {

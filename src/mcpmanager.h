@@ -6,8 +6,8 @@
 
 // Native management of DeepSeek Harness MCP servers. Configurations are kept
 // in a private JSON file and compiled into an mcp-servers.patch.yml overlay
-// consumed by HarnessServer. Built-in memory and MausBot bridges stay managed
-// by their owners and are shown read-only.
+// consumed by HarnessServer. The built-in memory bridge stays managed by its
+// owner and is shown read-only.
 class McpManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList servers READ servers NOTIFY changed)

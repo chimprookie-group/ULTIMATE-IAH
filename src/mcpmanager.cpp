@@ -188,13 +188,6 @@ void McpManager::rebuildBuiltins() {
         {"transport", "stdio"},
         {"active", QFileInfo::exists(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/mcp-memory.patch.yml")},
     });
-    builtins.append(QVariantMap{
-        {"name", "openmausbot"},
-        {"label", tr("MausBot")},
-        {"detail", tr("Équipe OpenMausBot via MCP stdio")},
-        {"transport", "stdio"},
-        {"active", QFileInfo::exists(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/openmausbot.patch.yml")},
-    });
     m_builtins = builtins;
 }
 
