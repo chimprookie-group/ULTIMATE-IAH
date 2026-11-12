@@ -850,5 +850,9 @@
   "État du système": "System status",
   "écrire un fichier": "write a file",
   "Ouvrir en grand": "Open full chat",
-  "Fermer": "Close"
+  "Fermer": "Close",
+  "Choisir un fichier": "Choose a file",
+  "Choisir un dossier": "Choose a folder",
+  "Tous les fichiers (*)": "All files (*)",
+  "Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)": "Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"
 }

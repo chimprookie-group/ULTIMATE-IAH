@@ -52,6 +52,12 @@ Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité
 
 ![Ultimate Agent en dock](assets/screenshot-agent-dock.png)
 
+## Raccourci DeepSeek Harness
+
+Le paquet installe aussi un lanceur **DeepSeek Harness** qui ouvre directement la
+vue harness d'Ultimate HAI, avec le nouveau logo. L'ancien lanceur Crasy reste
+masqué pour éviter l'ancienne icône.
+
 ## Connexions et MCP
 
 ![Connexions](assets/screenshot-connections.png)
@@ -117,7 +123,7 @@ Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.4.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.4.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

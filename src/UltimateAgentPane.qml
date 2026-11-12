@@ -121,7 +121,8 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
                 anchors.rightMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
-                anchors.topMargin: design.space4
+                anchors.topMargin: root.empty ? 0 : Math.max(design.space4,
+                    parent.height - messageList.contentHeight - design.space3)
                 anchors.bottomMargin: design.space3
                 clip: true
                 spacing: design.space3

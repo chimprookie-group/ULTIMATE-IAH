@@ -850,5 +850,9 @@
   "État du système": "État du système",
   "écrire un fichier": "écrire un fichier",
   "Ouvrir en grand": "Ouvrir en grand",
-  "Fermer": "Fermer"
+  "Fermer": "Fermer",
+  "Choisir un fichier": "Choisir un fichier",
+  "Choisir un dossier": "Choisir un dossier",
+  "Tous les fichiers (*)": "Tous les fichiers (*)",
+  "Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)": "Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"
 }

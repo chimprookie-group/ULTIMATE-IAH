@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=DeepSeek Harness
+Name[fr]=DeepSeek Harness
+Comment=Open the DeepSeek Harness inside Ultimate HAI
+Comment[fr]=Ouvrir le DeepSeek Harness dans Ultimate HAI
+Exec=ultimate-hai --view harness %f
+Icon=ultimate-hai
+Terminal=false
+Categories=Development;
+Keywords=ai;agent;harness;terminal;code;deepseek;dsh;
+StartupWMClass=ultimate-hai

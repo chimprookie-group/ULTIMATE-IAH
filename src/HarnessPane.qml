@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtWebEngine
+import QtQuick.Dialogs
 
 
 Item {
@@ -13,6 +14,64 @@ Item {
     readonly property var web: webLoader.item
     readonly property bool webLoading: web ? web.loading : false
     readonly property real webProgress: web ? web.loadProgress : 0
+    property var pendingFileRequest: null
+
+    function cleanLocalUrl(value) {
+        let text = String(value)
+        if (text.startsWith("file://"))
+            text = text.substring(7)
+        try { return decodeURIComponent(text) } catch (e) { return text }
+    }
+
+    function requestFileDialog(request) {
+        pendingFileRequest = request
+        if (request.mode === 2) {
+            folderDialog.open()
+            return
+        }
+        fileDialog.fileMode = request.mode === 1 ? FileDialog.OpenFiles
+                            : request.mode === 3 ? FileDialog.SaveFile
+                                                 : FileDialog.OpenFile
+        const mime = request.acceptedMimeTypes.join(" ")
+        fileDialog.nameFilters = mime.indexOf("image") >= 0
+            ? ["Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)", "Tous les fichiers (*)"]
+            : ["Tous les fichiers (*)"]
+        fileDialog.open()
+    }
+
+    FileDialog {
+        id: fileDialog
+        title: qsTr("Choisir un fichier")
+        onAccepted: {
+            if (pendingFileRequest) {
+                pendingFileRequest.dialogAccept(selectedFiles.map(function (url) { return root.cleanLocalUrl(url) }))
+                pendingFileRequest = null
+            }
+        }
+        onRejected: {
+            if (pendingFileRequest) {
+                pendingFileRequest.dialogReject()
+                pendingFileRequest = null
+            }
+        }
+    }
+
+    FolderDialog {
+        id: folderDialog
+        title: qsTr("Choisir un dossier")
+        onAccepted: {
+            if (pendingFileRequest) {
+                pendingFileRequest.dialogAccept([root.cleanLocalUrl(selectedFolder)])
+                pendingFileRequest = null
+            }
+        }
+        onRejected: {
+            if (pendingFileRequest) {
+                pendingFileRequest.dialogReject()
+                pendingFileRequest = null
+            }
+        }
+    }
 
     function ensureProfile() {
         if (!profile)
@@ -280,6 +339,10 @@ Item {
             settings.javascriptEnabled: true
             settings.localStorageEnabled: true
             settings.fullScreenSupportEnabled: true
+
+            onFileDialogRequested: function (request) {
+                root.requestFileDialog(request)
+            }
 
             onLoadingChanged: function (request) {
                 if (request.status === WebEngineView.LoadFailedStatus)
