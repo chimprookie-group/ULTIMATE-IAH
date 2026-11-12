@@ -35,7 +35,7 @@ Item {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 34
+            Layout.preferredHeight: 44
             color: theme.background
 
             Rectangle {
@@ -47,9 +47,9 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 8
-                spacing: 8
+                anchors.leftMargin: design.space4
+                anchors.rightMargin: design.space2
+                spacing: design.space2
 
                 StatusDot {
                     color: win.stateColor(backend.harnessState)

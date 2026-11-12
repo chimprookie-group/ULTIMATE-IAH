@@ -6,6 +6,7 @@ TARGET = ultimate-hai
 TEMPLATE = app
 
 HEADERS += \
+    src/designtokens.h \
     src/backend.h \
     src/config.h \
     src/ecosystem.h \
@@ -29,6 +30,7 @@ HEADERS += \
 
 SOURCES += \
     src/main.cpp \
+    src/designtokens.cpp \
     src/backend.cpp \
     src/config.cpp \
     src/ecosystem.cpp \

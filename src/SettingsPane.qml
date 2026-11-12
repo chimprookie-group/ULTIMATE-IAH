@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Item {
     id: root
 
-    readonly property int contentWidth: Math.max(340, Math.min(980, width - 64))
+    readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
 
     function stateColor(state) {
         if (state === "running")
@@ -26,34 +26,18 @@ Item {
 
         ColumnLayout {
             width: root.contentWidth
-            x: Math.max(24, (parent.width - width) / 2)
-            spacing: 14
+            x: Math.max(design.space5, (parent.width - width) / 2)
+            spacing: design.space5
 
-            Item { Layout.fillWidth: true; Layout.preferredHeight: 26 }
+            Item { Layout.fillWidth: true; Layout.preferredHeight: design.space4 }
 
-            RowLayout {
+            PageHeader {
                 Layout.fillWidth: true
-                spacing: 14
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    Text {
-                        text: qsTr("Réglages")
-                        color: theme.brightText
-                        font.family: "iA Writer Duospace"
-                        font.pixelSize: 26
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        text: qsTr("Le harness, son terminal et votre espace de travail.")
-                        color: theme.mutedText
-                        font.pixelSize: 11
-                    }
-                }
-                ActionButton {
-                    text: qsTr("Retour au cockpit")
-                    onClicked: backend.setView("home")
-                }
+                title: qsTr("Réglages")
+                description: qsTr("Le harness, son terminal, les agents et votre espace de travail.")
+                icon: "icons/sliders.svg"
+                accent: theme.mutedText
+                ActionButton { text: qsTr("Retour au cockpit"); onClicked: backend.setView("home") }
             }
 
             SettingsSection {

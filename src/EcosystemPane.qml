@@ -60,41 +60,12 @@ Item {
             bottomPadding: 32
             spacing: 14
 
-            RowLayout {
+            PageHeader {
                 width: parent.width
-                spacing: 14
-                Item {
-                    width: 56
-                    height: 56
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 54
-                        height: 54
-                        radius: 27
-                        color: theme.accent
-                        opacity: 0.1
-                    }
-                    ThemedIcon { anchors.centerIn: parent; source: "icons/ecosystem.svg"; width: 24; height: 24; color: theme.accent }
-                }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    Text {
-                        text: qsTr("Projet")
-                        color: theme.brightText
-                        font.family: "iA Writer Duospace"
-                        font.pixelSize: 26
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Le projet, ses outils, ses skills et le contexte à confier au harness.")
-                        color: theme.mutedText
-                        font.pixelSize: 11
-                        wrapMode: Text.Wrap
-                    }
-                }
-                Button { text: qsTr("Rafraîchir"); flat: true; onClicked: root.refresh(true) }
+                title: qsTr("Projet")
+                description: qsTr("Le projet, ses outils, ses skills et le contexte à confier au harness.")
+                icon: "icons/branch.svg"
+                ActionButton { text: qsTr("Rafraîchir"); onClicked: root.refresh(true) }
             }
 
             Flow {

@@ -10,6 +10,8 @@
         <file>EcosystemPane.qml</file>
         <file>ConnectionsPane.qml</file>
         <file>McpPane.qml</file>
+        <file>PageHeader.qml</file>
+        <file>SidebarGroup.qml</file>
         <file>AgentsPane.qml</file>
         <file>MemoryPane.qml</file>
         <file>AutopilotPane.qml</file>
@@ -45,6 +47,7 @@
         <file>icons/close.svg</file>
         <file>icons/check.svg</file>
         <file>icons/chevron.svg</file>
+        <file>icons/chevron-left.svg</file>
         <file>icons/spark.svg</file>
         <file>icons/copy.svg</file>
         <file>icons/pencil.svg</file>
@@ -65,6 +68,22 @@
         <file>icons/trash.svg</file>
         <file>icons/globe.svg</file>
         <file>icons/alert.svg</file>
+        <file>icons/sliders.svg</file>
+        <file>icons/skill.svg</file>
+        <file>icons/shield.svg</file>
+        <file>icons/power.svg</file>
+        <file>icons/play.svg</file>
+        <file>icons/pin.svg</file>
+        <file>icons/pause.svg</file>
+        <file>icons/mission.svg</file>
+        <file>icons/menu.svg</file>
+        <file>icons/memory.svg</file>
+        <file>icons/mcp.svg</file>
+        <file>icons/database.svg</file>
+        <file>icons/connections.svg</file>
+        <file>icons/command.svg</file>
+        <file>icons/autopilot.svg</file>
+        <file>icons/agents.svg</file>
         <file>TerminalPage.qml</file>
         <file>terminal/index.html</file>
         <file>terminal/xterm.js</file>

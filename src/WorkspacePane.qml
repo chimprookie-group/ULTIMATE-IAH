@@ -124,7 +124,7 @@ Item {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 44
+            Layout.preferredHeight: 48
             color: theme.background
 
             Rectangle {
@@ -136,14 +136,14 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 18
-                anchors.rightMargin: 14
-                spacing: 8
+                anchors.leftMargin: design.space5
+                anchors.rightMargin: design.space4
+                spacing: design.space2
 
                 Text {
-                    text: qsTr("Workspace")
+                    text: qsTr("Fichiers")
                     color: theme.text
-                    font.pixelSize: 12
+                    font.pixelSize: design.textBody
                     font.weight: Font.DemiBold
                 }
                 Text {

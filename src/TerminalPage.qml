@@ -121,7 +121,7 @@ Item {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 34
+            Layout.preferredHeight: 50
             color: theme.background
 
             Rectangle {
@@ -133,9 +133,9 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 8
-                spacing: 8
+                anchors.leftMargin: design.space4
+                anchors.rightMargin: design.space2
+                spacing: design.space2
 
                 StatusDot {
                     color: terminal.running ? theme.green : theme.dimText
@@ -143,7 +143,7 @@ Item {
                 Text {
                     text: qsTr("Terminal")
                     color: theme.text
-                    font.pixelSize: 11
+                    font.pixelSize: design.textBody
                     font.weight: Font.DemiBold
                 }
                 Text {
@@ -151,7 +151,7 @@ Item {
                     text: terminal.shell.substring(terminal.shell.lastIndexOf("/") + 1) + " · " + backend.workspace
                     color: theme.dimText
                     font.family: backend.monoFont
-                    font.pixelSize: 9
+                    font.pixelSize: design.textCaption
                     elide: Text.ElideMiddle
                 }
 
@@ -182,9 +182,9 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 8
-                spacing: 8
+                anchors.leftMargin: design.space4
+                anchors.rightMargin: design.space2
+                spacing: design.space2
 
                 ThemedIcon {
                     source: "icons/harness.svg"
@@ -197,7 +197,7 @@ Item {
                     Layout.fillWidth: true
                     placeholderText: qsTr("Confier une tâche au harness dans ce terminal…")
                     color: theme.text
-                    font.pixelSize: 10
+                    font.pixelSize: design.textLabel
                     selectByMouse: true
                     onAccepted: root.runAgentTask()
                     background: Rectangle {

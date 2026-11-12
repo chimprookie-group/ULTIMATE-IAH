@@ -1,8 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 
-// A themed panel in the cockpit. Children added to the card land in its body
-// column, under the title and divider.
 Rectangle {
     id: root
 
@@ -14,50 +12,36 @@ Rectangle {
     default property alias content: body.data
 
     width: cardWidth
-    implicitHeight: body.implicitHeight + 36
+    implicitHeight: body.implicitHeight + design.space6
     height: implicitHeight
-    radius: Math.min(14, theme.radius)
+    radius: design.radiusLg
     color: theme.raised
     border.width: 1
     border.color: hover.hovered ? theme.borderStrong : theme.border
-    Behavior on border.color { ColorAnimation { duration: 100 } }
+    Behavior on border.color { ColorAnimation { duration: design.durationFast } }
 
     ColumnLayout {
         id: body
-        x: 18
-        y: 17
-        width: parent.width - 36
-        spacing: 10
+        x: design.space5
+        y: design.space4
+        width: parent.width - design.space8
+        spacing: design.space2
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 7
-
-            ThemedIcon {
-                source: root.icon
-                width: 13
-                height: 13
-                color: root.accent
-            }
+            spacing: design.space2
+            Rectangle { width: 3; height: 12; radius: 2; color: root.accent }
+            ThemedIcon { source: root.icon; width: design.iconSm; height: design.iconSm; color: root.accent }
             Text {
                 Layout.fillWidth: true
                 text: root.title
                 color: theme.text
-                font.pixelSize: 12
+                font.pixelSize: design.textBodyLarge
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
-            Item { Layout.fillWidth: true }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: theme.border
         }
     }
 
-    HoverHandler {
-        id: hover
-    }
+    HoverHandler { id: hover }
 }

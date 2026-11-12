@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Item {
     id: root
 
-    readonly property int contentWidth: Math.max(340, Math.min(1000, width - 64))
+    readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
 
     function startMission() {
         if (missionTask.text.trim() === "") {
@@ -67,38 +67,17 @@ Item {
 
         ColumnLayout {
             width: root.contentWidth
-            x: Math.max(24, (parent.width - width) / 2)
-            spacing: 14
+            x: Math.max(design.space5, (parent.width - width) / 2)
+            spacing: design.space5
 
-            Item { Layout.fillWidth: true; Layout.preferredHeight: 26 }
+            Item { Layout.fillWidth: true; Layout.preferredHeight: design.space4 }
 
-            RowLayout {
+            PageHeader {
                 Layout.fillWidth: true
-                spacing: 14
-                Item {
-                    width: 54
-                    height: 54
-                    Rectangle { anchors.centerIn: parent; width: 52; height: 52; radius: 26; color: theme.accent; opacity: 0.12 }
-                    ThemedIcon { anchors.centerIn: parent; source: "icons/harness.svg"; width: 22; height: 22; color: theme.accent }
-                }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    Text {
-                        text: qsTr("Agents")
-                        color: theme.brightText
-                        font.family: "iA Writer Duospace"
-                        font.pixelSize: 26
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Planifier, exécuter, relire : une mission orchestrée par plusieurs rôles.")
-                        color: theme.mutedText
-                        font.pixelSize: 11
-                        wrapMode: Text.Wrap
-                    }
-                }
+                title: qsTr("Agents")
+                description: qsTr("Planifier, exécuter, relire : une mission orchestrée par plusieurs rôles, avec mémoire et vérification.")
+                icon: "icons/agents.svg"
+                accent: theme.accent
             }
 
             Rectangle {
@@ -335,6 +314,47 @@ Item {
             }
 
             SettingsSection {
+                title: qsTr("Profils d'agents")
+                Layout.fillWidth: true
+
+                Repeater {
+                    model: agents.profiles
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.role; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
+                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                        }
+                        Button {
+                            visible: !modelData.builtin
+                            text: qsTr("Supprimer")
+                            flat: true
+                            font.pixelSize: 8
+                            onClicked: agents.removeProfile(modelData.id)
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    SettingsField { id: profileName; Layout.preferredWidth: 170; placeholderText: qsTr("Nom du profil") }
+                    SettingsField { id: profilePrompt; Layout.fillWidth: true; placeholderText: qsTr("Prompt du rôle personnalisé") }
+                    ActionButton { text: qsTr("Ajouter"); onClicked: root.addProfile() }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    visible: agents.error !== ""
+                    text: agents.error
+                    color: theme.red
+                    font.pixelSize: 9
+                }
+            }
+
+            SettingsSection {
                 title: qsTr("Skills")
                 Layout.fillWidth: true
 
@@ -360,14 +380,16 @@ Item {
                         Button {
                             text: qsTr("Utiliser")
                             flat: true
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
+                            implicitHeight: design.controlHeightSm
                             onClicked: missionTask.text = qsTr("Utilise le skill « %1 » (%2) pour cette mission.").arg(modelData.name).arg(modelData.path)
                         }
                         Button {
                             visible: modelData.scope === "user"
                             text: qsTr("Supprimer")
                             flat: true
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
+                            implicitHeight: design.controlHeightSm
                             onClicked: skills.removeSkill(modelData.id)
                         }
                     }
@@ -408,47 +430,6 @@ Item {
                         font.pixelSize: 8
                     }
                     ActionButton { text: qsTr("Créer le skill"); onClicked: root.addSkill() }
-                }
-            }
-
-            SettingsSection {
-                title: qsTr("Profils d'agents")
-                Layout.fillWidth: true
-
-                Repeater {
-                    model: agents.profiles
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 7
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 1
-                            Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.role; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
-                        }
-                        Button {
-                            visible: !modelData.builtin
-                            text: qsTr("Supprimer")
-                            flat: true
-                            font.pixelSize: 8
-                            onClicked: agents.removeProfile(modelData.id)
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-                    SettingsField { id: profileName; Layout.preferredWidth: 170; placeholderText: qsTr("Nom du profil") }
-                    SettingsField { id: profilePrompt; Layout.fillWidth: true; placeholderText: qsTr("Prompt du rôle personnalisé") }
-                    ActionButton { text: qsTr("Ajouter"); onClicked: root.addProfile() }
-                }
-                Text {
-                    Layout.fillWidth: true
-                    visible: agents.error !== ""
-                    text: agents.error
-                    color: theme.red
-                    font.pixelSize: 9
                 }
             }
         }

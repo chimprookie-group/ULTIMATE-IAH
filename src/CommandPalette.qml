@@ -89,33 +89,34 @@ Item {
     }
 
     Rectangle {
-        width: Math.min(640, parent.width - 64)
-        height: Math.min(560, parent.height - 100)
+        width: Math.min(680, parent.width - design.space8)
+        height: Math.min(580, parent.height - design.space8 * 2)
         anchors.centerIn: parent
-        radius: Math.min(14, theme.radius)
+        radius: design.radiusLg
         color: theme.surface
         border.width: 1
         border.color: theme.borderStrong
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 10
+            anchors.margins: design.space5
+            spacing: design.space3
 
             RowLayout {
                 Layout.fillWidth: true
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Commands")
+                    text: qsTr("Commandes")
                     color: theme.brightText
-                    font.pixelSize: 15
+                    font.family: "iA Writer Duospace"
+                    font.pixelSize: design.textTitle
                     font.weight: Font.DemiBold
                 }
                 Rectangle {
-                    implicitWidth: 34
-                    height: 20
-                    radius: 5
+                    implicitWidth: 38
+                    height: 22
+                    radius: design.radiusSm
                     color: theme.chip
                     border.width: 1
                     border.color: theme.border
@@ -131,22 +132,22 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 38
-                radius: Math.min(8, theme.radius)
+                height: 44
+                radius: design.radiusSm
                 color: theme.background
                 border.width: 1
                 border.color: search.activeFocus ? theme.accent : theme.border
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 11
-                    anchors.rightMargin: 11
-                    spacing: 8
+                    anchors.leftMargin: design.space3
+                    anchors.rightMargin: design.space3
+                    spacing: design.space2
 
                     ThemedIcon {
                         source: "icons/search.svg"
-                        width: 14
-                        height: 14
+                        width: design.iconMd
+                        height: design.iconMd
                         color: theme.mutedText
                     }
 
@@ -158,7 +159,7 @@ Item {
                             id: search
                             anchors.fill: parent
                             color: theme.text
-                            font.pixelSize: 13
+                            font.pixelSize: design.textBodyLarge
                             selectionColor: theme.accent
                             selectedTextColor: theme.accentForeground
                             clip: true
@@ -186,7 +187,7 @@ Item {
                             visible: search.text.length === 0
                             text: qsTr("Search an action, a theme, a session…")
                             color: theme.dimText
-                            font.pixelSize: 13
+                            font.pixelSize: design.textBodyLarge
                         }
                     }
                 }
@@ -206,29 +207,29 @@ Item {
                 delegate: Rectangle {
                     id: row
                     width: ListView.view.width
-                    height: 42
-                    radius: Math.min(8, theme.radius)
+                    height: 46
+                    radius: design.radiusSm
                     color: ListView.isCurrentItem ? theme.menuSelected : (rowMouse.containsMouse ? theme.menuHover : "transparent")
                     border.width: ListView.isCurrentItem ? 1 : 0
                     border.color: theme.borderStrong
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
-                        spacing: 9
+                        anchors.leftMargin: design.space3
+                        anchors.rightMargin: design.space3
+                        spacing: design.space3
 
                         ThemedIcon {
                             source: modelData.icon !== undefined ? modelData.icon : "icons/spark.svg"
-                            width: 14
-                            height: 14
+                            width: design.iconMd
+                            height: design.iconMd
                             color: theme.mutedText
                         }
                         Text {
                             Layout.fillWidth: true
                             text: modelData.label
                             color: theme.text
-                            font.pixelSize: 12
+                            font.pixelSize: design.textBody
                             elide: Text.ElideRight
                         }
                         Text {
@@ -267,7 +268,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("↑↓ navigate · Enter run · Esc close")
+                text: qsTr("↑↓ naviguer · Entrée exécuter · Échap fermer")
                 color: theme.dimText
                 font.pixelSize: 8
                 horizontalAlignment: Text.AlignRight

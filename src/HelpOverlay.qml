@@ -44,28 +44,29 @@ Item {
     }
 
     Rectangle {
-        width: Math.min(600, parent.width - 64)
-        height: card.implicitHeight + 44
+        width: Math.min(640, parent.width - design.space8)
+        height: card.implicitHeight + design.space8
         anchors.centerIn: parent
-        radius: Math.min(14, theme.radius)
+        radius: design.radiusLg
         color: theme.surface
         border.width: 1
         border.color: theme.borderStrong
 
         ColumnLayout {
             id: card
-            x: 22
-            y: 22
-            width: parent.width - 44
-            spacing: 10
+            x: design.space5
+            y: design.space5
+            width: parent.width - design.space8 * 2
+            spacing: design.space3
 
             RowLayout {
                 Layout.fillWidth: true
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Keyboard")
-                    font.pixelSize: 16
+                    text: qsTr("Raccourcis")
+                    font.family: "iA Writer Duospace"
+                    font.pixelSize: design.textTitle
                     font.weight: Font.DemiBold
                     color: theme.text
                 }
@@ -94,11 +95,11 @@ Item {
                 model: root.rows
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 14
+                    spacing: design.space3
 
                     Rectangle {
-                        Layout.preferredWidth: 104
-                        height: 21
+                        Layout.preferredWidth: 112
+                        height: design.controlHeightSm
                         radius: Math.min(5, theme.radius)
                         color: theme.raised
                         border.width: 1
@@ -107,7 +108,7 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.keys
                             font.family: backend.monoFont
-                            font.pixelSize: 10
+                            font.pixelSize: design.textCaption
                             color: theme.text
                         }
                     }

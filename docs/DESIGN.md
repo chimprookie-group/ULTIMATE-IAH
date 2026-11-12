@@ -1,32 +1,44 @@
 # Direction visuelle — Ultimate HAI
 
-**But** : un poste de pilotage pour développeur qui fait tourner plusieurs agents locaux.
-**Public** : utilisateur Omarchy qui veut voir, lancer et connecter ses agents sans perdre le fil.
-**Ton** : instrument de précision, calme, dense, éditorial — pas un dashboard SaaS.
-**Mémorable** : la colonne « Services » vivante à droite du cockpit, chaque agent avec son état,
-son modèle et une action immédiate.
-**Mode** : opérer. La densité est volontaire ; les espaces respirent par groupes, pas par cartes isolées.
+## Note
+
+**Ultimate HAI est un instrument de mission, pas un dashboard SaaS.** Il est
+conçu pour un développeur Omarchy qui pilote des agents, des connexions et un
+workspace. Le ton est technique, calme et dense. L'élément mémorable est le
+rail de navigation à spine, doublé d'un en-tête de commandement qui rend
+l'état du harness lisible en un regard. Mode : opérer.
 
 ## Tokens
 
-- **Affichage** : `iA Writer Duospace` pour les titres et chiffres clés ; corps : police Omarchy
-  (`backend.uiFont`) ; données : `backend.monoFont`.
-- **Couleurs** : toutes dérivées du thème Omarchy actif (`theme.background`, `surface`,
-  `raised`, `border`, `text`, `mutedText`, `accent`). Les couleurs sémantiques
-  `green`, `yellow`, `red` servent uniquement aux états.
-- **Espacement** : base 4 px, groupes 8/12/16/24.
-- **Rayons** : 8 px pour les contrôles, 12 px pour les panneaux ; pas de rayon sur les séparateurs.
-- **Ombre** : aucune sur les panneaux ; une seule ombre réservée aux overlays (palette, dialogues).
-- **Mouvement** : une révélation orchestrée de 180 ms à l'ouverture du cockpit ; feedback de survol 100 ms.
-- **Interdits** : gradients décoratifs, glassmorphism, emoji-icônes, cartes identiques en grille,
-  texte gris sur gris, majuscules en eyebrow partout.
+Les tokens vivent dans `designtokens.h` et sont exposés à QML sous `design`.
+
+- Espacement : 4, 8, 12, 16, 20, 24, 32, 40, 48.
+- Rayons : 6 (contrôles), 10 (panneaux), 16 (grandes surfaces), pill.
+- Typographie : `iA Writer Duospace` pour le display, Omarchy pour le corps,
+  `backend.monoFont` pour les données et les labels.
+- Couleurs : uniquement la palette Omarchy active. L'accent sert aux actions et
+  au vivant ; cyan/vert/ambre/rouge aux états. Aucun dégradé décoratif.
+- Icônes : un seul jeu SVG, viewBox 24, trait 1.5, bouts arrondis.
+- Largeurs : rail 236 / 68, en-tête 60, statut 30, contenu max 1180.
 
 ## Structure
 
-1. **Barre latérale groupée** : Atelier / Agents / Intégrations + réglages. Se replie sous 1080 px.
-2. **En-tête** : titre de vue, espace de travail, recherche-commande, split, aide.
-3. **Cockpit** : un bloc de commande large, puis projet et sessions à gauche, services à droite.
-4. **Barre d'état** : branche, quatre services, modèle courant.
+- Rail : marque, workspace, groupes Opérer / Intelligence / Runtime / Réseau,
+  commandes et réglages. Le rail se replie en icônes avec un indicateur actif.
+- En-tête : repli du rail, workspace, fil d'Ariane, palette de commandes,
+  état du harness, aide.
+- Pages : `PageHeader` commun (icône, titre display, description courte,
+  actions), puis des panneaux à hairline.
+- Barre de statut : chemin, branche, état des services.
 
-Les vues spécialisées (Écosystème, Fichiers, Providers, 9Router, MausBot, Réglages) gardent leur contenu
-et sont atteignables depuis la barre latérale et la palette.
+## États
+
+Chaque action a hover, focus visible, disabled et retour. Les vues ont un état
+vide, une erreur et un défilement sans scroll horizontal. Les modales utilisent
+le même fond en encre et une seule bordure.
+
+## Densité
+
+Les écrans sont compacts mais respirants : 1180 px de contenu maximal, deux
+colonnes asymétriques sur le cockpit, une colonne à 760 px. Le seuil de largeur
+minimale est 760 px pour cette application de bureau.

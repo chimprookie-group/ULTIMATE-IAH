@@ -1,8 +1,5 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
-
 
 Rectangle {
     id: root
@@ -10,28 +7,34 @@ Rectangle {
     default property alias content: column.data
 
     Layout.fillWidth: true
-    implicitHeight: column.implicitHeight + 40
+    implicitHeight: column.implicitHeight + design.space8
     color: theme.raised
-    radius: Math.min(12, theme.radius)
+    radius: design.radiusLg
     border.width: 1
     border.color: theme.border
 
     ColumnLayout {
         id: column
-        x: 18
-        y: 17
-        width: parent.width - 36
-        spacing: 10
+        x: design.space5
+        y: design.space4
+        width: parent.width - design.space8
+        spacing: design.space3
 
-        Text {
-            text: root.title
-            font.pixelSize: 12
-            font.weight: Font.DemiBold
-            color: theme.text
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: design.space2
+            Rectangle { width: 3; height: 12; radius: 2; color: theme.accent }
+            Text {
+                Layout.fillWidth: true
+                text: root.title
+                font.pixelSize: design.textLabel
+                font.weight: Font.DemiBold
+                color: theme.text
+            }
         }
         Rectangle {
             Layout.fillWidth: true
-            Layout.bottomMargin: 2
+            Layout.bottomMargin: design.space1
             height: 1
             color: theme.border
         }

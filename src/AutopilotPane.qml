@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Item {
     id: root
 
-    readonly property int contentWidth: Math.max(340, Math.min(1000, width - 64))
+    readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
 
     function addJob() {
         if (titleField.text.trim() === "" || promptArea.text.trim() === "") {
@@ -43,38 +43,17 @@ Item {
 
         ColumnLayout {
             width: root.contentWidth
-            x: Math.max(24, (parent.width - width) / 2)
-            spacing: 14
+            x: Math.max(design.space5, (parent.width - width) / 2)
+            spacing: design.space5
 
-            Item { Layout.fillWidth: true; Layout.preferredHeight: 26 }
+            Item { Layout.fillWidth: true; Layout.preferredHeight: design.space4 }
 
-            RowLayout {
+            PageHeader {
                 Layout.fillWidth: true
-                spacing: 14
-                Item {
-                    width: 54
-                    height: 54
-                    Rectangle { anchors.centerIn: parent; width: 52; height: 52; radius: 26; color: theme.orange; opacity: 0.13 }
-                    ThemedIcon { anchors.centerIn: parent; source: "icons/reload.svg"; width: 22; height: 22; color: theme.orange }
-                }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    Text {
-                        text: qsTr("Autopilote")
-                        color: theme.brightText
-                        font.family: "iA Writer Duospace"
-                        font.pixelSize: 26
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Des tâches planifiées, exécutées par le harness dans ce projet, avec mémoire et reprise.")
-                        color: theme.mutedText
-                        font.pixelSize: 11
-                        wrapMode: Text.Wrap
-                    }
-                }
+                title: qsTr("Autopilote")
+                description: qsTr("Des tâches planifiées, exécutées une à une par le harness, avec mémoire et reprise.")
+                icon: "icons/autopilot.svg"
+                accent: theme.orange
                 Switch {
                     checked: autopilot.enabled
                     onToggled: autopilot.setEnabled(checked)

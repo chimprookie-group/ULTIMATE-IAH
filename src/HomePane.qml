@@ -10,8 +10,8 @@ Item {
     signal commandRequested(string command)
     signal agentTaskRequested(string prompt)
 
-    readonly property int contentWidth: Math.max(320, Math.min(1080, width - 56))
-    readonly property bool wide: contentWidth >= 860
+    readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - design.space7))
+    readonly property bool wide: contentWidth >= 920
     property real reveal: 0
 
     function stateColor(state) {
@@ -46,68 +46,40 @@ Item {
         backend.refreshGit()
     }
 
-    Component.onCompleted: {
-        if (visible) {
-            reveal = 1
-            Qt.callLater(refresh)
-        }
-    }
-    onVisibleChanged: {
-        if (visible) {
-            reveal = 1
-            refresh()
-        }
-    }
+    Component.onCompleted: if (visible) { reveal = 1; Qt.callLater(refresh) }
+    onVisibleChanged: if (visible) { reveal = 1; refresh() }
 
     NumberAnimation on reveal {
         from: 0
         to: 1
-        duration: 180
+        duration: design.durationNormal
         easing.type: Easing.OutCubic
         running: true
     }
 
     ScrollView {
-        id: scroll
         anchors.fill: parent
         clip: true
         contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
         ColumnLayout {
-            id: content
             width: root.contentWidth
-            x: Math.max(20, (scroll.availableWidth - width) / 2)
-            spacing: 18
+            x: Math.max(design.space5, (parent.width - width) / 2)
+            spacing: design.space4
             opacity: root.reveal
             transform: Translate { y: (1 - root.reveal) * 8 }
 
-            RowLayout {
+            Item { Layout.fillWidth: true; Layout.preferredHeight: design.space4 }
+
+            PageHeader {
                 Layout.fillWidth: true
-                Layout.topMargin: 26
-                spacing: 16
+                title: qsTr("Cockpit")
+                description: qsTr("Le harness, ses agents, sa mémoire et votre projet.")
+                icon: "icons/home.svg"
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    Text {
-                        text: qsTr("Cockpit")
-                        color: theme.brightText
-                        font.family: "iA Writer Duospace"
-                        font.pixelSize: 31
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Le harness, ses agents, sa mémoire et votre projet.")
-                        color: theme.mutedText
-                        font.pixelSize: 11
-                        wrapMode: Text.Wrap
-                    }
-                }
-
-                Row {
-                    spacing: 8
+                RowLayout {
+                    spacing: design.space3
                     Repeater {
                         model: [
                             { label: qsTr("Harness"), state: backend.harnessState },
@@ -116,63 +88,75 @@ Item {
                             { label: "MausBot", state: mausBot.running ? "running" : (mausBot.starting ? "starting" : "stopped") }
                         ]
                         Row {
-                            spacing: 4
+                            spacing: design.space2
                             StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 5; color: root.stateColor(modelData.state) }
-                            Text { visible: root.wide; text: modelData.label; color: theme.dimText; font.pixelSize: 9 }
+                            Text {
+                                visible: root.wide
+                                text: modelData.label
+                                color: theme.mutedText
+                                font.pixelSize: design.textCaption
+                            }
                         }
                     }
                 }
             }
 
+            // ── Mission input ────────────────────────────────────────────
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: taskBody.implicitHeight + 32
-                radius: Math.min(14, theme.radius)
+                implicitHeight: taskBody.implicitHeight + design.space6
+                radius: design.radiusLg
                 color: theme.raised
                 border.width: 1
                 border.color: taskInput.activeFocus ? theme.borderStrong : theme.border
 
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 3
+                    color: theme.accent
+                    radius: design.radiusLg
+                }
+
                 ColumnLayout {
                     id: taskBody
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
+                    anchors.leftMargin: design.space4 + 3
+                    anchors.rightMargin: design.space4
+                    anchors.topMargin: design.space3
+                    anchors.bottomMargin: design.space3
+                    spacing: design.space2
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
-                        Rectangle {
-                            width: 7
-                            height: 7
-                            radius: 4
-                            color: root.stateColor(backend.harnessState)
-                            Layout.alignment: Qt.AlignVCenter
-                        }
+                        spacing: design.space3
+                        StatusDot { color: root.stateColor(backend.harnessState) }
                         Text {
-                            text: qsTr("HARNESS")
+                            text: qsTr("MISSION INPUT")
                             color: theme.dimText
-                            font.pixelSize: 8
-                            font.letterSpacing: 1
-                            font.weight: Font.DemiBold
+                            font.family: backend.monoFont
+                            font.pixelSize: design.textMicro
+                            font.letterSpacing: 0.9
                         }
                         Text {
                             Layout.fillWidth: true
                             text: backend.harnessDetail
                             color: theme.mutedText
-                            font.pixelSize: 8
+                            font.pixelSize: design.textCaption
                             elide: Text.ElideRight
                         }
                         Text {
-                            text: qsTr("terminal agent")
+                            text: "dsh headless"
                             color: theme.dimText
-                            font.pixelSize: 8
+                            font.family: backend.monoFont
+                            font.pixelSize: design.textMicro
                         }
                     }
 
                     Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 58
-
                         Text {
                             anchors.left: parent.left
                             anchors.top: parent.top
@@ -181,16 +165,16 @@ Item {
                             visible: taskInput.text === ""
                             text: qsTr("Décrivez une tâche pour le harness…")
                             color: theme.dimText
-                            font.pixelSize: 13
+                            font.family: "iA Writer Duospace"
+                            font.pixelSize: 18
                             wrapMode: Text.Wrap
                         }
-
                         TextArea {
                             id: taskInput
                             anchors.fill: parent
-                            color: theme.text
-                            placeholderText: ""
-                            font.pixelSize: 13
+                            color: theme.brightText
+                            font.family: "iA Writer Duospace"
+                            font.pixelSize: 18
                             wrapMode: TextArea.Wrap
                             background: null
                             selectByMouse: true
@@ -205,190 +189,250 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 5
-                        Button { text: qsTr("Ouvrir le harness"); flat: true; font.pixelSize: 9; onClicked: backend.setView("harness") }
-                        Button { text: qsTr("Terminal agent"); flat: true; font.pixelSize: 9; onClicked: backend.setView("terminal") }
+                        spacing: design.space2
+                        Button { text: qsTr("Ouvrir le harness"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("harness") }
+                        Button { text: qsTr("Terminal agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
                         Item { Layout.fillWidth: true }
                         Text {
-                            text: qsTr("dsh headless · workspace")
+                            visible: root.wide
+                            text: qsTr("Entrée pour lancer · Maj+Entrée pour une ligne")
                             color: theme.dimText
-                            font.family: backend.monoFont
-                            font.pixelSize: 8
+                            font.pixelSize: design.textMicro
                         }
-                        ActionButton {
-                            text: qsTr("Exécuter")
-                            onClicked: root.runTask()
-                        }
+                        ActionButton { text: qsTr("Exécuter"); onClicked: root.runTask() }
                     }
                 }
             }
 
+            // ── Operational grid ─────────────────────────────────────────
             GridLayout {
                 Layout.fillWidth: true
-                Layout.bottomMargin: 26
+                Layout.bottomMargin: design.space7
                 columns: root.wide ? 2 : 1
-                columnSpacing: 26
-                rowSpacing: 18
+                columnSpacing: design.space4
+                rowSpacing: design.space4
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    spacing: 18
+                    spacing: design.space4
+                    Layout.preferredWidth: root.wide ? Math.floor((root.contentWidth - design.space4) * 0.62) : root.contentWidth
 
-                    ColumnLayout {
+                    HomeCard {
                         Layout.fillWidth: true
-                        spacing: 7
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Text {
-                                text: qsTr("Projet")
-                                color: theme.brightText
-                                font.family: "iA Writer Duospace"
-                                font.pixelSize: 16
-                                font.weight: Font.Bold
-                            }
-                            Item { Layout.fillWidth: true }
-                            Text {
-                                text: backend.gitAvailable
-                                      ? (backend.gitBranch + "  ·  " + (backend.gitDirtyCount === 0 ? qsTr("propre") : qsTr("%n changement(s)", "", backend.gitDirtyCount)))
-                                      : qsTr("hors dépôt git")
-                                color: backend.gitDirtyCount > 0 ? theme.orange : theme.dimText
-                                font.family: backend.monoFont
-                                font.pixelSize: 8
-                            }
-                        }
-                        Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                        title: qsTr("Projet")
+                        icon: "icons/branch.svg"
+                        cardWidth: parent.width
+
                         Text {
                             Layout.fillWidth: true
                             text: backend.workspace
-                            color: theme.mutedText
+                            color: theme.text
                             font.family: backend.monoFont
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             elide: Text.ElideMiddle
                         }
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 4
-                            Button { text: qsTr("Projet"); flat: true; font.pixelSize: 9; onClicked: backend.setView("ecosystem") }
-                            Button { text: qsTr("Fichiers"); flat: true; font.pixelSize: 9; onClicked: backend.setView("workspace") }
-                            Button { text: "Git diff"; flat: true; font.pixelSize: 9; onClicked: root.commandRequested("git diff") }
-                            Button { text: qsTr("Changer"); flat: true; font.pixelSize: 9; onClicked: backend.pickWorkspace() }
+                            spacing: design.space2
+                            Text {
+                                text: backend.gitAvailable ? backend.gitBranch : qsTr("hors dépôt git")
+                                color: theme.mutedText
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
+                            Text {
+                                visible: backend.gitAvailable
+                                text: backend.gitDirtyCount > 0 ? qsTr("%n changement(s)", "", backend.gitDirtyCount) : qsTr("propre")
+                                color: backend.gitDirtyCount > 0 ? theme.orange : theme.green
+                                font.pixelSize: design.textMicro
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: "git"
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: design.space1
+                            Button { text: qsTr("Projet"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("ecosystem") }
+                            Button { text: qsTr("Fichiers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("workspace") }
+                            Button { text: "Git diff"; flat: true; font.pixelSize: design.textCaption; onClicked: root.commandRequested("git diff") }
+                            Item { Layout.fillWidth: true }
+                            Button { text: qsTr("Changer"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.pickWorkspace() }
                         }
                     }
 
-                    ColumnLayout {
+                    HomeCard {
                         Layout.fillWidth: true
-                        spacing: 7
-                        Text {
-                            text: qsTr("Agent terminal")
-                            color: theme.brightText
-                            font.family: "iA Writer Duospace"
-                            font.pixelSize: 16
-                            font.weight: Font.Bold
-                        }
-                        Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                        title: qsTr("Terminal agent")
+                        icon: "icons/terminal.svg"
+                        cardWidth: parent.width
+
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Le terminal reste votre shell réel. Le harness y reçoit des tâches en langage naturel via dsh headless.")
+                            text: qsTr("Le shell réel du workspace. Le harness y reçoit des tâches via dsh headless, avec la mémoire du projet.")
                             color: theme.mutedText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
+                            lineHeight: 1.3
                             wrapMode: Text.Wrap
                         }
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 4
-                            Button { text: qsTr("Ouvrir le terminal"); flat: true; font.pixelSize: 9; onClicked: backend.setView("terminal") }
+                            spacing: design.space2
+                            Button { text: qsTr("Ouvrir le terminal"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
                             Item { Layout.fillWidth: true }
-                            Button { text: qsTr("Palette"); flat: true; font.pixelSize: 9; onClicked: root.openPalette() }
+                            Text {
+                                text: terminal.running ? terminal.shell : qsTr("arrêté")
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: design.textMicro
+                            }
+                        }
+                    }
+
+                    HomeCard {
+                        Layout.fillWidth: true
+                        title: qsTr("Couche agentique")
+                        icon: "icons/agents.svg"
+                        accent: theme.green
+                        cardWidth: parent.width
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Missions orchestrées, mémoire persistante et tâches autonomes.")
+                            color: theme.mutedText
+                            font.pixelSize: design.textCaption
+                            wrapMode: Text.Wrap
+                        }
+                        GridLayout {
+                            Layout.fillWidth: true
+                            columns: 2
+                            columnSpacing: design.space2
+                            rowSpacing: design.space2
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Agents")
+                                flat: true
+                                font.pixelSize: design.textCaption
+                                onClicked: backend.setView("agents")
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Mémoire")
+                                flat: true
+                                font.pixelSize: design.textCaption
+                                onClicked: backend.setView("memory")
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Autopilote")
+                                flat: true
+                                font.pixelSize: design.textCaption
+                                onClicked: backend.setView("autopilot")
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: "MCP"
+                                flat: true
+                                font.pixelSize: design.textCaption
+                                onClicked: backend.setView("mcp")
+                            }
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.preferredWidth: root.wide ? 316 : root.contentWidth
-                    Layout.fillWidth: !root.wide
+                ColumnLayout {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    implicitHeight: servicesBody.implicitHeight + 28
-                    radius: Math.min(14, theme.radius)
-                    color: theme.surface
-                    border.width: 1
-                    border.color: theme.border
+                    spacing: design.space4
+                    Layout.preferredWidth: root.wide ? Math.floor((root.contentWidth - design.space4) * 0.38) : root.contentWidth
 
-                    ColumnLayout {
-                        id: servicesBody
-                        anchors.fill: parent
-                        anchors.margins: 14
-                        spacing: 2
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: servicesBody.implicitHeight + design.space5
+                        radius: design.radiusLg
+                        color: theme.surface
+                        border.width: 1
+                        border.color: theme.border
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: 8
-                            Text {
-                                text: qsTr("Services")
-                                color: theme.brightText
-                                font.family: "iA Writer Duospace"
-                                font.pixelSize: 16
-                                font.weight: Font.Bold
+                        ColumnLayout {
+                            id: servicesBody
+                            anchors.fill: parent
+                            anchors.margins: design.space4
+                            spacing: 2
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.bottomMargin: design.space2
+                                Text {
+                                    text: qsTr("Services")
+                                    color: theme.brightText
+                                    font.family: "iA Writer Duospace"
+                                    font.pixelSize: design.textTitle
+                                    font.weight: Font.Bold
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text { text: qsTr("LOCAL"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
                             }
-                            Item { Layout.fillWidth: true }
-                            Text { text: qsTr("LOCAL"); color: theme.dimText; font.pixelSize: 7; font.letterSpacing: 1 }
-                        }
 
-                        ServiceRow {
-                            Layout.fillWidth: true
-                            name: qsTr("Harness")
-                            detail: backend.harnessDetail
-                            stateColor: root.stateColor(backend.harnessState)
-                            actionLabel: backend.harnessState === "running" ? qsTr("Ouvrir") : qsTr("Démarrer")
-                            actionEnabled: backend.harnessState !== "starting"
-                            onAction: {
-                                if (backend.harnessState === "running") backend.setView("harness")
-                                else backend.restartHarness()
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Harness")
+                                detail: backend.harnessDetail
+                                stateColor: root.stateColor(backend.harnessState)
+                                actionLabel: backend.harnessState === "running" ? qsTr("Ouvrir") : qsTr("Démarrer")
+                                actionEnabled: backend.harnessState !== "starting"
+                                onAction: {
+                                    if (backend.harnessState === "running") backend.setView("harness")
+                                    else backend.restartHarness()
+                                }
                             }
-                        }
-                        ServiceRow {
-                            Layout.fillWidth: true
-                            name: qsTr("Terminal agent")
-                            detail: terminal.running ? (terminal.shell + " · " + backend.workspaceName) : qsTr("arrêté")
-                            stateColor: terminal.running ? theme.green : theme.dimText
-                            actionLabel: qsTr("Ouvrir")
-                            onAction: backend.setView("terminal")
-                        }
-                        ServiceRow {
-                            Layout.fillWidth: true
-                            name: "9Router"
-                            detail: nineRouter.running ? nineRouter.detail : (nineRouter.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
-                            stateColor: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText)
-                            actionLabel: nineRouter.running ? qsTr("Ouvrir") : qsTr("Démarrer")
-                            actionEnabled: !nineRouter.starting && !nineRouter.installing
-                            onAction: {
-                                backend.setView("ninerouter")
-                                if (!nineRouter.running) nineRouter.start()
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Terminal agent")
+                                detail: terminal.running ? (terminal.shell + " · " + backend.workspaceName) : qsTr("arrêté")
+                                stateColor: terminal.running ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("terminal")
                             }
-                        }
-                        ServiceRow {
-                            Layout.fillWidth: true
-                            name: "MausBot"
-                            detail: mausBot.running ? mausBot.detail : (mausBot.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
-                            stateColor: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText)
-                            actionLabel: mausBot.running ? qsTr("Ouvrir") : qsTr("Démarrer")
-                            actionEnabled: !mausBot.starting && !mausBot.installing
-                            onAction: {
-                                backend.setView("mausbot")
-                                if (!mausBot.running) mausBot.start()
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: "9Router"
+                                detail: nineRouter.running ? nineRouter.detail : (nineRouter.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
+                                stateColor: nineRouter.running ? theme.green : (nineRouter.starting ? theme.yellow : theme.dimText)
+                                actionLabel: nineRouter.running ? qsTr("Ouvrir") : qsTr("Démarrer")
+                                actionEnabled: !nineRouter.starting && !nineRouter.installing
+                                onAction: {
+                                    backend.setView("ninerouter")
+                                    if (!nineRouter.running) nineRouter.start()
+                                }
                             }
-                        }
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: "MausBot"
+                                detail: mausBot.running ? mausBot.detail : (mausBot.installed ? qsTr("installé, arrêté") : qsTr("non installé"))
+                                stateColor: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText)
+                                actionLabel: mausBot.running ? qsTr("Ouvrir") : qsTr("Démarrer")
+                                actionEnabled: !mausBot.starting && !mausBot.installing
+                                onAction: {
+                                    backend.setView("mausbot")
+                                    if (!mausBot.running) mausBot.start()
+                                }
+                            }
 
-                        Rectangle { Layout.fillWidth: true; Layout.topMargin: 8; Layout.bottomMargin: 6; height: 1; color: theme.border }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 3
-                            Button { text: qsTr("Connexions"); flat: true; font.pixelSize: 9; onClicked: backend.setView("connections") }
-                            Button { text: qsTr("Projet"); flat: true; font.pixelSize: 9; onClicked: backend.setView("ecosystem") }
-                            Button { text: qsTr("Réglages"); flat: true; font.pixelSize: 9; onClicked: backend.setView("settings") }
-                            Item { Layout.fillWidth: true }
-                            Button { text: qsTr("Palette"); flat: true; font.pixelSize: 9; onClicked: root.openPalette() }
+                            Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: design.space1
+                                Button { text: qsTr("Connexions"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("connections") }
+                                Button { text: qsTr("Réglages"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("settings") }
+                                Item { Layout.fillWidth: true }
+                                Button { text: qsTr("Palette"); flat: true; font.pixelSize: design.textCaption; onClicked: root.openPalette() }
+                            }
                         }
                     }
                 }

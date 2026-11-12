@@ -1,41 +1,39 @@
 import QtQuick
 import QtQuick.Controls
 
-// A themed action button. Material's highlighted Button leaves the text
-// unreadable on light palettes, so primary actions get their own fill and
-// border that follow the accent color.
 Button {
     id: control
 
     property bool filled: true
     property bool danger: false
 
-    implicitHeight: 34
-    implicitWidth: Math.max(88, label.implicitWidth + 30)
+    implicitHeight: design.controlHeight
+    implicitWidth: Math.max(92, contentItem.implicitWidth + design.space7)
     padding: 0
     focusPolicy: Qt.StrongFocus
 
     background: Rectangle {
-        radius: Math.min(9, theme.radius)
+        radius: design.radiusSm
         color: control.filled
-             ? (control.danger ? theme.red : (control.down ? Qt.darker(theme.accent, 1.1)
-                                                             : (control.hovered ? Qt.lighter(theme.accent, 1.08) : theme.accent)))
+             ? (control.danger ? theme.red : (control.down ? Qt.darker(theme.accent, 1.08)
+                                                             : (control.hovered ? Qt.lighter(theme.accent, 1.06) : theme.accent)))
              : (control.hovered ? theme.chip : "transparent")
-        border.width: control.filled ? 0 : 1
-        border.color: control.danger ? theme.red : theme.border
+        border.width: control.activeFocus ? 2 : (control.filled ? 0 : 1)
+        border.color: control.activeFocus ? theme.brightText : (control.danger ? theme.red : theme.border)
     }
 
     contentItem: Text {
-        id: label
         text: control.text
         color: control.filled
              ? (control.danger ? "#ffffff" : theme.accentForeground)
              : (control.danger ? theme.red : theme.text)
-        font.pixelSize: 11
+        font.pixelSize: design.textLabel
         font.weight: Font.DemiBold
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        leftPadding: 14
-        rightPadding: 14
+        leftPadding: design.space4
+        rightPadding: design.space4
     }
+
+    HoverHandler { cursorShape: Qt.PointingHandCursor }
 }

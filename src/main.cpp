@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "backend.h"
+#include "designtokens.h"
 #include "memorystore.h"
 #include "mcpmanager.h"
 #include "agentmanager.h"
@@ -160,7 +161,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.0.3"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.1.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -275,6 +276,7 @@ int main(int argc, char *argv[]) {
     Theme theme;
     Backend backend;
     backend.attachTheme(&theme);
+    DesignTokens design;
 
     TerminalSession terminal;
     NineRouterManager nineRouter;
@@ -316,6 +318,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("translator", &translator);
     engine.rootContext()->setContextProperty("theme", &theme);
     engine.rootContext()->setContextProperty("backend", &backend);
+    engine.rootContext()->setContextProperty("design", &design);
     engine.rootContext()->setContextProperty("terminal", &terminal);
     engine.rootContext()->setContextProperty("nineRouter", &nineRouter);
     engine.rootContext()->setContextProperty("mausBot", &mausBot);

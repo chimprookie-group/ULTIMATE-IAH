@@ -1,7 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
-
 
 Item {
     id: root
@@ -10,22 +8,22 @@ Item {
     property bool active: false
     signal clicked()
 
-    implicitWidth: 30
-    implicitHeight: 30
+    implicitWidth: 32
+    implicitHeight: 32
 
     Rectangle {
         anchors.fill: parent
-        radius: Math.min(7, theme.radius)
-        color: root.active ? theme.chip : (mouse.containsMouse ? theme.raised : "transparent")
+        radius: design.radiusSm
+        color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
         border.width: root.active ? 1 : 0
-        border.color: theme.borderStrong
+        border.color: theme.border
     }
 
     ThemedIcon {
         anchors.centerIn: parent
         source: root.icon
-        width: 15
-        height: 15
+        width: design.iconMd
+        height: design.iconMd
         color: root.active ? theme.brightText : (mouse.containsMouse ? theme.text : theme.mutedText)
     }
 

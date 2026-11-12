@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 
 Item {
@@ -14,42 +13,42 @@ Item {
     property color statusColor: "transparent"
     signal clicked()
 
-    implicitWidth: 190
-    implicitHeight: compact ? 38 : 36
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        width: 2
-        height: root.active ? 18 : 0
-        radius: 1
-        color: theme.accent
-        opacity: root.active ? 1 : 0
-        Behavior on height { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-    }
+    implicitWidth: design.sidebarWidth
+    implicitHeight: 38
 
     Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: 6
-        anchors.rightMargin: 6
-        radius: Math.min(8, theme.radius)
-        color: root.active ? theme.accentSoft : (mouse.containsMouse ? theme.chip : "transparent")
-        Behavior on color { ColorAnimation { duration: 100 } }
+        anchors.leftMargin: design.space2
+        anchors.rightMargin: design.space2
+        radius: design.radiusSm
+        color: root.active ? theme.raised : (mouse.containsMouse ? theme.chip : "transparent")
+        Behavior on color { ColorAnimation { duration: design.durationFast } }
+    }
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.leftMargin: design.space2
+        anchors.verticalCenter: parent.verticalCenter
+        width: 3
+        height: root.active ? 18 : 0
+        radius: 2
+        color: theme.accent
+        Behavior on height { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
     }
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: root.compact ? 0 : 14
-        anchors.rightMargin: root.compact ? 0 : 10
-        spacing: 9
+        anchors.leftMargin: root.compact ? 0 : design.space4
+        anchors.rightMargin: root.compact ? 0 : design.space3
+        spacing: design.space3
 
         ThemedIcon {
             Layout.alignment: root.compact ? Qt.AlignHCenter : Qt.AlignVCenter
             Layout.fillWidth: root.compact
             source: root.icon
-            width: 16
-            height: 16
-            color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.dimText)
+            width: design.iconMd
+            height: design.iconMd
+            color: root.active ? theme.accent : (mouse.containsMouse ? theme.text : theme.mutedText)
         }
 
         Text {
@@ -57,7 +56,7 @@ Item {
             visible: !root.compact
             text: root.label
             color: root.active ? theme.brightText : theme.mutedText
-            font.pixelSize: 11
+            font.pixelSize: design.textLabel
             font.weight: root.active ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
         }

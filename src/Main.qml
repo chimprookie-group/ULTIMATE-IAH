@@ -8,19 +8,12 @@ ApplicationWindow {
     id: win
     width: 1340
     height: 860
-    minimumWidth: 720
-    minimumHeight: 600
+    minimumWidth: 760
+    minimumHeight: 620
     visible: true
     title: backend.demo ? qsTr("Ultimate HAI") : "Ultimate HAI — " + backend.workspaceName
     color: theme.background
-    background: Rectangle {
-        gradient: Gradient {
-            orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: theme.ambientTop }
-            GradientStop { position: 0.45; color: theme.background }
-            GradientStop { position: 1.0; color: theme.ambientBottom }
-        }
-    }
+    background: Rectangle { color: theme.background }
     font.family: backend.uiFont
     font.pixelSize: 13
 
@@ -29,8 +22,9 @@ ApplicationWindow {
     Material.roundedScale: theme.radius
 
     property bool sidebarUserCollapsed: false
-    readonly property bool sidebarCompact: sidebarUserCollapsed || width < 1040
-    readonly property real contentWidth: width - (sidebarCompact ? 64 : 212)
+    readonly property bool sidebarCompact: sidebarUserCollapsed || width < 1120
+    readonly property real sidebarWidth: sidebarCompact ? design.sidebarCompactWidth : design.sidebarWidth
+    readonly property real contentWidth: width - sidebarWidth
     readonly property string viewTitle: {
         if (backend.view === "home") return qsTr("Cockpit")
         if (backend.view === "ecosystem") return qsTr("Projet")
@@ -239,11 +233,11 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 0
 
-        // ── header ────────────────────────────────────────────────────────
+        // ── command header ────────────────────────────────────────────────
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 56
-            color: theme.surface
+            Layout.preferredHeight: design.headerHeight
+            color: theme.background
 
             Rectangle {
                 anchors.bottom: parent.bottom
@@ -254,24 +248,31 @@ ApplicationWindow {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: (win.sidebarCompact ? 64 : 212) + 20
-                anchors.rightMargin: 12
-                spacing: 10
+                anchors.leftMargin: win.sidebarWidth + design.space4
+                anchors.rightMargin: design.space4
+                spacing: design.space3
+
+                IconButton {
+                    icon: "icons/menu.svg"
+                    hint: qsTr("Replier la barre latérale")
+                    onClicked: win.sidebarUserCollapsed = !win.sidebarUserCollapsed
+                }
 
                 ColumnLayout {
-                    spacing: 1
+                    spacing: 0
                     Text {
                         text: backend.workspaceName
                         color: theme.brightText
                         font.family: "iA Writer Duospace"
-                        font.pixelSize: 14
+                        font.pixelSize: design.textBodyLarge
                         font.weight: Font.Bold
                     }
                     Text {
-                        Layout.maximumWidth: 300
-                        text: win.viewTitle + "  ·  " + qsTr("espace de travail")
+                        Layout.maximumWidth: 280
+                        text: "Ultimate HAI  /  " + win.viewTitle
                         color: theme.dimText
-                        font.pixelSize: 8
+                        font.family: backend.monoFont
+                        font.pixelSize: design.textMicro
                         elide: Text.ElideRight
                     }
                 }
@@ -279,32 +280,38 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true }
 
                 Rectangle {
-                    visible: win.width >= 920
-                    Layout.preferredWidth: Math.min(300, Math.max(180, win.width * 0.22))
-                    Layout.preferredHeight: 30
-                    radius: Math.min(8, theme.radius)
-                    color: searchMouse.containsMouse ? theme.raisedHover : theme.raised
+                    visible: win.width >= 940
+                    Layout.preferredWidth: Math.min(320, Math.max(220, win.width * 0.24))
+                    Layout.preferredHeight: design.controlHeight
+                    radius: design.radiusSm
+                    color: searchMouse.containsMouse ? theme.raised : theme.chip
                     border.width: 1
                     border.color: searchMouse.containsMouse ? theme.borderStrong : theme.border
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 9
-                        anchors.rightMargin: 8
-                        spacing: 7
-                        ThemedIcon { source: "icons/search.svg"; width: 12; height: 12; color: theme.dimText }
+                        anchors.leftMargin: design.space3
+                        anchors.rightMargin: design.space2
+                        spacing: design.space2
+                        ThemedIcon { source: "icons/search.svg"; width: design.iconSm; height: design.iconSm; color: theme.dimText }
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Rechercher ou exécuter…")
+                            text: qsTr("Commandes, vues, thèmes…")
                             color: theme.dimText
-                            font.pixelSize: 9
+                            font.pixelSize: design.textCaption
                             elide: Text.ElideRight
                         }
-                        Text {
-                            text: "Ctrl K"
-                            color: theme.dimText
-                            font.family: backend.monoFont
-                            font.pixelSize: 7
+                        Rectangle {
+                            width: 42; height: 20; radius: design.radiusSm
+                            color: theme.background
+                            border.width: 1; border.color: theme.border
+                            Text {
+                                anchors.centerIn: parent
+                                text: "Ctrl K"
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: 8
+                            }
                         }
                     }
                     MouseArea {
@@ -316,15 +323,42 @@ ApplicationWindow {
                     }
                 }
 
+                Rectangle {
+                    visible: win.width >= 1180
+                    height: design.controlHeight
+                    width: liveRow.implicitWidth + design.space3 * 2
+                    radius: design.radiusSm
+                    color: theme.chip
+                    border.width: 1
+                    border.color: theme.border
+                    RowLayout {
+                        id: liveRow
+                        anchors.centerIn: parent
+                        spacing: design.space2
+                        StatusDot { size: 5; color: win.stateColor(backend.harnessState) }
+                        Text {
+                            text: qsTr("harness")
+                            color: theme.mutedText
+                            font.family: backend.monoFont
+                            font.pixelSize: design.textMicro
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: backend.setView("harness")
+                    }
+                }
+
                 IconButton {
-                    visible: win.width < 920
+                    visible: win.width < 940
                     icon: "icons/search.svg"
                     hint: qsTr("Command palette (Ctrl+K)")
                     onClicked: commandPalette.open()
                 }
                 IconButton {
                     icon: "icons/help.svg"
-                    hint: qsTr("Keyboard shortcuts (?)")
+                    hint: qsTr("Raccourcis clavier (?)")
                     onClicked: win.helpVisible = true
                 }
             }
@@ -339,7 +373,7 @@ ApplicationWindow {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.leftMargin: win.sidebarCompact ? 64 : 212
+                Layout.leftMargin: win.sidebarWidth
 
                 RowLayout {
                     anchors.fill: parent
@@ -443,8 +477,8 @@ ApplicationWindow {
         // ── status bar ────────────────────────────────────────────────────
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 28
-            color: theme.surface
+            Layout.preferredHeight: design.statusHeight
+            color: theme.background
 
             Rectangle {
                 anchors.top: parent.top
@@ -455,30 +489,26 @@ ApplicationWindow {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: (win.sidebarCompact ? 64 : 212) + 14
-                anchors.rightMargin: 14
-                spacing: 10
+                anchors.leftMargin: win.sidebarWidth + design.space4
+                anchors.rightMargin: design.space4
+                spacing: design.space3
 
+                ThemedIcon { source: "icons/folder.svg"; width: design.iconSm; height: design.iconSm; color: theme.dimText }
                 Text {
                     text: backend.workspace
                     font.family: backend.monoFont
-                    font.pixelSize: 9
+                    font.pixelSize: design.textMicro
                     color: theme.dimText
                     elide: Text.ElideMiddle
-                    Layout.maximumWidth: win.width * 0.42
+                    Layout.maximumWidth: win.width * 0.38
                 }
 
-                Rectangle {
-                    visible: backend.gitAvailable
-                    width: 1
-                    height: 12
-                    color: theme.border
-                }
+                Rectangle { visible: backend.gitAvailable; width: 1; height: 12; color: theme.border }
                 Row {
-                    spacing: 4
+                    spacing: design.space1
                     visible: backend.gitAvailable
-                    ThemedIcon { source: "icons/branch.svg"; width: 10; height: 10; anchors.verticalCenter: parent.verticalCenter; color: backend.gitDirtyCount > 0 ? theme.orange : theme.green }
-                    Text { text: backend.gitBranch; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 9 }
+                    ThemedIcon { source: "icons/branch.svg"; width: 11; height: 11; anchors.verticalCenter: parent.verticalCenter; color: backend.gitDirtyCount > 0 ? theme.orange : theme.green }
+                    Text { text: backend.gitBranch; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                 }
 
                 Item { Layout.fillWidth: true }
@@ -491,12 +521,17 @@ ApplicationWindow {
                         { label: "MausBot", color: mausBot.running ? theme.green : (mausBot.starting ? theme.yellow : theme.dimText) }
                     ]
                     Row {
-                        spacing: 5
+                        spacing: design.space2
                         StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 4; color: modelData.color }
-                        Text { visible: win.width >= 900; text: modelData.label; color: theme.dimText; font.pixelSize: 9 }
+                        Text {
+                            visible: win.width >= 1000
+                            text: modelData.label
+                            color: theme.dimText
+                            font.family: backend.monoFont
+                            font.pixelSize: design.textMicro
+                        }
                     }
                 }
-
             }
         }
     }
@@ -505,10 +540,11 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: win.sidebarCompact ? 64 : 212
+        width: win.sidebarWidth
         compact: win.sidebarCompact
         z: 40
         onToggleCompact: win.sidebarUserCollapsed = !win.sidebarUserCollapsed
+        onCommandRequested: commandPalette.open()
     }
 
     Timer {

@@ -13,27 +13,21 @@ Item {
     signal action()
 
     implicitWidth: 300
-    implicitHeight: 46
+    implicitHeight: 48
 
     Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: -8
-        anchors.rightMargin: -8
-        radius: Math.min(8, theme.radius)
+        radius: design.radiusSm
         color: hover.hovered ? theme.chip : "transparent"
     }
 
     RowLayout {
         anchors.fill: parent
-        spacing: 9
+        anchors.leftMargin: design.space2
+        anchors.rightMargin: design.space2
+        spacing: design.space3
 
-        Rectangle {
-            width: 7
-            height: 7
-            radius: 4
-            color: root.stateColor
-            Layout.alignment: Qt.AlignVCenter
-        }
+        Rectangle { width: 6; height: 6; radius: 3; color: root.stateColor; Layout.alignment: Qt.AlignVCenter }
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -42,7 +36,7 @@ Item {
                 Layout.fillWidth: true
                 text: root.name
                 color: theme.text
-                font.pixelSize: 11
+                font.pixelSize: design.textLabel
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -50,7 +44,7 @@ Item {
                 Layout.fillWidth: true
                 text: root.detail
                 color: theme.dimText
-                font.pixelSize: 8
+                font.pixelSize: design.textCaption
                 elide: Text.ElideRight
             }
         }
@@ -60,8 +54,8 @@ Item {
             text: root.actionLabel
             flat: true
             enabled: root.actionEnabled
-            font.pixelSize: 9
-            implicitHeight: 26
+            font.pixelSize: design.textCaption
+            implicitHeight: design.controlHeightSm
             onClicked: root.action()
         }
     }

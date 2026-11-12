@@ -31,7 +31,7 @@ Item {
     Rectangle {
         id: card
         anchors.fill: parent
-        radius: Math.min(10, theme.radius)
+        radius: design.radiusMd
         color: root.cardBackground
         border.width: root.active ? 2 : 1
         border.color: root.active ? root.cardAccent : Qt.rgba(root.cardForeground.r, root.cardForeground.g, root.cardForeground.b, 0.26)
@@ -40,7 +40,7 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 10
+            anchors.margins: design.space3
             spacing: 4
 
             RowLayout {
@@ -83,7 +83,7 @@ Item {
                 Layout.fillWidth: true
                 text: root.label
                 color: root.cardForeground
-                font.pixelSize: 11
+                font.pixelSize: design.textLabel
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -93,7 +93,7 @@ Item {
                 text: root.subtitle !== "" ? root.subtitle : (root.mode === "light" ? qsTr("Light") : qsTr("Dark"))
                 color: root.cardForeground
                 opacity: 0.55
-                font.pixelSize: 9
+                font.pixelSize: design.textMicro
                 elide: Text.ElideRight
             }
         }
