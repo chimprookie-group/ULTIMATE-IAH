@@ -78,29 +78,31 @@ Item {
         }
     }
 
-    property bool tipVisible: false
-    Timer {
-        id: hoverDelay
-        interval: 450
-        onTriggered: root.tipVisible = mouse.containsMouse
-    }
-
     MouseArea {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: hoverDelay.restart()
+        onEntered: hoverTimer.restart()
         onExited: {
-            hoverDelay.stop()
-            root.tipVisible = false
+            hoverTimer.stop()
+            hoverService.hide()
         }
-        onClicked: root.clicked()
+        onClicked: {
+            hoverTimer.stop()
+            hoverService.hide()
+            root.clicked()
+        }
     }
 
-    HoverTip {
-        anchorItem: root
-        text: root.hint
-        visible: root.tipVisible && root.hint !== ""
+    Timer {
+        id: hoverTimer
+        interval: 450
+        onTriggered: {
+            if (root.hint === "")
+                return
+            const origin = root.mapToItem(null, 0, 0)
+            hoverService.show(root.hint, origin.x, origin.y, root.width, root.height)
+        }
     }
 }

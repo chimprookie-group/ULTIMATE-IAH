@@ -18,6 +18,7 @@ HEADERS += \
     src/connectiondoctor.h \
     src/installationdoctor.h \
     src/ultimateagent.h \
+    src/hoverservice.h \
     src/mcpmanager.h \
     src/skillmanager.h \
     src/agentmanager.h \
@@ -43,6 +44,7 @@ SOURCES += \
     src/connectiondoctor.cpp \
     src/installationdoctor.cpp \
     src/ultimateagent.cpp \
+    src/hoverservice.cpp \
     src/mcpmanager.cpp \
     src/skillmanager.cpp \
     src/agentmanager.cpp \

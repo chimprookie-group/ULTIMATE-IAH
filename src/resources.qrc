@@ -4,7 +4,6 @@
         <file>Main.qml</file>
         <file>ThemedIcon.qml</file>
         <file>ActionButton.qml</file>
-        <file>HoverTip.qml</file>
         <file>IconButton.qml</file>
         <file>StatusDot.qml</file>
         <file>HarnessPane.qml</file>

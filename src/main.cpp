@@ -40,6 +40,7 @@
 #include "ecosystem.h"
 #include "iconprovider.h"
 #include "harnessconnections.h"
+#include "hoverservice.h"
 #include "terminalsession.h"
 #include "theme.h"
 #include "workspacemodel.h"
@@ -212,7 +213,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.6"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.5.7"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -337,6 +338,7 @@ int main(int argc, char *argv[]) {
     DesignTokens design;
 
     TerminalSession terminal;
+    HoverService hoverService;
     HarnessConnections connections;
     MemoryStore memory;
     McpManager mcpManager;
@@ -381,6 +383,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("design", &design);
     engine.rootContext()->setContextProperty("terminal", &terminal);
+    engine.rootContext()->setContextProperty("hoverService", &hoverService);
     engine.rootContext()->setContextProperty("connections", &connections);
     engine.rootContext()->setContextProperty("memory", &memory);
     engine.rootContext()->setContextProperty("mcpManager", &mcpManager);

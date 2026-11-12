@@ -43,6 +43,8 @@ ApplicationWindow {
         return "Ultimate IAH"
     }
     property bool helpVisible: false
+    onHelpVisibleChanged: if (helpVisible) hoverService.hide()
+    onActiveChanged: if (!active) hoverService.hide()
     property bool quitConfirm: false
     property string toastText: ""
     // True while a text field has focus. "?" and "Q" are ordinary characters
@@ -593,7 +595,47 @@ ApplicationWindow {
     Connections {
         target: backend
         function onToast(message) { win.showToast(message) }
+        function onViewChanged() { hoverService.hide() }
 
+    }
+
+    Rectangle {
+        id: globalHoverTip
+        visible: hoverService.visible && hoverService.text !== ""
+        z: 500
+        width: Math.min(240, hoverMeasure.implicitWidth + design.space4)
+        height: design.controlHeightSm
+        radius: design.radiusSm
+        color: theme.raised
+        border.width: 1
+        border.color: theme.borderStrong
+
+        readonly property real anchorRight: hoverService.anchorX + hoverService.anchorWidth + design.space2
+        x: anchorRight + width + design.space2 <= win.width
+           ? anchorRight
+           : Math.max(design.space2, hoverService.anchorX - width - design.space2)
+        y: Math.max(design.space2,
+                    Math.min(hoverService.anchorY + (hoverService.anchorHeight - height) / 2,
+                             win.height - height - design.space2))
+
+        Text {
+            id: hoverMeasure
+            visible: false
+            text: hoverService.text
+            font.pixelSize: design.textCaption
+            font.family: backend.uiFont
+        }
+        Text {
+            anchors.fill: parent
+            anchors.leftMargin: design.space2
+            anchors.rightMargin: design.space2
+            text: hoverService.text
+            color: theme.text
+            font.pixelSize: design.textCaption
+            font.family: backend.uiFont
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
     }
 
     UltimateAgentDock {
