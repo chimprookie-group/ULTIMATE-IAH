@@ -21,11 +21,15 @@ Application Qt 6 / QML native agentique pour Omarchy.
 - **MissionRunner** : Plan → Exécution → Revue via le job agent natif, permissions
   read-only/workspace-write, sorties persistées.
 - **Autopilot** : file de tâches, reprise, mémoire, timeout.
+- **PluginManager** : registre natif des outils, détection des 14 CLI ArtCraft,
+  activation persistante, manifestes externes et outils dynamiques du harness.
+- **NoteStore / NoteGraph** : vault Markdown, index SQLite, wikilinks,
+  backlinks et graphe force-directed.
 
 ## Vues
 
 Cockpit, Ultimate Agent, Notes, Écosystème, Fichiers, Mémoire, Autopilote,
-Agents, Terminal agent, Bots, Providers, MCP, Installation, Réglages.
+Agents, Terminal agent, Bots, Providers, Plugins, MCP, Installation, Réglages.
 
 ## Données
 

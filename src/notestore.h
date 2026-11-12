@@ -25,6 +25,7 @@ class NoteStore : public QObject {
     Q_PROPERTY(QString activeTag READ activeTag WRITE setActiveTag NOTIFY changed)
     Q_PROPERTY(QVariantMap graph READ graph NOTIFY changed)
     Q_PROPERTY(int count READ count NOTIFY changed)
+    Q_PROPERTY(bool graphOpen READ graphOpen WRITE setGraphOpen NOTIFY graphOpenChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 
 public:
@@ -44,6 +45,13 @@ public:
     QVariantMap graph() const;
     int count() const;
     QString error() const { return m_error; }
+    bool graphOpen() const { return m_graphOpen; }
+    void setGraphOpen(bool open) {
+        if (m_graphOpen == open) return;
+        m_graphOpen = open;
+        emit graphOpenChanged();
+        if (open) refresh();
+    }
 
     void setQuery(const QString &query);
     void setActiveTag(const QString &tag);
@@ -68,6 +76,7 @@ signals:
     void changed();
     void selectedChanged();
     void errorChanged();
+    void graphOpenChanged();
 
 private:
     bool ensureSchema();
@@ -91,4 +100,5 @@ private:
     QString m_query;
     QString m_activeTag;
     QString m_error;
+    bool m_graphOpen = false;
 };

@@ -12,6 +12,7 @@
         <file>ProviderCatalog.js</file>
         <file>ConnectionsPane.qml</file>
         <file>NoteGraph.qml</file>
+        <file>PluginsPane.qml</file>
         <file>NotesPane.qml</file>
         <file>McpPane.qml</file>
         <file>PageHeader.qml</file>

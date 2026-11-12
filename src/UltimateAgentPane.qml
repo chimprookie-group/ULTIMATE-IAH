@@ -452,6 +452,7 @@ Item {
                             RowLayout {
                                 width: parent.width
                                 Text { Layout.fillWidth: true; text: qsTr("Actions rapides"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
+                                Button { text: qsTr("Graphe Notes"); flat: true; font.pixelSize: design.textMicro; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
                                 Text { text: qsTr("Compétences →"); color: theme.accent; font.pixelSize: design.textMicro; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: optionsDialog.open() } }
                             }
 

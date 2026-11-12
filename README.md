@@ -100,6 +100,23 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 - Outils agent `ultimate_notes` pour lire, chercher, créer et mettre à jour.
 - Raccourci **Ctrl+Alt+N**.
 
+## Plugins et ArtCraft
+
+![Plugins et ArtCraft](assets/screenshot-plugins.png)
+
+Le registre natif expose les outils au harness Ultimate Agent :
+
+- **14 craft** : CADCraft, GridCraft, SoundCraft, DeckCraft, WordCraft,
+  PhotoCraft, LightCraft, PdfCraft, VectorCraft, EffectCraft, FilmCraft,
+  DesignCraft, FigCraft et TextureCraft.
+- Détection réelle des binaires, versions, activation/désactivation et
+  persistance de l’état.
+- Outils agent dynamiques `artcraft_<craft>` : catalogue, version et exécution
+  CLI contrôlée par permission.
+- Manifestes de plugins externes dans
+  `~/.config/Crasy/deepcrasy-h/plugins/manifests`.
+- Aucun outil n’est déclaré s’il n’est pas réellement installé.
+
 ## Providers et MCP
 
 ![Providers](assets/screenshot-connections.png)
@@ -159,6 +176,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 | `Ctrl+Alt+U` | Ultimate Agent |
 | `Ctrl+Alt+B` | Bots |
 | `Ctrl+Alt+N` | Notes |
+| `Ctrl+Alt+P` | Plugins et ArtCraft |
 | `Ctrl+Alt+A` | Autopilote |
 | `Ctrl+Alt+C` | MCP |
 | `Ctrl+Alt+G` | Agents et missions |
@@ -172,7 +190,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.9.10-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.10.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

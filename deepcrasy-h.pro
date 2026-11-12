@@ -18,6 +18,7 @@ HEADERS += \
     src/connectiondoctor.h \
     src/installationdoctor.h \
     src/agentconversationstore.h \
+    src/pluginmanager.h \
     src/notestore.h \
     src/ultimateagent.h \
     src/hoverservice.h \
@@ -50,6 +51,7 @@ SOURCES += \
     src/connectiondoctor.cpp \
     src/installationdoctor.cpp \
     src/agentconversationstore.cpp \
+    src/pluginmanager.cpp \
     src/notestore.cpp \
     src/ultimateagent.cpp \
     src/hoverservice.cpp \

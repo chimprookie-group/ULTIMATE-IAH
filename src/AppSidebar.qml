@@ -165,6 +165,7 @@ Item {
                 }
 
                 SidebarGroup { title: qsTr("SYSTÈME"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/plug.svg"; label: qsTr("Plugins"); hint: qsTr("Plugins et ArtCraft (Ctrl+Alt+P)"); active: backend.view === "plugins"; onClicked: backend.setView("plugins") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/mcp.svg"; label: "MCP"; hint: qsTr("Serveurs MCP (Ctrl+Alt+C)"); active: backend.view === "mcp"; onClicked: backend.setView("mcp") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/shield.svg"; label: qsTr("Installation"); hint: qsTr("Audit et installation (Ctrl+Alt+I)"); active: backend.view === "installation"; onClicked: backend.setView("installation") }
 

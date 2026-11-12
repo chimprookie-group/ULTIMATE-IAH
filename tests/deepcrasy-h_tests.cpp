@@ -24,6 +24,7 @@
 #include "botstore.h"
 #include "agentconversationstore.h"
 #include "notestore.h"
+#include "pluginmanager.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -596,6 +597,31 @@ private slots:
         QVERIFY(store.deleteNote(alpha));
         QVERIFY(store.count() >= 2);
         QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
+    }
+
+    void pluginManagerDiscoversAndRunsExternalCommands()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QVERIFY(QDir().mkpath(dir.path() + "/manifests"));
+        QFile manifest(dir.path() + "/manifests/echo.json");
+        QVERIFY(manifest.open(QIODevice::WriteOnly));
+        manifest.write(R"({"id":"echo","name":"Echo","description":"Echo tool","command":"/bin/echo","args":["hello"]})");
+        manifest.close();
+        PluginManager plugins(dir.path());
+        QVERIFY2(plugins.error().isEmpty(), qPrintable(plugins.error()));
+        QCOMPARE(plugins.installedCount(), 1);
+        QCOMPARE(plugins.enabledCount(), 1);
+        QCOMPARE(plugins.toolCount(), 1);
+        const QJsonArray tools = plugins.toolDefinitions();
+        QCOMPARE(tools.size(), 1);
+        QVERIFY(plugins.isPluginTool("plugin_echo"));
+        const QJsonObject result = plugins.executeTool("plugin_echo",
+            QJsonObject{{"action", "run"}, {"arguments", "plugin-ok"}}, dir.path(), "workspace-write");
+        QVERIFY2(result.value("ok").toBool(), qPrintable(result.value("error").toString()));
+        QVERIFY(result.value("output").toString().contains("plugin-ok"));
+        QVERIFY(plugins.setEnabled("echo", false));
+        QCOMPARE(plugins.toolCount(), 0);
     }
 
     void originalOneShotPolicyIsEmbedded()

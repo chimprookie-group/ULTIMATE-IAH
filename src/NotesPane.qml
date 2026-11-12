@@ -95,6 +95,12 @@ Item {
 
     Connections {
         target: noteStore
+        function onGraphOpenChanged() {
+            if (noteStore.graphOpen)
+                graphDialog.open()
+            else if (graphDialog.opened)
+                graphDialog.close()
+        }
         function onSelectedChanged() { root.loadSelected() }
         function onChanged() {
             if (!root.dirty && root.loadedPath !== "" && !root.hasNote) {
@@ -493,6 +499,7 @@ Item {
         x: (root.width - width) / 2
         y: (root.height - height) / 2
         padding: design.space4
+        onClosed: noteStore.graphOpen = false
         background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
         contentItem: ColumnLayout {
             spacing: design.space2

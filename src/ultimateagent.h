@@ -22,6 +22,7 @@ class McpManager;
 class MemoryStore;
 class MissionRunner;
 class NoteStore;
+class PluginManager;
 class SkillManager;
 class TerminalSession;
 
@@ -53,7 +54,7 @@ public:
                   AgentManager *agents, MissionRunner *missions,
                   TerminalSession *terminal, InstallationDoctor *installation,
                   ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes,
-                  QObject *parent = nullptr);
+                  PluginManager *plugins, QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
     bool busy() const { return m_busy; }
@@ -122,6 +123,7 @@ private:
     Endpoint resolveEndpoint() const;
     QString systemPrompt() const;
     QJsonObject snapshot() const;
+    QJsonArray allTools() const;
     QJsonObject executeTool(const QString &name, const QJsonObject &arguments);
     QString toolSummary(const QString &name, const QJsonObject &arguments,
                         const QJsonObject &result) const;
@@ -162,6 +164,7 @@ private:
     ConnectionDoctor *m_connectionDoctor = nullptr;
     BotManager *m_bots = nullptr;
     NoteStore *m_notes = nullptr;
+    PluginManager *m_plugins = nullptr;
     AgentConversationStore *m_conversations = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;

@@ -19,6 +19,7 @@ HEADERS += \
     ../src/botstore.h \
     ../src/agentconversationstore.h \
     ../src/notestore.h \
+    ../src/pluginmanager.h \
     ../src/terminalsession.h \
     ../src/theme.h \
     ../src/workspacemodel.h \
@@ -43,6 +44,7 @@ SOURCES += \
     ../src/botstore.cpp \
     ../src/agentconversationstore.cpp \
     ../src/notestore.cpp \
+    ../src/pluginmanager.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \
     ../src/translator.cpp

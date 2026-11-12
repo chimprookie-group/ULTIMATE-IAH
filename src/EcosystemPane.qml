@@ -90,6 +90,7 @@ Item {
                             { name: qsTr("Skills"), detail: qsTr("%n skill(s) disponible(s)", "", ecosystem.skills.length), ok: ecosystem.skills.length > 0, view: "ecosystem", action: qsTr("Ouvrir") },
                             { name: qsTr("Bots"), detail: bots.serverRunning ? qsTr("%n bot(s) · API locale", "", bots.bots.length) : qsTr("service arrêté"), ok: bots.serverRunning && bots.bots.length > 0, view: "bots", action: qsTr("Ouvrir") },
                             { name: qsTr("Notes"), detail: qsTr("%n note(s) · Markdown local", "", noteStore.count), ok: noteStore.count > 0, view: "notes", action: qsTr("Ouvrir") },
+                            { name: qsTr("Plugins"), detail: qsTr("%n outil(s) · ArtCraft", "", plugins.toolCount), ok: plugins.installedCount > 0, view: "plugins", action: qsTr("Ouvrir") },
                             { name: qsTr("Installation"), detail: installation.summary !== "" ? installation.summary : qsTr("audit disponible"), ok: installation.failed === 0, view: "installation", action: qsTr("Vérifier") }
                         ]
                         ColumnLayout {

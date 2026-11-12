@@ -101,7 +101,8 @@ Item {
                             { label: "DeepSeek", state: connections.deepseekConfigured ? "running" : "stopped" },
                             { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" },
                             { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" },
-                            { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" }
+                            { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" },
+                            { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -467,6 +468,15 @@ Item {
                                 stateColor: noteStore.count > 0 ? theme.yellow : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("notes")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Plugins")
+                                detail: qsTr("%n outil(s) · ArtCraft", "", plugins.toolCount)
+                                stateColor: plugins.installedCount > 0 ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("plugins")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }
