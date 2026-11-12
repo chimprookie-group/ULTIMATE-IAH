@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.3.7-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.3.8-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
@@ -51,3 +51,8 @@ dossiers de configuration/données, MCP mémoire et entrée de bureau.
 
 Les données utilisateur restent dans `~/.config/Crasy/deepcrasy-h` et
 `~/.local/share/Crasy/deepcrasy-h`. Aucune migration destructive n'est faite.
+
+Au premier lancement, l'application retire l'ancienne entrée utilisateur
+`deepcrasy-h.desktop`, ses anciennes icônes et masque l'ancien lanceur
+`crasy.desktop` (le paquet `crasy` reste installé car il fournit le runtime DSH
+système). Seul le lanceur **Ultimate HAI** avec le nouveau logo reste visible.

@@ -158,12 +158,62 @@ int installSkill() {
 
 } // namespace
 
+namespace {
+
+// Older builds shipped a user-level Crasy desktop entry and palette icons.
+// They shadow the new Ultimate HAI launcher and keep showing the retired logo.
+// Migrate only when the packaged launcher is present, and only touch launcher
+// files, never user configuration or workspace data.
+void migrateLegacyLauncher() {
+    if (!QFileInfo::exists(QStringLiteral("/usr/share/applications/ultimate-hai.desktop")))
+        return;
+
+    const QString applications = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    QDir().mkpath(applications);
+    QFile::remove(applications + QStringLiteral("/deepcrasy-h.desktop"));
+
+    // The old crasy package keeps a system entry with the old whale icon. Hide
+    // it through a user override so the package stays installed (it provides
+    // the system DSH runtime) without showing a second retired launcher.
+    const QString oldEntry = applications + QStringLiteral("/crasy.desktop");
+    if (QFileInfo::exists(QStringLiteral("/usr/share/applications/crasy.desktop"))
+        && !QFileInfo::exists(oldEntry)) {
+        QSaveFile file(oldEntry);
+        if (file.open(QIODevice::WriteOnly)) {
+            file.write("[Desktop Entry]\n"
+                       "Type=Application\n"
+                       "Name=Crasy\n"
+                       "Hidden=true\n"
+                       "NoDisplay=true\n");
+            file.commit();
+        }
+    }
+
+    const QString iconRoot = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        + QStringLiteral("/icons/hicolor");
+    for (const QString &size : {QStringLiteral("scalable"), QStringLiteral("256x256"),
+                                QStringLiteral("512x512")}) {
+        const QString base = iconRoot + QLatin1Char('/') + size + QStringLiteral("/apps/deepcrasy-h");
+        QFile::remove(base + QStringLiteral(".svg"));
+        QFile::remove(base + QStringLiteral(".png"));
+    }
+
+    // Invalidate user-level caches. Failure is harmless: the files are gone and
+    // the packaged desktop entry is authoritative.
+    QProcess::startDetached(QStringLiteral("update-desktop-database"), {applications});
+    const QString iconCache = QStandardPaths::findExecutable(QStringLiteral("gtk-update-icon-cache"));
+    if (!iconCache.isEmpty() && QFileInfo::exists(iconRoot))
+        QProcess::startDetached(iconCache, {QStringLiteral("-f"), QStringLiteral("-t"), iconRoot});
+}
+
+} // namespace
+
 int main(int argc, char *argv[]) {
     // Keep the legacy application name and organization: they define the
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate HAI.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.3.7"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.3.8"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -227,6 +277,7 @@ int main(int argc, char *argv[]) {
     QtWebEngineQuick::initialize();
 
     QGuiApplication app(argc, argv);
+    migrateLegacyLauncher();
 
     // Matches the window to ultimate-hai.desktop, so the compositor (Wayland
     // app_id) and the launcher pick up the installed icon.
