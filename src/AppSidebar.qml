@@ -203,9 +203,7 @@ Item {
                         source: "icons/command.svg"
                         width: design.iconSm; height: design.iconSm
                         color: commandMouse.containsMouse ? theme.text : theme.mutedText
-                        scale: commandMouse.containsMouse ? 1.08 : 1.0
                         Behavior on color { ColorAnimation { duration: design.durationFast } }
-                        Behavior on scale { NumberAnimation { duration: design.durationFast; easing.type: Easing.OutCubic } }
                     }
                     Text {
                         Layout.fillWidth: true
