@@ -472,7 +472,7 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: design.space1
-                                Button { text: qsTr("Connexions"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("connections") }
+                                Button { text: qsTr("Providers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("connections") }
                                 Button { text: qsTr("Réglages"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("settings") }
                                 Item { Layout.fillWidth: true }
                                 Button { text: qsTr("Palette"); flat: true; font.pixelSize: design.textCaption; onClicked: root.openPalette() }

@@ -251,7 +251,7 @@ void UltimateAgent::sendMessage(const QString &text) {
         return;
     refreshEndpoint();
     if (!m_endpoint.valid()) {
-        setError(tr("Aucun provider utilisable. Ajoutez une clé DeepSeek dans Connexions."));
+        setError(tr("Aucun provider utilisable. Ajoutez une clé DeepSeek dans Providers."));
         return;
     }
     m_error.clear();
@@ -790,7 +790,7 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
 
     if (name == QLatin1String("ultimate_connections")) {
         if (!m_connections)
-            return errorResult(tr("Connexions indisponibles."));
+            return errorResult(tr("Providers indisponibles."));
         if (action == QLatin1String("list") || action.isEmpty()) {
             return okResult({{QStringLiteral("providers"), listJson(m_connections->providers())},
                              {QStringLiteral("defaultModel"), m_connections->defaultModel()},
@@ -1210,7 +1210,7 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
     if (name == QLatin1String("ultimate_navigate"))
         return tr("Vue : %1").arg(arguments.value(QStringLiteral("view")).toString());
     if (name == QLatin1String("ultimate_connections"))
-        return tr("Connexions · %1").arg(arguments.value(QStringLiteral("action")).toString());
+        return tr("Providers · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_services"))
         return tr("%1 · %2").arg(arguments.value(QStringLiteral("target")).toString(),
                                    arguments.value(QStringLiteral("action")).toString());

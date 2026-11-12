@@ -3,7 +3,7 @@
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-hai-1.6.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.7.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
@@ -42,7 +42,7 @@ mémoire, registre des bots, pont MCP bots et entrées de bureau.
 2. Ouvrir **Installation**.
 3. Lancer **Dépendances système** si nécessaire.
 4. Installer DSH s'il est absent.
-5. Ouvrir **Connexions**, saisir la clé DeepSeek une seule fois.
+5. Ouvrir **Providers**, saisir la clé DeepSeek une seule fois.
 6. Le diagnostic doit afficher 0 élément manquant.
 
 Les données utilisateur restent dans `~/.config/Crasy/deepcrasy-h` et

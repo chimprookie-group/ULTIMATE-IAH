@@ -274,12 +274,12 @@ Item {
             }
 
             SettingsSection {
-                title: qsTr("Connexions")
+                title: qsTr("Providers")
                 Layout.fillWidth: true
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Les providers du harness se configurent dans Connexions. MCP et la mémoire sont gérés directement par l'application.")
+                    text: qsTr("Les providers du harness se configurent dans Providers. MCP et la mémoire sont gérés directement par l'application.")
                     color: theme.mutedText
                     font.pixelSize: 10
                     wrapMode: Text.Wrap
@@ -288,7 +288,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Button { text: qsTr("Connexions du harness"); flat: true; onClicked: backend.setView("connections") }
+                    Button { text: qsTr("Providers du harness"); flat: true; onClicked: backend.setView("connections") }
                     Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
                     Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
                     Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }

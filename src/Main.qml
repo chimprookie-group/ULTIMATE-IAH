@@ -32,7 +32,7 @@ ApplicationWindow {
         if (backend.view === "workspace") return qsTr("Fichiers")
         if (backend.view === "harness") return qsTr("Harness")
         if (backend.view === "terminal") return qsTr("Terminal agent")
-        if (backend.view === "connections") return qsTr("Connexions")
+        if (backend.view === "connections") return qsTr("Providers")
         if (backend.view === "memory") return qsTr("Mémoire")
         if (backend.view === "mcp") return "MCP"
         if (backend.view === "agents") return qsTr("Agents")
@@ -106,7 +106,7 @@ ApplicationWindow {
         add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
         add(qsTr("Navigation"), qsTr("Écosystème"), "Ctrl+6", "view:ecosystem", "icons/ecosystem.svg")
         add(qsTr("Navigation"), qsTr("Fichiers"), "Ctrl+7", "view:workspace", "icons/files.svg")
-        add(qsTr("Navigation"), qsTr("Connexions"), "Ctrl+8", "view:connections", "icons/providers.svg")
+        add(qsTr("Navigation"), qsTr("Providers"), "Ctrl+8", "view:connections", "icons/providers.svg")
         add(qsTr("Navigation"), qsTr("MCP"), "Ctrl+Alt+C", "view:mcp", "icons/plug.svg")
         add(qsTr("Agents"), qsTr("Agents"), "Ctrl+Alt+G", "view:agents", "icons/harness.svg")
         add(qsTr("Agent"), qsTr("Ultimate Agent"), "Ctrl+Alt+U", "view:agent", "icons/spark.svg")

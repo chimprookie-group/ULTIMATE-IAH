@@ -83,20 +83,27 @@ Ultimate IAH inclut un service de bots natif, persistant et sécurisé :
 
 Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue Bots. Les bots sont accessibles par **Ctrl+Alt+B**.
 
-## Connexions et MCP
+## Providers et MCP
 
-![Connexions](assets/screenshot-connections.png)
+![Providers](assets/screenshot-connections.png)
 
 ![Serveurs MCP](assets/screenshot-mcp.png)
 
-- **Catalogue providers** : DeepSeek, OpenAI, Anthropic, OpenRouter, Gemini,
-  Groq, Mistral, xAI, Ollama, LM Studio.
+- **Hub providers centralisé** : catalogue de 46 presets classés en Directs,
+  Agrégateurs, Asie, Entreprise et Locaux.
+- **Application fiable** : chaque preset ouvre un formulaire pré-rempli ;
+  URL, modèles, protocole et clé sont vérifiés avant l'enregistrement.
 - **Protocoles** : OpenAI-compatible et Anthropic Messages.
-- **Clé DeepSeek unique** : une saisie dans Connexions alimente DSH,
-  `agent.env` et le terminal. La clé reste la source unique des providers.
+- **Provider et modèle par défaut** : sélection en un clic, synchronisée avec
+  le harness DSH.
+- **Clé DeepSeek unique** : une saisie dans Providers crée le provider
+  `deepseek-official`, alimente DSH, `agent.env` et le terminal, puis définit
+  `deepseek-chat` par défaut si aucun modèle ne l'est déjà.
+- **Édition et suppression** des providers, diagnostic et redémarrage DSH.
 - **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
   Fetch / Git, patch automatique pour le harness.
 - **MCP intégré** : mémoire Ultimate IAH.
+- **Liens directs** vers MCP, mémoire, bots, Ultimate Agent et installation.
 
 ## Mémoire
 
@@ -131,7 +138,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 | `Ctrl+4` | Réglages |
 | `Ctrl+6` | Écosystème |
 | `Ctrl+7` | Fichiers |
-| `Ctrl+8` | Connexions |
+| `Ctrl+8` | Providers |
 | `Ctrl+Alt+U` | Ultimate Agent |
 | `Ctrl+Alt+B` | Bots |
 | `Ctrl+Alt+A` | Autopilote |
@@ -147,7 +154,7 @@ Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.6.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.7.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

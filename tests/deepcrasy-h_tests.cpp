@@ -316,6 +316,38 @@ private slots:
         qunsetenv("DSH_HOME");
     }
 
+    void deepSeekCreatesAUsableDefaultProvider()
+    {
+        QTemporaryDir dir;
+        qputenv("DSH_HOME", dir.path().toUtf8());
+        QFile creds(dir.path() + "/.credentials.yaml");
+        QVERIFY(creds.open(QIODevice::WriteOnly));
+        creds.write("version: 1\nrefs: {}\nrecords: {}\n");
+        creds.close();
+        const QString overlay = dir.path() + "/connections.patch.yml";
+        HarnessConnections connections(overlay);
+        connections.saveDeepSeek("sk-test-deepseek");
+        QCOMPARE(connections.error(), QString());
+        QCOMPARE(connections.defaultProvider(), QString("deepseek-official"));
+        QCOMPARE(connections.defaultModelId(), QString("deepseek-chat"));
+        bool found = false;
+        for (const QVariant &value : connections.providers()) {
+            const QVariantMap provider = value.toMap();
+            if (provider.value("id").toString() == "deepseek-official") {
+                found = true;
+                QVERIFY(provider.value("builtin").toBool());
+                QVERIFY(provider.value("models").toStringList().contains("deepseek-chat"));
+            }
+        }
+        QVERIFY(found);
+        QFile written(overlay);
+        QVERIFY(written.open(QIODevice::ReadOnly));
+        const QByteArray yaml = written.readAll();
+        QVERIFY(yaml.contains("deepseek-official"));
+        QVERIFY(yaml.contains("DEEPSEEK_API_KEY"));
+        qunsetenv("DSH_HOME");
+    }
+
     void workspaceListsFiltersAndPreviewsFiles()
     {
         QTemporaryDir dir;

@@ -118,7 +118,7 @@ def provider_summary(provider_id, entry):
         "models": ids,
         "hasKey": bool(key),
         "keyMasked": ("••••" + key[-4:]) if key else "",
-        "builtin": False,
+        "builtin": provider_id == "deepseek-official",
     }
 
 op = data.get("op", "list")
@@ -126,8 +126,18 @@ if op == "saveDeepSeek":
     key = data.get("apiKey", "").strip()
     if key:
         refs["DEEPSEEK_API_KEY"] = key
+    providers["deepseek-official"] = {
+        "displayName": "DeepSeek",
+        "api": "openai-completions",
+        "baseURL": "https://api.deepseek.com",
+        "apiKeyEnv": "DEEPSEEK_API_KEY",
+        "models": [
+            {"id": "deepseek-chat", "name": "DeepSeek Chat"},
+            {"id": "deepseek-reasoner", "name": "DeepSeek Reasoner"},
+        ],
+    }
     if data.get("makeDefault") and not default_model:
-        default_provider, default_model = "deepseek-official", "deepseek-flash"
+        default_provider, default_model = "deepseek-official", "deepseek-chat"
 elif op == "saveProvider":
     provider_id = data["id"]
     ref = data["apiKeyEnv"]
@@ -151,6 +161,23 @@ elif op == "removeProvider":
     providers.pop(data["id"], None)
 elif op == "setDefault":
     default_provider, default_model = data["provider"], data["model"]
+
+deepseek_key = refs.get("DEEPSEEK_API_KEY", "")
+if deepseek_key and "deepseek-official" not in providers:
+    providers["deepseek-official"] = {
+        "displayName": "DeepSeek",
+        "api": "openai-completions",
+        "baseURL": "https://api.deepseek.com",
+        "apiKeyEnv": "DEEPSEEK_API_KEY",
+        "models": [
+            {"id": "deepseek-chat", "name": "DeepSeek Chat"},
+            {"id": "deepseek-reasoner", "name": "DeepSeek Reasoner"},
+        ],
+    }
+if deepseek_key and not default_provider:
+    default_provider, default_model = "deepseek-official", "deepseek-chat"
+if default_provider == "deepseek-official" and default_model in ("deepseek-flash", "deepseek-v4-pro"):
+    default_model = "deepseek-chat"
 
 overlay = [{
     "id": "llm-pi-ai",
@@ -181,12 +208,12 @@ if env_path:
 
 summary = [provider_summary(pid, entry) for pid, entry in sorted(providers.items())]
 deepseek = refs.get("DEEPSEEK_API_KEY", "")
-if deepseek:
+if deepseek and not any(item.get("id") == "deepseek-official" for item in summary):
     summary.insert(0, {
         "id": "deepseek-official",
         "name": "DeepSeek",
         "baseURL": "https://api.deepseek.com",
-        "models": ["deepseek-flash", "deepseek-v4-pro"],
+        "models": ["deepseek-chat", "deepseek-reasoner"],
         "hasKey": True,
         "keyMasked": "••••" + deepseek[-4:],
         "builtin": True,
@@ -245,9 +272,10 @@ void HarnessConnections::refresh() {
     if (!run(QJsonObject{{"op", "list"}}, result))
         return;
     m_providers = result.value("providers").toArray().toVariantList();
-    m_defaultModel = result.value("defaultProvider").toString();
-    if (!m_defaultModel.isEmpty())
-        m_defaultModel += "/" + result.value("defaultModel").toString();
+    m_defaultProvider = result.value("defaultProvider").toString();
+    m_defaultModelId = result.value("defaultModel").toString();
+    m_defaultModel = m_defaultProvider.isEmpty() || m_defaultModelId.isEmpty()
+        ? QString() : m_defaultProvider + "/" + m_defaultModelId;
     m_deepseekConfigured = result.value("deepseekConfigured").toBool();
     emit changed();
 }
@@ -256,7 +284,6 @@ void HarnessConnections::saveDeepSeek(const QString &apiKey) {
     QJsonObject result;
     if (!run(QJsonObject{{"op", "saveDeepSeek"}, {"apiKey", apiKey}, {"makeDefault", true}}, result))
         return;
-    m_defaultModel = result.value("defaultModel").toString();
     refresh();
     emit deepSeekChanged();
 }

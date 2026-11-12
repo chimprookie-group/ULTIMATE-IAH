@@ -11,6 +11,8 @@ class HarnessConnections : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList providers READ providers NOTIFY changed)
     Q_PROPERTY(QString defaultModel READ defaultModel NOTIFY changed)
+    Q_PROPERTY(QString defaultProvider READ defaultProvider NOTIFY changed)
+    Q_PROPERTY(QString defaultModelId READ defaultModelId NOTIFY changed)
     Q_PROPERTY(bool deepseekConfigured READ deepseekConfigured NOTIFY changed)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString envPath READ envPath NOTIFY changed)
@@ -20,6 +22,8 @@ public:
 
     QVariantList providers() const { return m_providers; }
     QString defaultModel() const { return m_defaultModel; }
+    QString defaultProvider() const { return m_defaultProvider; }
+    QString defaultModelId() const { return m_defaultModelId; }
     bool deepseekConfigured() const { return m_deepseekConfigured; }
     QString error() const { return m_error; }
     QString envPath() const { return m_envPath; }
@@ -51,6 +55,8 @@ private:
     QString m_envPath;
     QVariantList m_providers;
     QString m_defaultModel;
+    QString m_defaultProvider;
+    QString m_defaultModelId;
     QString m_error;
     bool m_deepseekConfigured = false;
 };

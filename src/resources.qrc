@@ -10,6 +10,7 @@
         <file>HarnessPane.qml</file>
         <file>EcosystemPane.qml</file>
         <file>BotsPane.qml</file>
+        <file>ProviderCatalog.js</file>
         <file>ConnectionsPane.qml</file>
         <file>McpPane.qml</file>
         <file>PageHeader.qml</file>

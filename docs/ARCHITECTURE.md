@@ -26,7 +26,7 @@ Application Qt 6 / QML Harness-only pour Omarchy.
 ## Vues
 
 Cockpit, Écosystème, Fichiers, Mémoire, Autopilote, Harness, Agents, Terminal
-agent, Bots, Connexions, MCP, Installation, Réglages.
+agent, Bots, Providers, MCP, Installation, Réglages.
 
 ## Données
 

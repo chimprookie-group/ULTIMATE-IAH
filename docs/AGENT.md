@@ -62,7 +62,7 @@ bot, planifier une exécution ou arrêter l’API. Les actions destructrices
 
 L'agent utilise la clé `DEEPSEEK_API_KEY` du credential store DSH avec
 `deepseek-chat`. Sans clé, il affiche une erreur et demande une configuration
-dans Connexions.
+dans Providers.
 
 ## Persistance
 
