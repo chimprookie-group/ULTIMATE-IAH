@@ -8,6 +8,27 @@ import QtWebEngine
 Item {
     id: root
 
+    property bool armed: false
+    property var profile: null
+    readonly property var web: webLoader.item
+    readonly property bool webLoading: web ? web.loading : false
+    readonly property real webProgress: web ? web.loadProgress : 0
+
+    function ensureProfile() {
+        if (!profile)
+            profile = profileComponent.createObject(root)
+    }
+
+    Component {
+        id: profileComponent
+
+        WebEngineProfile {
+            storageName: "deepcrasy-h"
+            offTheRecord: false
+            persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -61,7 +82,7 @@ Item {
                 IconButton {
                     icon: "icons/reload.svg"
                     hint: qsTr("Reload the harness page")
-                    onClicked: web.reload()
+                    onClicked: { if (web) web.reload() }
                 }
                 IconButton {
                     icon: "icons/external.svg"
@@ -78,34 +99,18 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            WebEngineProfile {
-                id: harnessProfile
-                storageName: "deepcrasy-h"
-                offTheRecord: false
-                persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
-            }
-
-            WebEngineView {
-                id: web
+            Loader {
+                id: webLoader
                 anchors.fill: parent
-                visible: backend.harnessState === "running"
-                backgroundColor: theme.surface
-                profile: harnessProfile
-                settings.javascriptEnabled: true
-                settings.localStorageEnabled: true
-                settings.fullScreenSupportEnabled: true
-
-                onLoadingChanged: function (request) {
-                    if (request.status === WebEngineView.LoadFailedStatus)
-                        win.showToast(qsTr("The harness page did not load."))
-                }
+                active: root.armed
+                sourceComponent: harnessViewComponent
             }
 
             Rectangle {
-                visible: web.loading
+                visible: root.webLoading
                 anchors.top: parent.top
                 height: 2
-                width: parent.width * Math.max(0, web.loadProgress) / 100
+                width: parent.width * Math.max(0, root.webProgress) / 100
                 color: theme.accent
             }
 
@@ -204,18 +209,41 @@ Item {
         }
     }
 
+    Component {
+        id: harnessViewComponent
+
+        WebEngineView {
+            id: web
+            visible: backend.harnessState === "running"
+            backgroundColor: theme.surface
+            profile: root.profile
+            settings.javascriptEnabled: true
+            settings.localStorageEnabled: true
+            settings.fullScreenSupportEnabled: true
+
+            onLoadingChanged: function (request) {
+                if (request.status === WebEngineView.LoadFailedStatus)
+                    win.showToast(qsTr("The harness page did not load."))
+            }
+        }
+    }
+
     function loadHarness() {
-        if (!root.visible)
+        if (!root.visible || backend.harnessUrl === "")
             return
-        if (backend.harnessUrl !== "" && web.url.toString() !== backend.harnessUrl)
+        root.ensureProfile()
+        root.armed = true
+        if (web && web.url.toString() !== backend.harnessUrl)
             web.url = backend.harnessUrl
     }
 
     onVisibleChanged: {
-        if (!root.visible)
-            web.url = ""
-        else
+        if (!root.visible) {
+            if (web)
+                web.url = ""
+        } else {
             loadHarness()
+        }
     }
 
     Component.onCompleted: loadHarness()

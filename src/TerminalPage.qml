@@ -10,15 +10,19 @@ Item {
     id: root
 
     property bool loaded: false
+    readonly property var web: webLoader.item
 
     function arm() {
         if (loaded)
             return
         loaded = true
-        web.url = "qrc:/terminal/index.html?cwd=" + encodeURIComponent(backend.workspace)
+        if (web)
+            web.url = "qrc:/terminal/index.html?cwd=" + encodeURIComponent(backend.workspace)
     }
 
     function applyTheme() {
+        if (!web)
+            return
         const colors = {
             "background": theme.background,
             "foreground": theme.text,
@@ -48,7 +52,8 @@ Item {
     }
 
     function clear() {
-        web.runJavaScript("window.termClear && window.termClear()")
+        if (web)
+            web.runJavaScript("window.termClear && window.termClear()")
     }
 
     function shellQuote(value) {
@@ -66,13 +71,16 @@ Item {
         terminal.run(prefix + binary + " headless " + shellQuote(text))
         agentInput.text = ""
         Qt.callLater(function () {
+            if (!web)
+                return
             web.forceActiveFocus()
             web.runJavaScript("window.termFocus && window.termFocus()")
         })
     }
 
     function restart() {
-        web.runJavaScript("window.termReset && window.termReset()")
+        if (web)
+            web.runJavaScript("window.termReset && window.termReset()")
         terminal.start(backend.workspace)
     }
 
@@ -83,6 +91,8 @@ Item {
             if (wasLoaded && !terminal.running)
                 terminal.start(backend.workspace)
             Qt.callLater(function () {
+                if (!web)
+                    return
                 web.forceActiveFocus()
                 web.runJavaScript("window.termFocus && window.termFocus()")
             })
@@ -200,10 +210,20 @@ Item {
             }
         }
 
-        WebEngineView {
-            id: web
+        Loader {
+            id: webLoader
             Layout.fillWidth: true
             Layout.fillHeight: true
+            active: root.loaded
+            sourceComponent: terminalViewComponent
+        }
+    }
+
+    Component {
+        id: terminalViewComponent
+
+        WebEngineView {
+            id: web
             webChannel: terminalChannel
             backgroundColor: theme.background
             focus: true
@@ -248,7 +268,7 @@ Item {
     Connections {
         target: backend
         function onWorkspaceChanged() {
-            if (!root.loaded)
+            if (!root.loaded || !web)
                 return
             web.runJavaScript("window.termReset && window.termReset()")
             terminal.start(backend.workspace)

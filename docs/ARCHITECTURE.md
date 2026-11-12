@@ -22,7 +22,7 @@ Crasy Harness est une application Qt 6 / QML, Harness-only, pour Omarchy.
 ## Vues
 
 - Cockpit : tâche harness, projet, services, terminal agent.
-- Harness : WebEngine `dsh web`, déchargé quand la vue est masquée.
+- Harness : WebEngine `dsh web`, chargé à la première ouverture et déchargé quand la vue est masquée.
 - Terminal agent : PTY + barre `dsh headless "<tâche>"`.
 - Projet / Fichiers : outils, skills, Git, diff, contexte.
 - Connexions : DeepSeek, providers OpenAI-compatible, modèle par défaut,
@@ -41,6 +41,7 @@ Crasy Harness est une application Qt 6 / QML, Harness-only, pour Omarchy.
 ## Règles
 
 - Une seule instance par utilisateur (`QLocalServer`).
+- Vues et profils WebEngine créés à la première ouverture, jamais au démarrage.
 - WebEngine des vues masquées : URL vidée.
 - Cockpit : uniquement Git et sessions locales, pas de diagnostics/MCP.
 - Aucun OpenCode, ACP, chat, session ou permission OpenCode.

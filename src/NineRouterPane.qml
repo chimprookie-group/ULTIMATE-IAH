@@ -14,7 +14,25 @@ Item {
     property string password: ""
     property bool showPassword: false
     property bool showHint: true
+    property bool armed: false
+    property var profile: null
     readonly property var hostWindow: Window.window
+    readonly property var web: dashboardLoader.item
+
+    function ensureProfile() {
+        if (!profile)
+            profile = profileComponent.createObject(root)
+    }
+
+    Component {
+        id: profileComponent
+
+        WebEngineProfile {
+            storageName: "nine-router"
+            offTheRecord: false
+            persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+        }
+    }
 
     readonly property var filteredModels: {
         const needle = query.trim().toLowerCase()
@@ -82,13 +100,33 @@ Item {
     }
 
     Component.onCompleted: {
-        if (visible)
+        if (visible) {
             Qt.callLater(function () { nineRouter.refresh() })
+            if (nineRouter.running) {
+                ensureProfile()
+                armed = true
+            }
+        }
     }
-    onVisibleChanged: if (visible) nineRouter.refresh()
+    onVisibleChanged: {
+        if (visible) {
+            nineRouter.refresh()
+            if (nineRouter.running) {
+                ensureProfile()
+                armed = true
+            }
+        }
+    }
 
     Connections {
         target: nineRouter
+
+        function onRunningChanged() {
+            if (nineRouter.running && root.visible) {
+                root.ensureProfile()
+                root.armed = true
+            }
+        }
 
         function onModelsChanged() { root.ensureSelection() }
 
@@ -219,26 +257,28 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                WebEngineProfile {
-                    id: nineProfile
-                    storageName: "nine-router"
-                    offTheRecord: false
-                    persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+                Loader {
+                    id: dashboardLoader
+                    anchors.fill: parent
+                    active: root.armed && nineRouter.running
+                    sourceComponent: dashboardViewComponent
                 }
 
-                WebEngineView {
-                    id: dashboard
-                    anchors.fill: parent
-                    visible: nineRouter.running
-                    backgroundColor: theme.background
-                    profile: nineProfile
-                    settings.javascriptEnabled: true
-                    settings.localStorageEnabled: true
-                    url: (nineRouter.running && root.visible) ? nineRouter.dashboardUrl : ""
+                Component {
+                    id: dashboardViewComponent
 
-                    onLoadingChanged: function (request) {
-                        if (request.status === WebEngineView.LoadFailedStatus && nineRouter.running)
-                            root.hostWindow.showToast(qsTr("The 9Router dashboard did not load."))
+                    WebEngineView {
+                        id: dashboard
+                        backgroundColor: theme.background
+                        profile: root.profile
+                        settings.javascriptEnabled: true
+                        settings.localStorageEnabled: true
+                        url: (nineRouter.running && root.visible) ? nineRouter.dashboardUrl : ""
+
+                        onLoadingChanged: function (request) {
+                            if (request.status === WebEngineView.LoadFailedStatus && nineRouter.running)
+                                root.hostWindow.showToast(qsTr("The 9Router dashboard did not load."))
+                        }
                     }
                 }
 

@@ -11,7 +11,31 @@ Item {
     property string pageUrl: ""
     property bool pairAttempted: false
     property bool pairClicked: false
+    property bool armed: false
+    property var profile: null
     readonly property var hostWindow: Window.window
+    readonly property var web: pageLoader.item
+
+    function ensureProfile() {
+        if (!profile)
+            profile = profileComponent.createObject(root)
+    }
+
+    function setPageUrl(value) {
+        if (value !== "")
+            ensureProfile()
+        root.pageUrl = value
+    }
+
+    Component {
+        id: profileComponent
+
+        WebEngineProfile {
+            storageName: "mausbot"
+            offTheRecord: false
+            persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+        }
+    }
 
     Timer {
         interval: 3000
@@ -19,7 +43,7 @@ Item {
         running: root.visible && mausBot.running && !mausBot.pairing
                  && (!root.pairAttempted || root.pageUrl.indexOf("/pair") >= 0)
         onTriggered: {
-            if (root.pageUrl === "")
+            if (root.pageUrl === "" || !web)
                 return
             if (root.pageUrl.indexOf("/pair") >= 0 && !root.pairClicked) {
                 root.pairClicked = true
@@ -42,14 +66,22 @@ Item {
     }
 
     Component.onCompleted: {
-        if (visible) Qt.callLater(openIfNeeded)
+        if (visible) {
+            armed = true
+            Qt.callLater(openIfNeeded)
+        }
     }
-    onVisibleChanged: if (visible) openIfNeeded()
+    onVisibleChanged: {
+        if (visible) {
+            armed = true
+            openIfNeeded()
+        }
+    }
 
     function openIfNeeded() {
         mausBot.refresh()
         if (mausBot.running && root.pageUrl === "")
-            root.pageUrl = mausBot.url
+            root.setPageUrl(mausBot.url)
         if (mausBot.installed && !mausBot.running && !mausBot.starting)
             mausBot.start()
     }
@@ -65,12 +97,12 @@ Item {
             root.hostWindow.showToast(qsTr("MausBot MCP disconnected."))
         }
         function onRunningChanged() {
-            root.pageUrl = mausBot.running ? mausBot.url : ""
+            root.setPageUrl(mausBot.running ? mausBot.url : "")
         }
         function onPairUrlChanged() {
             if (mausBot.pairUrl !== "") {
                 root.pairClicked = false
-                root.pageUrl = mausBot.pairUrl
+                root.setPageUrl(mausBot.pairUrl)
             }
         }
         function onErrorChanged() {
@@ -195,39 +227,44 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                WebEngineProfile {
-                    id: mausProfile
-                    storageName: "mausbot"
-                    offTheRecord: false
-                    persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+                Loader {
+                    id: pageLoader
+                    anchors.fill: parent
+                    active: root.armed && root.pageUrl !== ""
+                    sourceComponent: pageViewComponent
                 }
 
-                WebEngineView {
-                    id: web
-                    anchors.fill: parent
-                    visible: mausBot.running
-                    backgroundColor: theme.background
-                    profile: mausProfile
-                    settings.javascriptEnabled: true
-                    settings.localStorageEnabled: true
-                    url: root.visible ? root.pageUrl : ""
+                Component {
+                    id: pageViewComponent
 
-                    onLoadingChanged: function (request) {
-                        if (request.status === WebEngineView.LoadFailedStatus && mausBot.running)
-                            root.hostWindow.showToast(qsTr("The MausBot page did not load."))
-                        if (request.status === WebEngineView.LoadSucceededStatus && mausBot.running) {
-                            Qt.callLater(function () {
-                                web.runJavaScript("document.body.innerText", function (text) {
-                                    const value = String(text || "")
-                                    const needsPair = value.indexOf("Pairing code") >= 0
-                                        || value.indexOf("Connect to DeepCrasy H") >= 0
-                                        || value.indexOf("unauthorized") >= 0
-                                    if (needsPair && !root.pairAttempted && !mausBot.pairing) {
-                                        root.pairAttempted = true
-                                        mausBot.pair()
-                                    }
+                    WebEngineView {
+                        id: web
+                        visible: mausBot.running
+                        backgroundColor: theme.background
+                        profile: root.profile
+                        settings.javascriptEnabled: true
+                        settings.localStorageEnabled: true
+                        url: root.visible ? root.pageUrl : ""
+
+                        onLoadingChanged: function (request) {
+                            if (request.status === WebEngineView.LoadFailedStatus && mausBot.running)
+                                root.hostWindow.showToast(qsTr("The MausBot page did not load."))
+                            if (request.status === WebEngineView.LoadSucceededStatus && mausBot.running) {
+                                Qt.callLater(function () {
+                                    if (!web)
+                                        return
+                                    web.runJavaScript("document.body.innerText", function (text) {
+                                        const value = String(text || "")
+                                        const needsPair = value.indexOf("Pairing code") >= 0
+                                            || value.indexOf("Connect to DeepCrasy H") >= 0
+                                            || value.indexOf("unauthorized") >= 0
+                                        if (needsPair && !root.pairAttempted && !mausBot.pairing) {
+                                            root.pairAttempted = true
+                                            mausBot.pair()
+                                        }
+                                    })
                                 })
-                            })
+                            }
                         }
                     }
                 }
