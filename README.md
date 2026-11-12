@@ -16,6 +16,8 @@ un terminal réel, un autopilote borné et un centre de connexions providers/MCP
   personnalisés.
 - **Missions Plan → Exécution → Revue** : trois appels `dsh headless` successifs,
   avec mémoire et résultats intermédiaires transmis.
+- **Skills gérés** : bibliothèque utilisateur et projet, création et suppression
+  depuis l'interface, réutilisation dans une mission.
 - **Permissions adaptées** : planificateur et réviseur en lecture seule ;
   exécutant en `workspace-write` ; approbation `never` pour le mode headless.
 - **Suivi persistant** : chaque mission et chaque étape est stockée dans SQLite,
@@ -85,7 +87,7 @@ un terminal réel, un autopilote borné et un centre de connexions providers/MCP
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-hai-1.0.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-hai-1.0.3-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `deepcrasy-h`. Les données existantes sont conservées dans

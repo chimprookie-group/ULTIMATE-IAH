@@ -46,8 +46,18 @@ Item {
         return theme.accent
     }
 
-    Component.onCompleted: { agents.refresh(); missions.refresh() }
-    onVisibleChanged: if (visible) { agents.refresh(); missions.refresh() }
+    function addSkill() {
+        skills.createSkill(skillName.text, skillDescription.text, skillInstructions.text)
+        if (skills.error === "") {
+            skillName.text = ""
+            skillDescription.text = ""
+            skillInstructions.text = ""
+            Window.window.showToast(qsTr("Skill ajouté."))
+        }
+    }
+
+    Component.onCompleted: { agents.refresh(); missions.refresh(); skills.refresh() }
+    onVisibleChanged: if (visible) { agents.refresh(); missions.refresh(); skills.refresh() }
 
     ScrollView {
         anchors.fill: parent
@@ -321,6 +331,83 @@ Item {
                             elide: Text.ElideRight
                         }
                     }
+                }
+            }
+
+            SettingsSection {
+                title: qsTr("Skills")
+                Layout.fillWidth: true
+
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Des instructions réutilisables, découvertes par le harness dans ~/.agents/skills et dans le projet.")
+                    color: theme.dimText
+                    font.pixelSize: 9
+                    wrapMode: Text.Wrap
+                }
+
+                Repeater {
+                    model: skills.skills
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.scope; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
+                            Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                        }
+                        Button {
+                            text: qsTr("Utiliser")
+                            flat: true
+                            font.pixelSize: 8
+                            onClicked: missionTask.text = qsTr("Utilise le skill « %1 » (%2) pour cette mission.").arg(modelData.name).arg(modelData.path)
+                        }
+                        Button {
+                            visible: modelData.scope === "user"
+                            text: qsTr("Supprimer")
+                            flat: true
+                            font.pixelSize: 8
+                            onClicked: skills.removeSkill(modelData.id)
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    SettingsField { id: skillName; Layout.preferredWidth: 170; placeholderText: qsTr("Nom du skill") }
+                    SettingsField { id: skillDescription; Layout.fillWidth: true; placeholderText: qsTr("Description courte") }
+                }
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 70
+                    radius: Math.min(6, theme.radius)
+                    color: theme.background
+                    border.width: 1
+                    border.color: skillInstructions.activeFocus ? theme.accent : theme.border
+                    TextArea {
+                        id: skillInstructions
+                        anchors.fill: parent
+                        anchors.margins: 6
+                        color: theme.text
+                        placeholderText: qsTr("Instructions du skill…")
+                        placeholderTextColor: theme.dimText
+                        font.pixelSize: 9
+                        wrapMode: TextArea.Wrap
+                        background: null
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        Layout.fillWidth: true
+                        visible: skills.error !== ""
+                        text: skills.error
+                        color: theme.red
+                        font.pixelSize: 8
+                    }
+                    ActionButton { text: qsTr("Créer le skill"); onClicked: root.addSkill() }
                 }
             }
 

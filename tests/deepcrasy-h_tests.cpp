@@ -17,6 +17,7 @@
 #include "memorystore.h"
 #include "mcpmanager.h"
 #include "agentmanager.h"
+#include "skillmanager.h"
 #include "missionrunner.h"
 #include "autopilot.h"
 #include "theme.h"
@@ -192,6 +193,21 @@ private slots:
         QVERIFY(!QFileInfo::exists(mcp.patchPath()));
         QVERIFY(mcp.removeServer("demo"));
         QCOMPARE(mcp.servers().size(), 0);
+    }
+
+    void skillsAreCreatedAndIndexed()
+    {
+        QTemporaryDir dir;
+        SkillManager skills(dir.path() + "/skills");
+        skills.setWorkspace(dir.path());
+        QVERIFY(skills.createSkill("Release Notes", "Rédige des notes claires",
+                                   "Lis le diff et rédige des notes de version."));
+        QCOMPARE(skills.skills().size(), 1);
+        const QVariantMap skill = skills.skills().at(0).toMap();
+        QCOMPARE(skill.value("name").toString(), QString("Release Notes"));
+        QVERIFY(QFileInfo(skill.value("path").toString()).isFile());
+        QVERIFY(skills.removeSkill(skill.value("id").toString()));
+        QCOMPARE(skills.skills().size(), 0);
     }
 
     void missionRunsPlannerBuilderReviewer()

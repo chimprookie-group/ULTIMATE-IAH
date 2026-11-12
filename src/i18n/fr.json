@@ -550,5 +550,17 @@
   "Projet : %1\nTâche :\n%2\n\n": "Projet : %1\nTâche :\n%2\n\n",
   "Résultat de l'étape « %1 » :\n%2\n\n": "Résultat de l'étape « %1 » :\n%2\n\n",
   "AGENTIC CONTROL": "AGENTIC CONTROL",
-  "Le harness, ses agents, sa mémoire et votre projet.": "Le harness, ses agents, sa mémoire et votre projet."
+  "Le harness, ses agents, sa mémoire et votre projet.": "Le harness, ses agents, sa mémoire et votre projet.",
+  "Des instructions réutilisables, découvertes par le harness dans ~/.agents/skills et dans le projet.": "Des instructions réutilisables, découvertes par le harness dans ~/.agents/skills et dans le projet.",
+  "Utiliser": "Utiliser",
+  "Utilise le skill « %1 » (%2) pour cette mission.": "Utilise le skill « %1 » (%2) pour cette mission.",
+  "Nom du skill": "Nom du skill",
+  "Description courte": "Description courte",
+  "Instructions du skill…": "Instructions du skill…",
+  "Créer le skill": "Créer le skill",
+  "Skill ajouté.": "Skill ajouté.",
+  "Le nom et les instructions du skill sont obligatoires.": "Le nom et les instructions du skill sont obligatoires.",
+  "Ce skill existe déjà.": "Ce skill existe déjà.",
+  "Impossible d'écrire le skill.": "Impossible d'écrire le skill.",
+  "Impossible d'enregistrer le skill.": "Impossible d'enregistrer le skill."
 }

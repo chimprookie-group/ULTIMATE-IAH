@@ -13,6 +13,7 @@ HEADERS += \
     ../src/memorystore.h \
     ../src/missionrunner.h \
     ../src/mcpmanager.h \
+    ../src/skillmanager.h \
     ../src/agentmanager.h \
     ../src/autopilot.h \
     ../src/nineroutermanager.h \
@@ -35,6 +36,7 @@ SOURCES += \
     ../src/memorystore.cpp \
     ../src/missionrunner.cpp \
     ../src/mcpmanager.cpp \
+    ../src/skillmanager.cpp \
     ../src/agentmanager.cpp \
     ../src/autopilot.cpp \
     ../src/nineroutermanager.cpp \
