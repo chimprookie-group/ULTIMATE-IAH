@@ -604,7 +604,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.topMargin: design.headerHeight
         anchors.bottomMargin: design.statusHeight
-        width: Math.min(380, win.width - win.sidebarWidth - 24)
+        width: Math.min(400, win.width - win.sidebarWidth - 24)
         z: 90
         onCloseRequested: win.agentDockOpen = false
         onOpenRequested: {

@@ -807,5 +807,22 @@
   "Écosystème (Ctrl+6)": "Écosystème (Ctrl+6)",
   "Clé DeepSeek": "Clé DeepSeek",
   "clé absente de agent.env": "clé absente de agent.env",
-  "clé présente dans agent.env": "clé présente dans agent.env"
+  "clé présente dans agent.env": "clé présente dans agent.env",
+  "Actions rapides": "Actions rapides",
+  "Arrêter le traitement": "Arrêter le traitement",
+  "Aucun provider configuré": "Aucun provider configuré",
+  "Capacités et limites": "Capacités et limites",
+  "Composants manquants": "Composants manquants",
+  "Contexte actif": "Contexte actif",
+  "DSH": "DSH",
+  "DSH · DeepSeek · MCP": "DSH · DeepSeek · MCP",
+  "Demandez, diagnostiquez ou agissez…": "Demandez, diagnostiquez ou agissez…",
+  "Diagnostiquer": "Diagnostiquer",
+  "Il peut agir sur votre machine. Les actions destructives demandent une confirmation explicite.": "Il peut agir sur votre machine. Les actions destructives demandent une confirmation explicite.",
+  "Modèle": "Modèle",
+  "Nouvelle conversation": "Nouvelle conversation",
+  "Que veux-tu faire ?": "Que veux-tu faire ?",
+  "Réparer": "Réparer",
+  "Ultimate Agent connaît l'état réel d'Ultimate IAH et peut agir sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.": "Ultimate Agent connaît l'état réel d'Ultimate IAH et peut agir sur DSH, les providers, MCP, la mémoire, les skills, le terminal et l'installation.",
+  "État réel du système": "État réel du système"
 }
