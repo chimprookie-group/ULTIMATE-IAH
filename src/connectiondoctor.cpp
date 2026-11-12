@@ -53,12 +53,16 @@ void ConnectionDoctor::run() {
     QFile envFile(agentEnv.absoluteFilePath());
     int envKeys = 0;
     bool hasDeepSeek = false, hasNineRouter = false;
+    QString deepSeekKey;
     if (envFile.open(QIODevice::ReadOnly)) {
         for (const QString &line : QString::fromUtf8(envFile.readAll()).split('\n')) {
             if (!line.contains('='))
                 continue;
             ++envKeys;
-            hasDeepSeek = hasDeepSeek || line.startsWith("DEEPSEEK_API_KEY=");
+            if (line.startsWith("DEEPSEEK_API_KEY=")) {
+                hasDeepSeek = true;
+                deepSeekKey = line.mid(QStringLiteral("DEEPSEEK_API_KEY=").size()).trimmed();
+            }
             hasNineRouter = hasNineRouter || line.startsWith("NINE_ROUTER_API_KEY=");
         }
     }
@@ -102,6 +106,39 @@ void ConnectionDoctor::run() {
         add(tr("9Router"), tr("Clé dans l'environnement terminal"),
             hasNineRouter,
             hasNineRouter ? tr("NINE_ROUTER_API_KEY présent") : tr("relancez l'application après application au harness"));
+
+        // 9Router keeps its own upstream keys. Compare the DeepSeek suffix so
+        // a valid DSH key is not silently shadowed by a stale router key.
+        if (m_nineRouter->installed()) {
+            const QString db = QDir::homePath() + "/.9router/db/data.sqlite";
+            if (QFileInfo::exists(db) && !deepSeekKey.isEmpty()) {
+                const QString python = QStandardPaths::findExecutable(QStringLiteral("python3"));
+                if (!python.isEmpty()) {
+                    const QString script = QStringLiteral(
+                        "import sqlite3,json,sys\n"
+                        "try:\n"
+                        "    c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True)\n"
+                        "    r=c.execute(\"select data from providerConnections where provider='deepseek' limit 1\").fetchone()\n"
+                        "    k=json.loads(r[0]).get('apiKey','') if r else ''\n"
+                        "    print(k[-4:] if k else '')\n"
+                        "except Exception:\n"
+                        "    print('')\n");
+                    QProcess process;
+                    process.setProcessChannelMode(QProcess::MergedChannels);
+                    process.start(python, {QStringLiteral("-c"), script, db});
+                    if (process.waitForStarted(1200) && process.waitForFinished(2500)) {
+                        const QString suffix = QString::fromUtf8(process.readAll()).trimmed();
+                        const bool same = suffix.isEmpty() || deepSeekKey.endsWith(suffix);
+                        add(tr("9Router"), tr("Clé DeepSeek cohérente"), same,
+                            suffix.isEmpty() ? tr("connexion DeepSeek 9Router absente")
+                                             : tr("DSH ****%1 · 9Router ****%2").arg(deepSeekKey.right(4), suffix),
+                            same ? QString() : tr("Mettez à jour la connexion DeepSeek dans le dashboard 9Router."));
+                    } else {
+                        process.kill();
+                    }
+                }
+            }
+        }
     }
 
     if (m_mausBot) {
