@@ -12,7 +12,7 @@ Item {
     signal closeRequested()
     signal expandRequested()
 
-    readonly property int contentWidth: Math.max(320, Math.min(design.contentMax, width - (compact ? design.space4 * 2 : design.space7)))
+    readonly property int contentWidth: Math.max(320, Math.min(920, width - (compact ? design.space4 * 2 : design.space7)))
     readonly property bool empty: ultimateAgent.messages.length === 0
     readonly property bool canSend: composerField.text.trim() !== "" || ultimateAgent.busy
 
@@ -157,7 +157,7 @@ Item {
                 visible: !root.empty
                 anchors.leftMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
                 anchors.rightMargin: Math.max(design.space5, (parent.width - root.contentWidth) / 2)
-                anchors.topMargin: Math.max(design.space4, parent.height - messageList.contentHeight - design.space3)
+                anchors.topMargin: design.space4
                 anchors.bottomMargin: design.space3
                 clip: true
                 spacing: design.space3
