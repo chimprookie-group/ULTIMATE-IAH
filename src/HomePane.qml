@@ -174,7 +174,7 @@ Item {
                             anchors.left: parent.left
                             anchors.top: parent.top
                             anchors.right: parent.right
-                            anchors.topMargin: 2
+                            anchors.topMargin: design.space4
                             visible: taskInput.text === ""
                             text: qsTr("Décrivez une tâche pour le harness…")
                             color: theme.dimText
@@ -185,6 +185,10 @@ Item {
                         TextArea {
                             id: taskInput
                             anchors.fill: parent
+                            topPadding: design.space4
+                            bottomPadding: design.space2
+                            leftPadding: 0
+                            rightPadding: 0
                             color: theme.brightText
                             font.family: "iA Writer Duospace"
                             font.pixelSize: 18
