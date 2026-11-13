@@ -2,7 +2,11 @@
 
 #include <QJsonObject>
 #include <QObject>
+#include <QPointer>
 #include <QVariantList>
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 // Native provider and MCP connections for the DeepSeek Harness. Expands the
 // harness profile with llm-pi-ai routes, stores API keys in the DSH credential
@@ -16,6 +20,8 @@ class HarnessConnections : public QObject {
     Q_PROPERTY(bool deepseekConfigured READ deepseekConfigured NOTIFY changed)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString envPath READ envPath NOTIFY changed)
+    Q_PROPERTY(bool detecting READ detecting NOTIFY detectingChanged)
+    Q_PROPERTY(QString detectionStatus READ detectionStatus NOTIFY detectionStatusChanged)
 
 public:
     explicit HarnessConnections(const QString &overlayPath = {}, QObject *parent = nullptr);
@@ -27,6 +33,8 @@ public:
     bool deepseekConfigured() const { return m_deepseekConfigured; }
     QString error() const { return m_error; }
     QString envPath() const { return m_envPath; }
+    bool detecting() const { return m_detecting; }
+    QString detectionStatus() const { return m_detectionStatus; }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void saveDeepSeek(const QString &apiKey);
@@ -37,18 +45,24 @@ public:
     Q_INVOKABLE void removeProvider(const QString &id);
     Q_INVOKABLE void setDefault(const QString &provider, const QString &model);
     Q_INVOKABLE void clearError();
+    Q_INVOKABLE void detectModels(const QString &id);
     QString providerApiKey(const QString &id) const;
 
     static QString defaultOverlayPath();
+    static QJsonArray parseModels(const QJsonObject &root);
 
 signals:
     void changed();
     void errorChanged();
     void deepSeekChanged();
+    void detectingChanged();
+    void detectionStatusChanged();
 
 private:
     bool run(const QJsonObject &request, QJsonObject &result);
     void setError(const QString &error);
+    void setDetecting(bool detecting);
+    void setDetectionStatus(const QString &status);
     QString harnessProfile() const;
     QString pythonHelper() const;
 
@@ -60,4 +74,9 @@ private:
     QString m_defaultModelId;
     QString m_error;
     bool m_deepseekConfigured = false;
+    bool m_detecting = false;
+    QString m_detectionStatus;
+    QNetworkAccessManager *m_network = nullptr;
+    QPointer<QNetworkReply> m_detectReply;
+    QString m_detectProvider;
 };

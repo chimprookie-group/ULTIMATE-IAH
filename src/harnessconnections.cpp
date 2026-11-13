@@ -4,11 +4,16 @@
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QProcess>
+#include <QUrlQuery>
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QStringList>
 #include <QRegularExpression>
+#include <QSet>
 #include <QUrl>
 
 namespace {
@@ -26,7 +31,8 @@ QString profilePatchPath(const QString &profile) {
 HarnessConnections::HarnessConnections(const QString &overlayPath, QObject *parent)
     : QObject(parent),
       m_overlayPath(overlayPath.isEmpty() ? defaultOverlayPath() : overlayPath),
-      m_envPath(QFileInfo(m_overlayPath).absolutePath() + "/agent.env") {
+      m_envPath(QFileInfo(m_overlayPath).absolutePath() + "/agent.env"),
+      m_network(new QNetworkAccessManager(this)) {
     refresh();
 }
 
@@ -350,7 +356,148 @@ void HarnessConnections::setDefault(const QString &provider, const QString &mode
     refresh();
 }
 
+QJsonArray HarnessConnections::parseModels(const QJsonObject &root) {
+    QJsonArray source = root.value(QStringLiteral("data")).toArray();
+    if (source.isEmpty())
+        source = root.value(QStringLiteral("models")).toArray();
+    QJsonArray models;
+    QSet<QString> seen;
+    for (const QJsonValue &value : source) {
+        const QJsonObject item = value.toObject();
+        QString modelId = item.value(QStringLiteral("id")).toString();
+        if (modelId.isEmpty())
+            modelId = item.value(QStringLiteral("name")).toString();
+        if (modelId.startsWith(QLatin1String("models/")))
+            modelId = modelId.mid(7);
+        if (modelId.isEmpty() || seen.contains(modelId))
+            continue;
+        seen.insert(modelId);
+        QString display = item.value(QStringLiteral("display_name")).toString();
+        if (display.isEmpty())
+            display = item.value(QStringLiteral("name")).toString();
+        if (display.isEmpty() || display.startsWith(QLatin1String("models/")))
+            display = modelId;
+        models.append(QJsonObject{{QStringLiteral("id"), modelId},
+                                  {QStringLiteral("name"), display}});
+    }
+    return models;
+}
+
 void HarnessConnections::clearError() { setError({}); }
+
+void HarnessConnections::setDetecting(bool detecting) {
+    if (m_detecting == detecting)
+        return;
+    m_detecting = detecting;
+    emit detectingChanged();
+}
+
+void HarnessConnections::setDetectionStatus(const QString &status) {
+    if (m_detectionStatus == status)
+        return;
+    m_detectionStatus = status;
+    emit detectionStatusChanged();
+}
+
+void HarnessConnections::detectModels(const QString &id) {
+    QVariantMap provider;
+    for (const QVariant &value : m_providers) {
+        const QVariantMap candidate = value.toMap();
+        if (candidate.value(QStringLiteral("id")).toString() == id) {
+            provider = candidate;
+            break;
+        }
+    }
+    if (provider.isEmpty()) {
+        setError(tr("Provider inconnu : %1").arg(id));
+        return;
+    }
+    const QString key = providerApiKey(id);
+    if (key.isEmpty()) {
+        setError(tr("Ajoutez une clé API avant de détecter les modèles."));
+        return;
+    }
+    QString base = provider.value(QStringLiteral("baseURL")).toString().trimmed();
+    while (base.endsWith(QLatin1Char('/')))
+        base.chop(1);
+    if (base.isEmpty()) {
+        setError(tr("URL de base absente."));
+        return;
+    }
+    const QString api = provider.value(QStringLiteral("api")).toString();
+    const QString apiKeyEnv = provider.value(QStringLiteral("apiKeyEnv")).toString();
+    QString name = provider.value(QStringLiteral("name")).toString();
+    if (name.isEmpty())
+        name = id;
+    QUrl url(base + QStringLiteral("/models"));
+    if (api == QLatin1String("anthropic-messages")) {
+        QUrlQuery query;
+        query.addQueryItem(QStringLiteral("limit"), QStringLiteral("100"));
+        url.setQuery(query);
+    }
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateIAH/model-detection"));
+    request.setRawHeader("Authorization", "Bearer " + key.toUtf8());
+    request.setRawHeader("x-api-key", key.toUtf8());
+    request.setRawHeader("anthropic-version", "2023-06-01");
+    request.setTransferTimeout(20000);
+    if (m_detectReply) {
+        m_detectReply->abort();
+        m_detectReply->deleteLater();
+        m_detectReply = nullptr;
+    }
+    setDetectionStatus(tr("Détection des modèles pour %1…").arg(name));
+    setDetecting(true);
+    QNetworkReply *reply = m_network->get(request);
+    m_detectReply = reply;
+    connect(reply, &QNetworkReply::finished, this, [this, reply, id, name, base, api, apiKeyEnv, key] {
+        if (m_detectReply == reply)
+            m_detectReply = nullptr;
+        const QByteArray payload = reply->readAll();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const auto error = reply->error();
+        reply->deleteLater();
+        if (error != QNetworkReply::NoError || status < 200 || status >= 300) {
+            const QJsonObject root = QJsonDocument::fromJson(payload).object();
+            QString detail = root.value(QStringLiteral("error")).toObject()
+                                 .value(QStringLiteral("message")).toString();
+            if (detail.isEmpty())
+                detail = root.value(QStringLiteral("message")).toString();
+            if (detail.isEmpty())
+                detail = QString::fromUtf8(payload).left(200);
+            setError(tr("Détection impossible (HTTP %1) : %2").arg(status).arg(detail));
+            setDetectionStatus(tr("Échec de la détection pour %1.").arg(name));
+            setDetecting(false);
+            return;
+        }
+        const QJsonObject root = QJsonDocument::fromJson(payload).object();
+        const QJsonArray models = parseModels(root);
+        if (models.isEmpty()) {
+            setError(tr("Aucun modèle renvoyé par %1.").arg(name));
+            setDetectionStatus(tr("Aucun modèle détecté pour %1.").arg(name));
+            setDetecting(false);
+            return;
+        }
+        QJsonObject saveRequest{{QStringLiteral("op"), QStringLiteral("saveProvider")},
+                                {QStringLiteral("id"), id},
+                                {QStringLiteral("name"), name},
+                                {QStringLiteral("baseURL"), base},
+                                {QStringLiteral("api"), api},
+                                {QStringLiteral("apiKey"), key},
+                                {QStringLiteral("apiKeyEnv"), apiKeyEnv},
+                                {QStringLiteral("models"), models},
+                                {QStringLiteral("makeDefault"), false}};
+        QJsonObject result;
+        if (!run(saveRequest, result)) {
+            setDetectionStatus(tr("Échec de l'enregistrement des modèles."));
+            setDetecting(false);
+            return;
+        }
+        refresh();
+        setDetectionStatus(tr("%1 modèles détectés pour %2.").arg(models.size()).arg(name));
+        setDetecting(false);
+    });
+}
 
 QString HarnessConnections::providerApiKey(const QString &id) const {
     QString envName;

@@ -305,6 +305,15 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
+                    visible: connections.detectionStatus !== ""
+                    text: connections.detectionStatus
+                    color: connections.error !== "" ? theme.red : theme.dimText
+                    font.pixelSize: design.textMicro
+                    wrapMode: Text.Wrap
+                }
+
+                Text {
+                    Layout.fillWidth: true
                     visible: connections.providers.length === 0
                     text: qsTr("Aucun provider configuré. Choisissez un preset ou ajoutez un endpoint personnalisé.")
                     color: theme.dimText
@@ -343,6 +352,17 @@ Item {
                                     Text { id: defaultLabel; anchors.centerIn: parent; text: qsTr("par défaut"); color: theme.green; font.pixelSize: 8 }
                                 }
                                 Text { text: modelData.hasKey ? modelData.keyMasked : qsTr("sans clé"); color: modelData.hasKey ? theme.green : theme.yellow; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                                GhostButton {
+                                    visible: modelData.hasKey === true
+                                    text: connections.detecting ? qsTr("Détection…") : qsTr("Détecter")
+                                    enabled: !connections.detecting
+                                    flat: true
+                                    font.pixelSize: design.textMicro
+                                    onClicked: {
+                                        connections.clearError()
+                                        connections.detectModels(modelData.id)
+                                    }
+                                }
                                 GhostButton { visible: !modelData.builtin; text: qsTr("Modifier"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openEdit(modelData) }
                                 GhostButton { visible: !modelData.builtin; text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { connections.removeProvider(modelData.id) } }
                             }

@@ -850,12 +850,21 @@ Item {
                         }
                     }
                     AppComboBox {
-                        visible: ultimateAgent.modelOptions.length > 0
-                        Layout.preferredWidth: 210
-                        model: ultimateAgent.modelOptions
-                        currentIndex: Math.max(0, ultimateAgent.modelOptions.indexOf(ultimateAgent.modelId))
+                        visible: ultimateAgent.modelChoices.length > 0
+                        Layout.preferredWidth: 250
+                        model: ultimateAgent.modelChoices
+                        textRole: "label"
+                        currentIndex: {
+                            const choices = ultimateAgent.modelChoices
+                            for (var i = 0; i < choices.length; ++i) {
+                                if (choices[i].value === ultimateAgent.modelChoice)
+                                    return i
+                            }
+                            return 0
+                        }
                         onActivated: function (index) {
-                            ultimateAgent.modelId = model[index]
+                            if (model[index] !== undefined)
+                                ultimateAgent.modelChoice = model[index].value
                         }
                     }
                     AppComboBox {

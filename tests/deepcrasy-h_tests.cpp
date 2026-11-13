@@ -333,6 +333,24 @@ private slots:
         qunsetenv("DSH_HOME");
     }
 
+    void providerModelDetectionParsesCommonShapes()
+    {
+        const QJsonObject openai{{"data", QJsonArray{
+            QJsonObject{{"id", "alpha"}},
+            QJsonObject{{"id", "alpha"}},
+            QJsonObject{{"id", "beta"}, {"name", "Beta"}}}}};
+        const QJsonArray models = HarnessConnections::parseModels(openai);
+        QCOMPARE(models.size(), 2);
+        QCOMPARE(models.at(0).toObject().value("id").toString(), QString("alpha"));
+        QCOMPARE(models.at(1).toObject().value("name").toString(), QString("Beta"));
+        const QJsonObject gemini{{"models", QJsonArray{
+            QJsonObject{{"name", "models/gemini-2.5-pro"}, {"display_name", "Gemini 2.5 Pro"}}}}};
+        const QJsonArray geminiModels = HarnessConnections::parseModels(gemini);
+        QCOMPARE(geminiModels.size(), 1);
+        QCOMPARE(geminiModels.at(0).toObject().value("id").toString(), QString("gemini-2.5-pro"));
+        QCOMPARE(geminiModels.at(0).toObject().value("name").toString(), QString("Gemini 2.5 Pro"));
+    }
+
     void deepSeekCreatesAUsableDefaultProvider()
     {
         QTemporaryDir dir;
