@@ -1,6 +1,7 @@
 #include "ultimateagent.h"
 
 #include "agentconversationstore.h"
+#include "agentmessagemodel.h"
 #include "agentmanager.h"
 #include "backend.h"
 #include "botmanager.h"
@@ -170,6 +171,7 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
     });
     m_status = tr("Prêt");
     m_conversations = new AgentConversationStore({}, this);
+    m_messageModel = new AgentMessageModel(this);
     QObject::connect(m_conversations, &AgentConversationStore::changed,
                      this, &UltimateAgent::refreshConversationList);
     QObject::connect(m_conversations, &AgentConversationStore::changed,
@@ -231,6 +233,8 @@ QString UltimateAgent::credential(const QString &name) const {
     value.remove(QRegularExpression(QStringLiteral("^[\\\"']|[\\\"']$")));
     return value;
 }
+
+QObject *UltimateAgent::messageModel() const { return m_messageModel; }
 
 UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
     if (m_connections) {
@@ -721,6 +725,8 @@ void UltimateAgent::toggleToolDetails(int index) {
         return;
     message.insert(QStringLiteral("expanded"), !message.value(QStringLiteral("expanded")).toBool());
     m_ui[index] = message;
+    if (m_messageModel)
+        m_messageModel->update(index, message);
     emit messagesChanged();
 }
 
@@ -731,6 +737,8 @@ void UltimateAgent::clearConversation() {
     clearPendingAttachments(true);
     m_api = QJsonArray();
     m_ui.clear();
+    if (m_messageModel)
+        m_messageModel->reset({});
     m_todos.clear();
     resetStats();
     m_title = tr("Nouvelle discussion");
@@ -745,28 +753,37 @@ void UltimateAgent::clearConversation() {
 void UltimateAgent::appendUser(const QString &text, const QVariantList &images) {
     if (m_title.isEmpty() || m_title == tr("Nouvelle discussion"))
         m_title = text.simplified().isEmpty() ? tr("[image]") : text.simplified().left(56);
-    m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("user")},
-                            {QStringLiteral("text"), text},
-                            {QStringLiteral("images"), images},
-                            {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    const QVariantMap message{{QStringLiteral("role"), QStringLiteral("user")},
+                              {QStringLiteral("text"), text},
+                              {QStringLiteral("images"), images},
+                              {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}};
+    m_ui.append(message);
+    if (m_messageModel)
+        m_messageModel->append(message);
     m_api.append(QJsonObject{{QStringLiteral("role"), QStringLiteral("user")},
                              {QStringLiteral("content"), userContent(text, images)}});
     emit messagesChanged();
 }
 
 void UltimateAgent::appendAssistant(const QString &text) {
-    m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("assistant")},
-                            {QStringLiteral("text"), text},
-                            {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    const QVariantMap message{{QStringLiteral("role"), QStringLiteral("assistant")},
+                              {QStringLiteral("text"), text},
+                              {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}};
+    m_ui.append(message);
+    if (m_messageModel)
+        m_messageModel->append(message);
     emit messagesChanged();
 }
 
 void UltimateAgent::appendReasoning(const QString &text, int seconds) {
-    m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("reasoning")},
-                            {QStringLiteral("text"), text},
-                            {QStringLiteral("seconds"), seconds},
-                            {QStringLiteral("expanded"), false},
-                            {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    const QVariantMap message{{QStringLiteral("role"), QStringLiteral("reasoning")},
+                              {QStringLiteral("text"), text},
+                              {QStringLiteral("seconds"), seconds},
+                              {QStringLiteral("expanded"), false},
+                              {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}};
+    m_ui.append(message);
+    if (m_messageModel)
+        m_messageModel->append(message);
     emit messagesChanged();
 }
 
@@ -921,13 +938,16 @@ void UltimateAgent::setPermissionMode(const QString &mode) {
 
 void UltimateAgent::appendTool(const QString &name, const QString &detail, bool ok,
                                const QString &payload) {
-    m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("tool")},
-                            {QStringLiteral("tool"), name},
-                            {QStringLiteral("detail"), detail},
-                            {QStringLiteral("ok"), ok},
-                            {QStringLiteral("payload"), payload},
-                            {QStringLiteral("expanded"), false},
-                            {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    const QVariantMap message{{QStringLiteral("role"), QStringLiteral("tool")},
+                              {QStringLiteral("tool"), name},
+                              {QStringLiteral("detail"), detail},
+                              {QStringLiteral("ok"), ok},
+                              {QStringLiteral("payload"), payload},
+                              {QStringLiteral("expanded"), false},
+                              {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}};
+    m_ui.append(message);
+    if (m_messageModel)
+        m_messageModel->append(message);
     emit messagesChanged();
 }
 
@@ -975,6 +995,8 @@ bool UltimateAgent::loadConversation(const QString &id) {
     m_title = data.value(QStringLiteral("title")).toString();
     m_api = data.value(QStringLiteral("api")).toArray();
     m_ui = data.value(QStringLiteral("ui")).toArray().toVariantList();
+    if (m_messageModel)
+        m_messageModel->reset(m_ui);
     m_todos.clear();
     resetStats();
     emit todosChanged();
@@ -1039,6 +1061,8 @@ void UltimateAgent::newConversation() {
     m_title = tr("Nouvelle discussion");
     m_api = QJsonArray();
     m_ui.clear();
+    if (m_messageModel)
+        m_messageModel->reset({});
     m_todos.clear();
     resetStats();
     emit todosChanged();
@@ -1086,6 +1110,8 @@ void UltimateAgent::deleteConversation(const QString &id) {
         if (!loadConversation(next)) {
             m_api = QJsonArray();
             m_ui.clear();
+            if (m_messageModel)
+                m_messageModel->reset({});
             m_title = tr("Nouvelle discussion");
             emit messagesChanged();
         }

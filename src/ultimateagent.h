@@ -12,6 +12,7 @@
 class QNetworkReply;
 class QTimer;
 class AgentConversationStore;
+class AgentMessageModel;
 
 class AgentManager;
 class BotManager;
@@ -39,6 +40,7 @@ class TerminalSession;
 class UltimateAgent : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList messages READ messages NOTIFY messagesChanged)
+    Q_PROPERTY(QObject *messageModel READ messageModel CONSTANT)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
@@ -79,6 +81,7 @@ public:
                   KnowledgeBase *knowledge, QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
+    QObject *messageModel() const;
     bool busy() const { return m_busy; }
     QString error() const { return m_error; }
     QString status() const { return m_status; }
@@ -219,6 +222,7 @@ private:
     LearningEngine *m_learning = nullptr;
     KnowledgeBase *m_knowledge = nullptr;
     AgentConversationStore *m_conversations = nullptr;
+    AgentMessageModel *m_messageModel = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;
     QNetworkReply *m_reply = nullptr;
