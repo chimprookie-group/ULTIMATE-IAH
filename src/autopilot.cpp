@@ -359,7 +359,7 @@ void Autopilot::startJob(int id) {
         const int id = m_currentJobId;
         const int attempts = m_currentAttempts;
         const int maxAttempts = m_currentMaxAttempts;
-        const QString error = success ? QString() : tr("dsh headless a échoué (code %1).").arg(code);
+        const QString error = success ? QString() : tr("le job agent natif a échoué (code %1).").arg(code);
         if (success && m_memory && !output.trimmed().isEmpty()) {
             m_memory->remember(
                 projectOfJob(id), QStringLiteral("result"),

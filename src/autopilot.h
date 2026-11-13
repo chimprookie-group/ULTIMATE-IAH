@@ -10,7 +10,7 @@
 class MemoryStore;
 
 // Bounded autonomous executor. Jobs are stored in SQLite, run one at a time
-// through `dsh headless` (never a shell), inherit the private harness
+// through the native agent job runner (never a shell), inherit the private harness
 // environment, receive relevant memory as context, and record their results
 // back into memory. Global autonomy is opt-in.
 class Autopilot : public QObject {

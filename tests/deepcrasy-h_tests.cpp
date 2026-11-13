@@ -25,6 +25,7 @@
 #include "agentconversationstore.h"
 #include "notestore.h"
 #include "pluginmanager.h"
+#include "webservice.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -597,6 +598,33 @@ private slots:
         QVERIFY(store.deleteNote(alpha));
         QVERIFY(store.count() >= 2);
         QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
+    }
+
+    void defaultSkillLibraryIsSeededAndSearchable()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        SkillManager skills(dir.path() + "/skills");
+        QVERIFY(skills.seedDefaults());
+        QCOMPARE(skills.defaultCount(), 12);
+        const QVariantMap research = skills.readSkill("research");
+        QCOMPARE(research.value("id").toString(), QString("research"));
+        QVERIFY(research.value("content").toString().contains("web_search"));
+        const QVariantList suggestions = skills.suggest("recherche web sources", 2);
+        QVERIFY(!suggestions.isEmpty());
+        QCOMPARE(suggestions.first().toMap().value("id").toString(), QString("research"));
+        QVERIFY(skills.skills().size() >= 12);
+    }
+
+    void webFetchBlocksPrivateHosts()
+    {
+        WebService web;
+        const QJsonObject local = web.fetch("http://127.0.0.1:8080/private");
+        QVERIFY(!local.value("ok").toBool());
+        QCOMPARE(local.value("code").toString(), QString("WEB_PRIVATE_HOST"));
+        const QJsonObject loopback = web.fetch("http://localhost/private");
+        QVERIFY(!loopback.value("ok").toBool());
+        QCOMPARE(loopback.value("code").toString(), QString("WEB_PRIVATE_HOST"));
     }
 
     void pluginManagerDiscoversAndRunsExternalCommands()

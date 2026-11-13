@@ -187,6 +187,7 @@ private:
     QString m_conversationQuery;
     QVariantList m_pendingAttachments;
     QStringList m_activeSkills;
+    QString m_userPrompt;
     QString m_mode = QStringLiteral("assistant");
     QString m_permissionMode = QStringLiteral("workspace-write");
     bool m_busy = false;

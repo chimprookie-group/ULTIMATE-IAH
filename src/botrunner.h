@@ -4,7 +4,7 @@
 #include <QProcess>
 #include <QTimer>
 
-// Executes one bot task through `dsh headless`. One process at a time, no
+// Executes one bot task through the native agent job runner. One process at a time, no
 // shell, private agent environment, explicit permission mode, bounded output
 // and a hard timeout. BotManager owns the queue around it.
 class BotRunner : public QObject {

@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
+#include <QHostAddress>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
@@ -310,11 +311,35 @@ QString WebService::htmlToText(const QString &html) const {
     return value.trimmed();
 }
 
+bool WebService::blockedHost(const QUrl &url) const {
+    const QString host = url.host().toLower();
+    if (host.isEmpty() || host == QLatin1String("localhost") || host.endsWith(QLatin1String(".local"))
+        || host.endsWith(QLatin1String(".internal")))
+        return true;
+    QHostAddress address;
+    if (!address.setAddress(host))
+        return false;
+    if (address.isLoopback() || address.isLinkLocal() || address.isSiteLocal())
+        return true;
+    if (address.protocol() == QAbstractSocket::IPv4Protocol) {
+        const quint32 value = address.toIPv4Address();
+        return (value >> 24) == 0 || (value >> 24) == 127 || (value >> 24) >= 224
+            || (value & 0xffff0000U) == 0xa9fe0000U
+            || (value & 0xffc00000U) == 0x64400000U;
+    }
+    if (address.protocol() == QAbstractSocket::IPv6Protocol) {
+        const Q_IPV6ADDR ipv6 = address.toIPv6Address();
+        if ((ipv6[0] & 0xfe) == 0xfc || (ipv6[0] == 0xfe && (ipv6[1] & 0xc0) == 0x80))
+            return true;
+    }
+    return false;
+}
+
 QString WebService::cleanUrl(const QString &url) const {
     QUrl parsed(url.trimmed());
     if (!parsed.isValid() || (parsed.scheme() != QLatin1String("http") && parsed.scheme() != QLatin1String("https")))
         return {};
-    if (parsed.toString().size() > 2048)
+    if (parsed.toString().size() > 2048 || blockedHost(parsed))
         return {};
     return parsed.toString();
 }
@@ -353,6 +378,10 @@ QJsonObject WebService::httpGet(const QString &url, int maxBytes, int timeoutMs)
 }
 
 QJsonObject WebService::fetch(const QString &url) {
+    QUrl requested(url.trimmed());
+    if (requested.isValid() && blockedHost(requested))
+        return errorObject(QStringLiteral("WEB_PRIVATE_HOST"),
+                           tr("Les adresses locales et privées sont bloquées pour web_fetch."));
     const QString clean = cleanUrl(url);
     if (clean.isEmpty())
         return errorObject(QStringLiteral("WEB_INVALID_URL"), tr("URL HTTP(S) invalide."));
@@ -370,7 +399,8 @@ QJsonObject WebService::fetch(const QString &url) {
             && reply.value(QStringLiteral("status")).toInt() >= 300
             && reply.value(QStringLiteral("status")).toInt() < 400) {
             const QUrl target = QUrl(current).resolved(QUrl(reply.value(QStringLiteral("redirect")).toString()));
-            if (target.host() != origin.host() || target.scheme() != origin.scheme())
+            if (target.host() != origin.host() || target.scheme() != origin.scheme()
+                || blockedHost(target))
                 return errorObject(QStringLiteral("WEB_REDIRECT_BLOCKED"), tr("Redirection vers une autre origine refusée."));
             current = target.toString();
             continue;

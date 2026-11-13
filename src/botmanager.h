@@ -16,7 +16,7 @@ class BotStore;
 class MemoryStore;
 
 // Native bot service for Ultimate IAH. Bots are persisted in SQLite, executed
-// one at a time through `dsh headless`, scheduled locally, exposed over a
+// one at a time through the native agent job runner, scheduled locally, exposed over a
 // token-protected loopback HTTP API and bridged into DSH through MCP.
 class BotManager : public QObject {
     Q_OBJECT

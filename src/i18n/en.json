@@ -1258,5 +1258,10 @@
   "nom-du-depot": "repository-name",
   "public": "public",
   "Écosystème GitHub indisponible.": "GitHub ecosystem unavailable.",
-  "Dépôt GitHub invalide.": "Invalid GitHub repository."
+  "Dépôt GitHub invalide.": "Invalid GitHub repository.",
+  "Les adresses locales et privées sont bloquées pour web_fetch.": "Local and private addresses are blocked for web_fetch.",
+  "Bibliothèque de skills restaurée.": "Default skill library restored.",
+  "Bibliothèque par défaut": "Default library",
+  "Issue": "Issue",
+  "le job agent natif a échoué (code %1).": "the native agent job failed (code %1)."
 }

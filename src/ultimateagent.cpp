@@ -107,7 +107,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
         return action == QLatin1String("list") || action == QLatin1String("read");
     if (name == QLatin1String("ultimate_notes"))
         return action == QLatin1String("list") || action == QLatin1String("search")
-            || action == QLatin1String("read") || action == QLatin1String("tags");
+            || action == QLatin1String("read") || action == QLatin1String("tags")
+            || action == QLatin1String("graph");
     if (name == QLatin1String("ultimate_files"))
         return action == QLatin1String("list") || action == QLatin1String("read") || action == QLatin1String("search");
     if (name == QLatin1String("ultimate_git"))
@@ -275,6 +276,32 @@ QString UltimateAgent::systemPrompt() const {
                      skill.value(QStringLiteral("scope")).toString(), body);
         }
     }
+    if (m_skills) {
+        const QVariantList suggestions = m_activeSkills.isEmpty()
+            ? m_skills->suggest(m_userPrompt, 2) : QVariantList();
+        if (!suggestions.isEmpty()) {
+            prompt += QStringLiteral("\n\nSKILLS PERTINENTS (sélection automatique)\n");
+            for (const QVariant &value : suggestions) {
+                const QVariantMap skill = value.toMap();
+                prompt += QStringLiteral("## %1\n%2\n\n")
+                    .arg(skill.value(QStringLiteral("name")).toString(),
+                         skill.value(QStringLiteral("content")).toString().left(7000));
+            }
+        } else if (m_activeSkills.isEmpty()) {
+            QString catalog;
+            for (const QVariant &value : m_skills->skills()) {
+                const QVariantMap skill = value.toMap();
+                catalog += QStringLiteral("- %1: %2 (id: %3)\n")
+                    .arg(skill.value(QStringLiteral("name")).toString(),
+                         skill.value(QStringLiteral("description")).toString(),
+                         skill.value(QStringLiteral("id")).toString());
+            }
+            if (!catalog.isEmpty())
+                prompt += QStringLiteral("\n\nBIBLIOTHÈQUE DE SKILLS\n"
+                                         "Utilise ultimate_skills action=read avec un id quand un skill correspond.\n")
+                    + catalog.left(5000);
+        }
+    }
     prompt += QStringLiteral("\n\nTOOLS\n")
         + QString::fromUtf8(QJsonDocument(allTools()).toJson(QJsonDocument::Compact));
     return prompt;
@@ -375,6 +402,7 @@ QJsonObject UltimateAgent::snapshot() const {
                                       {QStringLiteral("path"), map.value(QStringLiteral("path")).toString()}});
         }
         root.insert(QStringLiteral("skills"), skills);
+        root.insert(QStringLiteral("defaultSkills"), m_skills->defaultCount());
     }
     if (m_agents) {
         QJsonArray profiles;
@@ -409,6 +437,7 @@ void UltimateAgent::sendMessage(const QString &text) {
     m_error.clear();
     emit errorChanged();
     m_round = 0;
+    m_userPrompt = prompt;
     const QVariantList images = m_pendingAttachments;
     appendUser(prompt, images);
     m_pendingAttachments.clear();
@@ -1046,7 +1075,7 @@ QString UltimateAgent::staticKnowledge() {
 
 IDENTITY AND MISSION
 - You are not a generic chatbot. You know this exact application, its local ecosystem, its files and its live state.
-- You can operate the application through tools: navigation, providers/connections, DSH harness, MCP, persistent memory, skills, missions, bots, terminal, workspace files, Git, installation and settings.
+- You can operate the application through tools: navigation, providers/connections, native harness, MCP, persistent memory, skills, missions, bots, terminal, workspace files, Git, GitHub, web and settings.
 - Answer in the user's language (French by default) and keep the tone direct, technical and useful.
 - Be concise by default, but be complete when diagnosing or changing configuration. Use Markdown and short code blocks.
 
@@ -1118,7 +1147,7 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true for destructive changes."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_services"),
-                    QStringLiteral("Inspect or control the DSH harness."),
+                    QStringLiteral("Inspect or control the native Ultimate IAH harness."),
                     properties({{QStringLiteral("target"),
                                  enumProperty(QStringLiteral("Service target."),
                                               {QStringLiteral("harness")})},
@@ -1165,7 +1194,7 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("limit"), agentProperty(QStringLiteral("integer"), QStringLiteral("Maximum results (1-50)."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_skills"),
-                    QStringLiteral("List, read, create or remove harness skills."),
+                    QStringLiteral("List, read, create, restore or remove harness skills. The default library is seeded automatically."),
                     properties({{QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("list"), QStringLiteral("read"),

@@ -53,6 +53,7 @@ private:
     QString htmlToText(const QString &html) const;
     QString decodeEntities(const QString &text) const;
     QString cleanUrl(const QString &url) const;
+    bool blockedHost(const QUrl &url) const;
     static QJsonObject errorObject(const QString &code, const QString &message);
     void setError(const QString &error);
     void rememberSearch(const QString &provider, const QStringList &queries, int count);

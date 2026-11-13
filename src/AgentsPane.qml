@@ -456,6 +456,7 @@ Item {
                         color: theme.red
                         font.pixelSize: design.textMicro
                     }
+                    Button { text: qsTr("Bibliothèque par défaut"); flat: true; font.pixelSize: design.textMicro; onClicked: { skills.seedDefaults(true); Window.window.showToast(qsTr("Bibliothèque de skills restaurée.")) } }
                     ActionButton { text: qsTr("Créer le skill"); onClicked: root.addSkill() }
                 }
             }

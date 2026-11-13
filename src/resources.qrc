@@ -12,6 +12,18 @@
         <file>ProviderCatalog.js</file>
         <file>ConnectionsPane.qml</file>
         <file>NoteGraph.qml</file>
+        <file>skills/default/research.md</file>
+        <file>skills/default/code-review.md</file>
+        <file>skills/default/test-first.md</file>
+        <file>skills/default/debug.md</file>
+        <file>skills/default/git-workflow.md</file>
+        <file>skills/default/github-project.md</file>
+        <file>skills/default/notes-vault.md</file>
+        <file>skills/default/security.md</file>
+        <file>skills/default/release.md</file>
+        <file>skills/default/automation.md</file>
+        <file>skills/default/refactor.md</file>
+        <file>skills/default/artcraft.md</file>
         <file>GitHubPane.qml</file>
         <file>PluginsPane.qml</file>
         <file>NotesPane.qml</file>

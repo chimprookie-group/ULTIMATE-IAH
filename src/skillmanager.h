@@ -10,19 +10,25 @@ class SkillManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariantList skills READ skills NOTIFY changed)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
+    Q_PROPERTY(int defaultCount READ defaultCount NOTIFY changed)
 
 public:
     explicit SkillManager(const QString &rootPath = {}, QObject *parent = nullptr);
 
     QVariantList skills() const { return m_skills; }
     QString error() const { return m_error; }
+    int defaultCount() const;
 
     void setWorkspace(const QString &workspace);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE bool createSkill(const QString &name, const QString &description,
                                  const QString &instructions);
     Q_INVOKABLE bool removeSkill(const QString &id);
+    Q_INVOKABLE bool seedDefaults(bool force = false);
+    Q_INVOKABLE QVariantMap readSkill(const QString &id) const;
     Q_INVOKABLE void clearError();
+
+    QVariantList suggest(const QString &query, int limit = 3) const;
 
     static QString defaultRoot();
 
@@ -33,6 +39,8 @@ signals:
 private:
     void setError(const QString &error);
     QString slug(const QString &name) const;
+    QString defaultsMarker() const;
+    static QStringList defaultSkillIds();
 
     QString m_root;
     QString m_workspace;

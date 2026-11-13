@@ -11,7 +11,7 @@ class AgentManager;
 class MemoryStore;
 
 // Sequential multi-agent mission: Planner -> Builder -> Reviewer. Every step
-// runs through `dsh headless` in the mission workspace, gets the previous
+// runs through the native agent job runner in the mission workspace, gets the previous
 // results and project memory, and is persisted in SQLite. One mission at a time.
 class MissionRunner : public QObject {
     Q_OBJECT

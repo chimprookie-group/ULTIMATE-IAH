@@ -119,7 +119,7 @@ void Backend::boot() {
         return;
     m_booted = true;
     // The embedded DSH web harness has been removed. Ultimate Agent is the
-    // application's native runtime; dsh headless may still be used by the
+    // application's native runtime; the native job runner may still be used by the
     // legacy automation workers only.
     refreshGit();
 }

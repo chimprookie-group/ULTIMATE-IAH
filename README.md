@@ -123,6 +123,19 @@ Le panneau Plugins expose la carte complète du harness :
 - Chaque capacité indique son outil natif ou sa vue de contrôle.
 - Les outils réellement installés restent détectés dynamiquement.
 
+## Bibliothèque de skills
+
+Ultimate IAH embarque **12 skills par défaut** : recherche web, revue de code,
+TDD, debug, Git, GitHub, notes, sécurité, release, automatisation, refactor et
+ArtCraft.
+
+- seeding idempotent dans `~/.agents/skills` ;
+- aucun fichier utilisateur écrasé ;
+- sélection automatique des skills pertinents avant chaque requête ;
+- lecture/écriture via `ultimate_skills` ;
+- bouton **Bibliothèque par défaut** pour restaurer les skills manquants ;
+- les skills projet restent prioritaires dans le workspace.
+
 ## Écosystème GitHub
 
 - Connexion via le CLI `gh` et son keyring, sans lire ni stocker le token.
@@ -224,7 +237,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-iah-1.14.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.15.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `ultimate-hai` et `deepcrasy-h`. Les données existantes sont conservées dans

@@ -7,6 +7,8 @@
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QTextStream>
+#include <QSet>
+#include <algorithm>
 
 namespace {
 QString frontMatterValue(const QString &text, const QString &key) {
@@ -42,11 +44,125 @@ SkillManager::SkillManager(const QString &rootPath, QObject *parent)
     : QObject(parent),
       m_root(rootPath.isEmpty() ? defaultRoot() : rootPath),
       m_workspace(QDir::homePath()) {
+    if (m_root == defaultRoot())
+        seedDefaults();
     refresh();
 }
 
 QString SkillManager::defaultRoot() {
     return QDir::homePath() + "/.agents/skills";
+}
+
+QStringList SkillManager::defaultSkillIds() {
+    return {QStringLiteral("research"), QStringLiteral("code-review"),
+            QStringLiteral("test-first"), QStringLiteral("debug"),
+            QStringLiteral("git-workflow"), QStringLiteral("github-project"),
+            QStringLiteral("notes-vault"), QStringLiteral("security"),
+            QStringLiteral("release"), QStringLiteral("automation"),
+            QStringLiteral("refactor"), QStringLiteral("artcraft")};
+}
+
+QString SkillManager::defaultsMarker() const {
+    return m_root + QStringLiteral("/.defaults-v1");
+}
+
+int SkillManager::defaultCount() const {
+    const QStringList ids = defaultSkillIds();
+    const QSet<QString> defaults(ids.begin(), ids.end());
+    int count = 0;
+    for (const QVariant &value : m_skills) {
+        if (defaults.contains(value.toMap().value(QStringLiteral("id")).toString()))
+            ++count;
+    }
+    return count;
+}
+
+bool SkillManager::seedDefaults(bool force) {
+    if (!force && QFileInfo::exists(defaultsMarker())) {
+        refresh();
+        return true;
+    }
+    QDir().mkpath(m_root);
+    const QStringList ids = defaultSkillIds();
+    for (const QString &id : ids) {
+        const QString directory = m_root + QLatin1Char('/') + id;
+        const QString target = directory + QStringLiteral("/SKILL.md");
+        if (QFileInfo::exists(target))
+            continue;
+        QFile resource(QStringLiteral(":/skills/default/") + id + QStringLiteral(".md"));
+        if (!resource.open(QIODevice::ReadOnly))
+            continue;
+        QDir().mkpath(directory);
+        QSaveFile file(target);
+        if (!file.open(QIODevice::WriteOnly))
+            continue;
+        file.write(resource.readAll());
+        if (!file.commit())
+            continue;
+        QFile::setPermissions(target, QFile::ReadOwner | QFile::WriteOwner);
+    }
+    QSaveFile marker(defaultsMarker());
+    if (marker.open(QIODevice::WriteOnly)) {
+        marker.write(QByteArray("Ultimate IAH default skills v1\n"));
+        marker.commit();
+    }
+    refresh();
+    return true;
+}
+
+QVariantMap SkillManager::readSkill(const QString &id) const {
+    for (const QVariant &value : m_skills) {
+        const QVariantMap skill = value.toMap();
+        if (skill.value(QStringLiteral("id")).toString() != id
+            && skill.value(QStringLiteral("name")).toString() != id)
+            continue;
+        QFile file(skill.value(QStringLiteral("path")).toString());
+        if (!file.open(QIODevice::ReadOnly))
+            return {};
+        QVariantMap result = skill;
+        result.insert(QStringLiteral("content"), QString::fromUtf8(file.readAll()).left(30000));
+        return result;
+    }
+    return {};
+}
+
+QVariantList SkillManager::suggest(const QString &query, int limit) const {
+    const QStringList raw = query.toLower().split(QRegularExpression(QStringLiteral("[^a-z0-9àâçéèêëîïôûùüÿñæœ]+")),
+                                                  Qt::SkipEmptyParts);
+    QStringList terms;
+    const QSet<QString> stop = {QStringLiteral("the"), QStringLiteral("and"), QStringLiteral("pour"),
+                                QStringLiteral("avec"), QStringLiteral("dans"), QStringLiteral("les"),
+                                QStringLiteral("des"), QStringLiteral("une"), QStringLiteral("que"),
+                                QStringLiteral("qui"), QStringLiteral("this"), QStringLiteral("that")};
+    for (const QString &term : raw) {
+        if (term.size() > 1 && !stop.contains(term))
+            terms.append(term);
+    }
+    struct Scored { int score; QVariantMap skill; };
+    QList<Scored> scored;
+    for (const QVariant &value : m_skills) {
+        const QVariantMap skill = value.toMap();
+        const QString haystack = (skill.value(QStringLiteral("name")).toString() + " "
+                                  + skill.value(QStringLiteral("description")).toString() + " "
+                                  + skill.value(QStringLiteral("tags")).toStringList().join(' ')).toLower();
+        int score = 0;
+        for (const QString &term : terms) {
+            if (haystack.contains(term))
+                score += term.size() >= 4 ? 2 : 1;
+        }
+        if (score > 0)
+            scored.append({score, skill});
+    }
+    std::sort(scored.begin(), scored.end(), [](const Scored &a, const Scored &b) { return a.score > b.score; });
+    QVariantList out;
+    for (int i = 0; i < scored.size() && i < limit; ++i) {
+        QVariantMap skill = scored.at(i).skill;
+        QFile file(skill.value(QStringLiteral("path")).toString());
+        if (file.open(QIODevice::ReadOnly))
+            skill.insert(QStringLiteral("content"), QString::fromUtf8(file.readAll()).left(8000));
+        out.append(skill);
+    }
+    return out;
 }
 
 void SkillManager::setWorkspace(const QString &workspace) {
@@ -92,9 +208,18 @@ void SkillManager::refresh() {
                     }
                 }
             }
+            QStringList tags;
+            const QString tagsValue = frontMatterValue(text, "tags");
+            for (const QString &tag : tagsValue.split(QRegularExpression(QStringLiteral("[, ]+")), Qt::SkipEmptyParts)) {
+                QString clean = tag.trimmed();
+                clean.remove(QRegularExpression(QStringLiteral("^\[|\]$")));
+                if (!clean.isEmpty())
+                    tags.append(clean);
+            }
             skills.append(QVariantMap{
                 {"id", entry.fileName()}, {"name", name}, {"description", description},
-                {"path", file}, {"scope", root.second},
+                {"path", file}, {"scope", root.second}, {"tags", tags},
+                {"default", defaultSkillIds().contains(entry.fileName())},
             });
         }
     }
