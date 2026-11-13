@@ -159,6 +159,26 @@ Item {
     property bool showScrollButton: false
     property real lastContentY: 0
     property int thinkingSeconds: 0
+    property bool reasoningExpanded: false
+    readonly property var lastReasoning: {
+        var messages = ultimateAgent.messages
+        var start = 0
+        for (var i = 0; i < messages.length; ++i) {
+            if (messages[i].role === "user")
+                start = i + 1
+        }
+        for (var j = messages.length - 1; j >= start; --j) {
+            if (messages[j].role === "reasoning")
+                return messages[j]
+        }
+        return null
+    }
+    readonly property bool showReasoningBar: ultimateAgent.busy || lastReasoning !== null
+
+    function durationText(seconds) {
+        if (seconds >= 60) return qsTr("%1m %2s").arg(Math.floor(seconds / 60)).arg(seconds % 60)
+        return qsTr("%1 s").arg(Math.max(0, Math.round(seconds)))
+    }
 
     function nearBottom(threshold) {
         if (messageList.count === 0)
@@ -440,7 +460,7 @@ Item {
                         anchors.topMargin: design.space3
                         anchors.bottomMargin: design.space2
                         clip: true
-                        spacing: design.space3
+                        spacing: 0
                         model: ultimateAgent.messages
                         interactive: true
                         flickableDirection: Flickable.VerticalFlick
@@ -456,7 +476,7 @@ Item {
                             height: (hiddenTool || hiddenReasoning) ? 0
                                     : Math.max(userBlock.visible ? userBlock.height : 0,
                                                Math.max(assistantBlock.visible ? assistantBlock.height : 0,
-                                                        stepsBlock.visible ? stepsBlock.height : 0))
+                                                        stepsBlock.visible ? stepsBlock.height : 0)) + design.space2
 
                             Column {
                                 id: userBlock
@@ -841,24 +861,55 @@ Item {
                     }
                 }
 
-                Item {
+                Column {
                     Layout.fillWidth: true
                     Layout.leftMargin: design.space2
                     Layout.rightMargin: design.space2
                     Layout.bottomMargin: design.space1
-                    visible: ultimateAgent.busy
-                    implicitHeight: visible ? 22 : 0
-                    RowLayout {
-                        anchors.fill: parent
-                        spacing: design.space2
-                        ThemedIcon { source: "icons/fin.svg"; width: 13; height: 13; color: theme.mutedText }
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.reasoningLabel(root.thinkingSeconds) + " \u2026"
-                            color: theme.mutedText
-                            font.pixelSize: design.textMicro
-                            elide: Text.ElideRight
+                    visible: root.showReasoningBar
+                    spacing: design.space1
+
+                    Item {
+                        width: parent.width
+                        height: 22
+                        RowLayout {
+                            anchors.fill: parent
+                            spacing: design.space2
+                            ThemedIcon { source: "icons/fin.svg"; width: 13; height: 13; color: theme.mutedText }
+                            Text {
+                                Layout.fillWidth: true
+                                text: ultimateAgent.busy
+                                      ? root.reasoningLabel(root.thinkingSeconds) + " \u2026"
+                                      : qsTr("Réflexion approfondie · %1").arg(root.durationText(root.lastReasoning ? root.lastReasoning.seconds || 0 : 0))
+                                color: theme.mutedText
+                                font.pixelSize: design.textMicro
+                                elide: Text.ElideRight
+                            }
+                            ThemedIcon {
+                                visible: !ultimateAgent.busy
+                                source: "icons/chevron.svg"
+                                rotation: root.reasoningExpanded ? 270 : 90
+                                width: 10
+                                height: 10
+                                color: theme.dimText
+                            }
                         }
+                        TapHandler {
+                            enabled: !ultimateAgent.busy
+                            onTapped: root.reasoningExpanded = !root.reasoningExpanded
+                        }
+                    }
+
+                    Text {
+                        width: parent.width
+                        leftPadding: 21
+                        visible: root.reasoningExpanded && !ultimateAgent.busy && root.lastReasoning !== null
+                        text: visible ? (root.lastReasoning.text || "") : ""
+                        color: theme.dimText
+                        font.pixelSize: design.textCaption
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 40
+                        elide: Text.ElideRight
                     }
                 }
 
