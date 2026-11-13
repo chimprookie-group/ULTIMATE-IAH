@@ -347,7 +347,7 @@ Item {
                                 id: toolBlock
                                 visible: modelData.role === "tool"
                                 width: parent.width
-                                implicitHeight: toolColumn.implicitHeight + design.space2
+                                implicitHeight: toolColumn.implicitHeight + design.space4
                                 height: implicitHeight
                                 radius: design.radiusMd
                                 color: theme.chip
