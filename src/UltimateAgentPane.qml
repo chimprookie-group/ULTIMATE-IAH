@@ -146,6 +146,7 @@ Item {
         if ((value === "" && ultimateAgent.pendingAttachments.length === 0) || ultimateAgent.busy)
             return
         root.followOutput = true
+        root.thinkingSeconds = 0
         ultimateAgent.sendMessage(value)
         composerField.text = ""
     }
@@ -157,6 +158,7 @@ Item {
     property bool followOutput: true
     property bool showScrollButton: false
     property real lastContentY: 0
+    property int thinkingSeconds: 0
 
     function nearBottom(threshold) {
         if (messageList.count === 0)
@@ -171,6 +173,10 @@ Item {
         Qt.callLater(function () {
             if (messageList.count > 0)
                 messageList.positionViewAtEnd()
+            Qt.callLater(function () {
+                if (root.followOutput && messageList.count > 0)
+                    messageList.positionViewAtEnd()
+            })
         })
     }
 
@@ -438,42 +444,27 @@ Item {
                         model: ultimateAgent.messages
                         interactive: true
                         flickableDirection: Flickable.VerticalFlick
-                        WheelHandler {
-                            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                            onWheel: function (event) {
-                                const maxY = Math.max(0, messageList.contentHeight - messageList.height)
-                                if (maxY <= 0) {
-                                    event.accepted = true
-                                    return
+                        ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
+
+                        footer: Item {
+                            width: messageList.width
+                            height: ultimateAgent.busy ? 26 : 0
+                            visible: ultimateAgent.busy
+                            RowLayout {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: design.space2
+                                ThemedIcon { source: "icons/fin.svg"; width: 14; height: 14; color: theme.mutedText }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.reasoningLabel(root.thinkingSeconds) + " \u2026"
+                                    color: theme.mutedText
+                                    font.pixelSize: design.textMicro
+                                    elide: Text.ElideRight
                                 }
-                                const delta = event.pixelDelta.y !== 0 ? event.pixelDelta.y : event.angleDelta.y * 0.7
-                                const target = Math.max(0, Math.min(maxY, messageList.contentY - delta))
-                                if (Math.abs(target - messageList.contentY) > 0.5) {
-                                    root.followOutput = false
-                                    messageList.contentY = target
-                                }
-                                event.accepted = true
                             }
                         }
-                        reuseItems: true
-                        cacheBuffer: 600
-                        boundsBehavior: Flickable.StopAtBounds
-                        onContentHeightChanged: {
-                            if (root.followOutput)
-                                root.scrollToBottom()
-                            else
-                                root.showScrollButton = !root.nearBottom() && count > 0
-                        }
-                        onCountChanged: root.showScrollButton = !root.nearBottom() && count > 0
-                        onMovementEnded: root.followOutput = root.nearBottom(8)
-                        onFlickEnded: root.followOutput = root.nearBottom(8)
-                        onContentYChanged: {
-                            if (contentY < root.lastContentY - 2)
-                                root.followOutput = false
-                            root.showScrollButton = !root.nearBottom() && count > 0
-                            root.lastContentY = contentY
-                        }
-                        ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
 
                         delegate: Item {
                             id: delegateItem
@@ -664,7 +655,7 @@ Item {
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
                                             spacing: design.space2
-                                            ThemedIcon { source: "icons/spark.svg"; width: 13; height: 13; color: theme.mutedText }
+                                            ThemedIcon { source: "icons/fin.svg"; width: 14; height: 14; color: theme.mutedText }
                                             Text {
                                                 Layout.fillWidth: true
                                                 text: root.reasoningLabel(modelData.seconds || 0)
@@ -1371,6 +1362,13 @@ Item {
                 }
             }
         }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: ultimateAgent.busy
+        onTriggered: root.thinkingSeconds += 1
     }
 
     FileDialog {
