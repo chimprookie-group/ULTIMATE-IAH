@@ -1,225 +1,294 @@
-# Ultimate IAH
+<div align="center">
 
-**Le cockpit agentique natif d’Ultimate IAH pour Omarchy.**
+<img src="assets/logo-512.png" width="112" alt="Ultimate IAH" />
 
-Ultimate IAH réunit Ultimate Agent, des discussions persistantes, un vault
-Markdown relié, des agents orchestrés, une mémoire durable, un terminal réel,
-des bots natifs et un hub providers/MCP — sans harness web externe.
+# ULTIMATE IAH
+
+**Le cockpit agentique natif pour Omarchy, Arch Linux et le travail de code réel.**
+
+Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche web,
+les skills, les bots, les providers et la création assistée.
+
+<p>
+  <img alt="Version" src="https://img.shields.io/badge/version-1.16.2-4D6BFE?style=flat-square" />
+  <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
+  <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
+  <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" />
+</p>
+
+**[Cockpit](#cockpit) · [Ultimate Agent](#ultimate-agent) · [4Crasy](#4crasy) · [Skills](#bibliothèque-de-skills) · [GitHub](#écosystème-github) · [Notes](#notes--graphe) · [Installation](#installation) · [Documentation](#documentation)**
+
+</div>
+
+---
+
+## Pourquoi Ultimate IAH
+
+Les outils d’IA sont souvent dispersés entre un chat, un terminal, un éditeur,
+un navigateur et plusieurs services web. Ultimate IAH les réunit dans une
+application Qt 6 native :
+
+- un moteur agentique qui appelle de vrais outils et vérifie ses résultats ;
+- des conversations persistantes et compactables ;
+- un vault Markdown avec backlinks et graphe ;
+- une bibliothèque de skills qui se sélectionne automatiquement ;
+- un routeur de modèles gratuits, **4Crasy**, avec API OpenAI-compatible ;
+- GitHub, les providers, MCP, les bots et ArtCraft au même endroit ;
+- des données locales, des permissions explicites et aucun harness web embarqué.
 
 ![Cockpit Ultimate IAH](assets/screenshot-home.png)
 
-## Identité
+## Cockpit
 
-La baleine musclée est le nouveau logo d'Ultimate IAH. Le fond clair a été
-détouré avec précision : variante blanche sur les thèmes sombres, variante encre
-sur les thèmes clairs. Dans le rail, le logo est posé directement, sans tuile
-autour, pour lui laisser de l'air. Il structure aussi les en-têtes de page, les
-états vides d'Ultimate Agent et de la mémoire, l'écran Ultimate Agent, la palette,
-l'aide et le À propos. L'icône du lanceur utilise une tuile encre arrondie avec
-la baleine blanche et un discret trait d'accent.
+Le Cockpit présente l’état réel de l’écosystème, le projet courant, le terminal,
+le provider par défaut, les notes, GitHub, 4Crasy et les composants actifs.
 
-## Agentique
-
-![Agents et missions](assets/screenshot-agents.png)
-
-- **Profils d'agents** : planificateur, exécutant, réviseur, chercheur, et rôles
-  personnalisés.
-- **Missions Plan → Exécution → Revue** : trois passes du moteur agent natif,
-  avec mémoire et résultats intermédiaires transmis.
-- **Skills gérés** : bibliothèque utilisateur et projet, création et suppression
-  depuis l'interface, réutilisation dans une mission.
-- **Permissions adaptées** : planificateur et réviseur en lecture seule ;
-  exécutant en `workspace-write`, appliqué par le moteur agent.
-- **Suivi persistant** : chaque mission et chaque étape est stockée dans SQLite,
-  avec reprise, annulation et sorties consultables.
-
-## Installation complète
-
-La vue **Installation** (`Ctrl+Alt+I`) audite et installe l'écosystème complet :
-moteur agent natif, Node, npm, Python, PyYAML, QtWebEngine, Git, portail
-fichiers, MCP mémoire, service de bots, vault Notes et entrées de bureau.
-
-## Ultimate Agent
-
-La politique **one-shot** est embarquée dans le paquet et dans la mémoire
-d'origine de l'agent : reproduire, comprendre la cause partagée, corriger une
-fois, exécuter la vérification réelle et rapporter les preuves.
+- workspace et état Git ;
+- accès direct à Ultimate Agent et au terminal ;
+- jauge des composants actifs ;
+- navigation vers les missions, la mémoire, les notes et les plugins ;
+- raccourcis clavier cohérents dans toute l’application.
 
 ![Ultimate Agent](assets/screenshot-agent.png)
 
-**Ctrl+Alt+U** ouvre le dock agent, et l'entrée **Ultimate Agent** de la barre
-latérale ouvre la vue complète. Il connaît l'état réel d'Ultimate IAH et agit via
-des outils : diagnostic, providers, MCP, mémoire, skills, notes, missions,
-terminal, fichiers, Git, installation et réglages.
+## Ultimate Agent
 
-- **Discussions persistantes** : historique SQLite, rail de discussions,
-  recherche, nouvel échange, renommage, épinglage, suppression confirmée et
-  export du transcript.
-- **Images dans le chat** : pièce jointe via le trombone ou glisser-déposer,
-  aperçu intégré, agrandissement et transmission au modèle compatible vision.
-- **Modes de travail** : Assistant, Plan, Diagnostic, Construction et Revue.
-- **Contexte** : jauge de contexte et compaction native.
-- **Compétences** : activation des skills installés, injectés dans le prompt.
-- **Options de conversation** : copie, vidage et suppression depuis le panneau
-  Options.
-- Les discussions et pièces jointes restent locales :
-  `agent-conversations.db` et `agent-attachments/`.
+**Ctrl+Alt+U** ouvre Ultimate Agent.
 
-Voir [docs/AGENT.md](docs/AGENT.md) pour les outils et les règles de sécurité.
+### Capacités
 
-![Ultimate Agent en dock](assets/screenshot-agent-dock.png)
+- **Boucle agentique native** : appels d’outils, résultats réels, arrêt propre et
+  limite de tours.
+- **Conversations persistantes** : historique SQLite, recherche, renommage,
+  épinglage, archivage, suppression et export Markdown.
+- **Modes** : Assistant, Plan, Diagnostic, Construction et Revue.
+- **Contexte** : jauge, compaction et pruning des résultats d’outils.
+- **Images** : pièces jointes, aperçu, agrandissement et transmission aux
+  modèles compatibles vision.
+- **Permissions** : `read-only` ou `workspace-write`, vérifiées dans chaque
+  outil.
+- **Outils** : diagnostic, providers, MCP, mémoire, skills, notes, missions,
+  terminal, fichiers, Git, GitHub, web, installation et réglages.
+- **Job headless** : le même moteur est utilisé par les bots, les missions,
+  l’autopilote et `--agent-job`.
 
-## Bots
+### Utilisation en CLI
 
-![Bots Ultimate IAH](assets/screenshot-bots.png)
+```sh
+# version et diagnostic
+ultimate-iah --version
+ultimate-iah doctor --json
 
-Ultimate IAH inclut un service de bots natif, persistant et sécurisé :
+# job agent natif
+ultimate-iah --agent-job \
+  --agent-prompt "Corrige le test qui échoue et prouve-le" \
+  --workspace ~/Work/mon-projet \
+  --permission workspace-write
 
-- trois bots fournis : **Atlas** (coordination), **Forge** (construction) et **Sentry** (audit) ;
-- création, édition, activation et suppression ;
-- permissions **lecture seule** ou **écriture workspace** ;
-- exécution par le moteur agent natif ;
-- file d’exécution, annulation et timeout ;
-- planifications récurrentes ;
-- API HTTP locale sur `127.0.0.1:8790`, protégée par un jeton privé ;
-- dashboard web local ;
-- pont MCP `ultimate-iah-bots` pour Ultimate Agent ;
-- mémoire, runs et conversations dans SQLite.
-
-Le bouton **Dashboard** ouvre l’interface web. Le jeton se copie depuis la vue Bots. Les bots sont accessibles par **Ctrl+Alt+B**.
-
-## Recherche web native
-
-Ultimate Agent expose deux outils web réels :
-
-- **web_search** : DeepSeek Search quand la clé est disponible, sinon secours
-  DuckDuckGo ; une à quatre requêtes, huit sources maximum, snippets et URLs.
-- **web_fetch** : récupération HTTP(S), redirections limitées à la même origine,
-  texte extrait, taille plafonnée à 200 000 caractères, cache de dix minutes.
-- Les résultats sont marqués comme contenu externe non fiable.
-- Outil de diagnostic `ultimate_web` et cache visible dans Plugins.
-
-## Notes
-
-![Notes Ultimate IAH](assets/screenshot-notes.png)
-
-- Vault Markdown local, fichiers plats et index SQLite.
-- Arborescence, recherche, tags, épinglage, renommage et corbeille.
-- **Wikilinks `[[Titre]]`**, backlinks et graphe interactif.
-- Note quotidienne, autosauvegarde et aperçu Markdown.
-- Pièces jointes image copiées dans le vault.
-- Outils agent `ultimate_notes` pour lire, chercher, créer et mettre à jour.
-- Raccourci **Ctrl+Alt+N**.
-
-## Socle DSH natif
-
-Le panneau Plugins expose la carte complète du harness :
-
-- **30 capacités du noyau** actives par défaut : agent loop, sessions, outils,
-  fichiers, shell, web search/fetch, MCP, skills, plan, objectifs, jobs,
-  sous-agents, planification, token meter, compaction, persona, notes, mémoire,
-  providers, ArtCraft, etc.
-- **12 extensions expérimentales** visibles mais désactivées par défaut.
-- Chaque capacité indique son outil natif ou sa vue de contrôle.
-- Les outils réellement installés restent détectés dynamiquement.
+# skills
+ultimate-iah skill install
+```
 
 ## 4Crasy
 
-Routeur natif de modèles gratuits intégré au harness :
+**4Crasy** est le routeur natif de modèles gratuits. Il ne dépend pas d’un
+service web externe et n’écoute que sur la loopback.
 
-- API OpenAI-compatible sur `127.0.0.1:8788/v1` ;
-- endpoints `/health`, `/v1/models`, `/v1/chat/completions` ;
-- jeton Bearer stocké en mode privé, écoute loopback uniquement ;
+![4Crasy](assets/screenshot-4crasy.png)
+
+- API OpenAI-compatible : `http://127.0.0.1:8788/v1` ;
+- `GET /health`, `GET /v1/models`, `POST /v1/chat/completions` ;
+- jeton Bearer privé, stocké en `0600` ;
 - découverte OpenRouter, Groq, Gemini, DeepSeek et Ollama ;
-- routage automatique par tâche, préférence gratuite et fallback ;
-- bouton **Utiliser dans le harness** qui configure le provider par défaut ;
-- modes headless `--router-service` et `--router-configure`.
+- modèles gratuits marqués `free` ;
+- sélection automatique selon la tâche, la priorité, le contexte et la
+  préférence gratuite ;
+- fallback entre canaux ;
+- bouton **Utiliser dans le harness** : crée le provider `4crasy` et le rend
+  par défaut ;
+- modes headless :
+
+```sh
+ultimate-iah --router-service
+ultimate-iah --router-configure
+```
+
+Voir [docs/4CRASY.md](docs/4CRASY.md).
 
 ## Bibliothèque de skills
 
-Ultimate IAH embarque **12 skills par défaut** : recherche web, revue de code,
-TDD, debug, Git, GitHub, notes, sécurité, release, automatisation, refactor et
-ArtCraft.
+Ultimate IAH installe **12 skills par défaut** dans `~/.agents/skills` :
 
-- seeding idempotent dans `~/.agents/skills` ;
-- aucun fichier utilisateur écrasé ;
+| Skill | Usage |
+|---|---|
+| `research` | recherche web, sources et citations |
+| `code-review` | revue de code, régressions et sécurité |
+| `test-first` | boucle TDD et preuves |
+| `debug` | reproduction et cause racine |
+| `git-workflow` | branches, commits et PR |
+| `github-project` | dépôts, issues et pull requests |
+| `notes-vault` | notes, wikilinks et graphe |
+| `security` | audit permissions, secrets et entrées |
+| `release` | build, paquet et installation |
+| `automation` | bots et planifications |
+| `refactor` | simplification sûre |
+| `artcraft` | suite créative |
+
+- seeding idempotent, sans écraser un skill utilisateur ;
 - sélection automatique des skills pertinents avant chaque requête ;
-- lecture/écriture via `ultimate_skills` ;
-- bouton **Bibliothèque par défaut** pour restaurer les skills manquants ;
-- les skills projet restent prioritaires dans le workspace.
+- skills projet dans `<workspace>/.agents/skills` ;
+- lecture/écriture depuis `ultimate_skills` ;
+- bouton **Bibliothèque par défaut** pour restaurer les fichiers manquants.
+
+Voir [docs/SKILLS.md](docs/SKILLS.md).
 
 ## Écosystème GitHub
 
-- Connexion via le CLI `gh` et son keyring, sans lire ni stocker le token.
-- Liste, recherche et sélection des dépôts.
-- Création de projet public/privé, avec clonage optionnel dans le workspace.
-- Clonage d’un dépôt existant.
-- Issues et pull requests, création d’issue.
-- Outils agent `github_status`, `github_repos`, `github_issues`, `github_pulls`,
-  `github_clone`, `github_create_repo`, `github_create_issue`.
-- Vue **GitHub** (Ctrl+Alt+H), intégrée au Cockpit et à l’Écosystème.
+![GitHub](assets/screenshot-github.png)
 
-## Plugins et ArtCraft
+La vue **GitHub** (`Ctrl+Alt+H`) utilise le CLI `gh` et son keyring. Le token
+n’est jamais lu, affiché ou journalisé par l’application.
 
-![Plugins et ArtCraft](assets/screenshot-plugins.png)
+- connexion au compte et état des scopes ;
+- liste, filtre et détail des dépôts ;
+- création d’un projet public ou privé ;
+- clonage optionnel dans le workspace ;
+- issues et pull requests ;
+- création d’issue ;
+- outils agent :
 
-Le registre natif expose les outils au harness Ultimate Agent :
+```text
+github_status   github_repos    github_issues
+github_pulls    github_clone    github_create_repo
+github_create_issue
+```
 
-- **14 craft** : CADCraft, GridCraft, SoundCraft, DeckCraft, WordCraft,
-  PhotoCraft, LightCraft, PdfCraft, VectorCraft, EffectCraft, FilmCraft,
-  DesignCraft, FigCraft et TextureCraft.
-- Détection réelle des binaires, versions, activation/désactivation et
-  persistance de l’état.
-- Outils agent dynamiques `artcraft_<craft>` : catalogue, version et exécution
-  CLI contrôlée par permission.
-- Manifestes de plugins externes dans
-  `~/.config/Crasy/deepcrasy-h/plugins/manifests`.
-- Aucun outil n’est déclaré s’il n’est pas réellement installé.
+Les écritures GitHub nécessitent le mode `workspace-write`. Voir
+[docs/GITHUB.md](docs/GITHUB.md).
 
-## Providers et MCP
+## Notes + graphe
 
-![Providers](assets/screenshot-connections.png)
+![Notes](assets/screenshot-notes.png)
 
-![Serveurs MCP](assets/screenshot-mcp.png)
+- vault Markdown local ;
+- index SQLite, recherche, tags et épinglage ;
+- **wikilinks `[[Titre]]`**, backlinks et graphe force-directed ;
+- note quotidienne et autosauvegarde ;
+- aperçu Markdown et images ;
+- outil agent `ultimate_notes` ;
+- accès depuis Notes, Plugins et Ultimate Agent.
 
-- **Hub providers centralisé** : catalogue de 46 presets classés en Directs,
-  Agrégateurs, Asie, Entreprise et Locaux.
-- **Application fiable** : chaque preset ouvre un formulaire pré-rempli ;
-  URL, modèles, protocole et clé sont vérifiés avant l'enregistrement.
-- **Protocoles** : OpenAI-compatible et Anthropic Messages.
-- **Provider et modèle par défaut** : sélection en un clic, utilisée
-  immédiatement par Ultimate Agent.
-- **Clé DeepSeek unique** : une saisie dans Providers crée le provider
-  `deepseek-official`, alimente Ultimate Agent, `agent.env` et le terminal,
-  puis définit `deepseek-chat` par défaut si aucun modèle ne l'est déjà.
-- **Édition et suppression** des providers et diagnostic des liaisons.
-- **MCP stdio et HTTP** : ajout, activation, suppression, presets Filesystem /
-  Fetch / Git, utilisés directement par Ultimate Agent.
-- **MCP intégré** : mémoire Ultimate IAH.
-- **Liens directs** vers MCP, mémoire, bots, Ultimate Agent et installation.
+Voir [docs/NOTES.md](docs/NOTES.md).
 
-## Mémoire
+## Agents, missions et bots
 
-![Mémoire persistante](assets/screenshot-memory.png)
+![Agents](assets/screenshot-agents.png)
 
-- SQLite WAL + FTS5, par projet : faits, décisions, préférences, résultats.
-- Recherche plein texte, épinglage, intégrité, sauvegarde.
-- Outils MCP : `memory_search`, `memory_remember`, `memory_recent`.
-- Mémoire injectée dans les missions, l'autopilote et les tâches du terminal.
+- profils Planner, Builder, Reviewer, Researcher et rôles personnalisés ;
+- missions **Plan → Exécution → Revue** ;
+- mémoire injectée à chaque étape ;
+- permissions adaptées par rôle ;
+- suivi SQLite, reprise et annulation.
 
-## Autopilote
+![Bots](assets/screenshot-bots.png)
 
-![Autopilote](assets/screenshot-autopilot.png)
+- bots persistants Atlas, Forge et Sentry ;
+- création, édition, activation et suppression ;
+- exécution par le job agent natif ;
+- planifications ;
+- API locale `127.0.0.1:8790` protégée par jeton ;
+- dashboard web local et pont MCP `ultimate-iah-bots`.
 
-- File de tâches, exécution une à une par le moteur agent natif, intervalle ou manuel.
-- Timeout, reprise, écriture des résultats en mémoire.
-- Autonomie opt-in : elle tourne tant que l'application est ouverte.
+## Recherche web et MCP
 
-## Terminal
+- `web_search` : DeepSeek Search, secours DuckDuckGo, sources et snippets ;
+- `web_fetch` : HTTP(S), redirections same-origin, texte borné, cache ;
+- blocage des adresses locales et privées ;
+- résultats marqués comme contenu externe non fiable ;
+- MCP stdio/HTTP et serveurs mémoire/bots intégrés ;
+- outils exposés directement à Ultimate Agent.
 
-- Terminal PTY réel (bash, zsh, fish) dans le workspace partagé.
-- Projet, Git, fichiers, diff, outils et skills.
-- Plus aucun harness web DSH embarqué.
+## ArtCraft et plugins
+
+![Plugins](assets/screenshot-plugins.png)
+
+- **14 CLI ArtCraft** : CAD, Grid, Sound, Deck, Word, Photo, Light, Pdf, Vector,
+  Effect, Film, Design, Fig et Texture ;
+- outils dynamiques `artcraft_<craft>` ;
+- détection réelle des binaires et versions ;
+- activation persistante ;
+- manifestes externes dans
+  `~/.config/Crasy/deepcrasy-h/plugins/manifests` ;
+- catalogue de **30 capacités DSH natives** et 12 extensions expérimentales
+  visibles mais désactivées.
+
+Voir [docs/PLUGINS.md](docs/PLUGINS.md).
+
+## Architecture
+
+```mermaid
+graph TD
+    UI[Qt 6 / QML] --> Agent[Ultimate Agent]
+    UI --> Notes[Notes + Graph]
+    UI --> GitHub[GitHub]
+    UI --> Router[4Crasy]
+    UI --> Bots[Bots / Autopilot]
+    Agent --> Tools[Registre d'outils]
+    Agent --> Providers[Providers / MCP]
+    Agent --> Skills[SkillManager]
+    Agent --> Memory[SQLite FTS5]
+    Tools --> Web[Web search/fetch]
+    Tools --> Plugins[Plugins / ArtCraft]
+    Tools --> GitHub
+    Tools --> Router
+    Router --> Channels[OpenRouter / Groq / Gemini / DeepSeek / Ollama]
+    Notes --> Vault[Vault Markdown]
+    Bots --> Agent
+```
+
+Couches principales :
+
+- **Qt 6 / QML** : interface native et thème Omarchy ;
+- **Ultimate Agent** : boucle, outils, permissions, conversations ;
+- **Services** : `WebService`, `GitHubService`, `CrasyRouter`, `PluginManager`,
+  `SkillManager`, `NoteStore`, `MemoryStore`, `MCP` ;
+- **Persistance** : SQLite WAL, FTS5, Markdown et fichiers JSON ;
+- **Jobs** : le binaire se réinvoque en mode headless, sans shell.
+
+Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Installation
+
+### Paquet Arch
+
+```sh
+pkexec pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+```
+
+Le paquet fournit :
+
+- `/usr/bin/ultimate-iah` ;
+- `ultimate-iah.desktop` ;
+- icônes 128 → 1024 px ;
+- remplacement de `ultimate-hai` et `deepcrasy-h` ;
+- conservation des données existantes.
+
+### Depuis les sources
+
+```sh
+git clone https://github.com/iatexplique-debug/ULTIMATE-IAH.git
+cd ULTIMATE-IAH
+./bin/build
+./bin/test
+cd pkgbuild && makepkg -f
+pkexec pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+```
+
+Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
+PyYAML, Git, Node.js. `gh` est optionnel et active l’écosystème GitHub. Les
+binaires ArtCraft sont détectés dans
+`~/.local/share/Crasy/deepcrasy-h/artcraft/bin`.
 
 ## Raccourcis
 
@@ -235,6 +304,8 @@ Le registre natif expose les outils au harness Ultimate Agent :
 | `Ctrl+Alt+U` | Ultimate Agent |
 | `Ctrl+Alt+B` | Bots |
 | `Ctrl+Alt+N` | Notes |
+| `Ctrl+Alt+H` | GitHub |
+| `Ctrl+Alt+4` | 4Crasy |
 | `Ctrl+Alt+P` | Plugins et ArtCraft |
 | `Ctrl+Alt+A` | Autopilote |
 | `Ctrl+Alt+C` | MCP |
@@ -243,28 +314,60 @@ Le registre natif expose les outils au harness Ultimate Agent :
 | `Ctrl+K` | Palette de commandes |
 | `?` | Aide |
 
-## Installer
+## Données et sécurité
+
+- Configuration : `~/.config/Crasy/deepcrasy-h/` ;
+- données : `~/.local/share/Crasy/deepcrasy-h/` ;
+- secrets : `agent.env`, `bot.token`, `4crasy/token` en `0600` ;
+- GitHub : keyring `gh`, aucun token stocké par l’application ;
+- 4Crasy : loopback uniquement, Bearer token, corps borné ;
+- `web_fetch` : adresses privées bloquées ;
+- plugins : processus sans shell, arguments explicites ;
+- aucune télémétrie distante.
+
+## Développement
 
 ```sh
-./bin/build
-./bin/test
-cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+./bin/build       # compilation qmake6
+./bin/test        # suite Qt Test
+./bin/install-user
 ```
 
-Le paquet remplace `ultimate-hai` et `deepcrasy-h`. Les données existantes sont conservées dans
-les chemins historiques (`~/.config/Crasy/deepcrasy-h` et
-`~/.local/share/Crasy/deepcrasy-h`) : mémoire, providers, MCP, missions et
-autopilote restent en place. Les anciens composants retirés sont nettoyés.
+La suite couvre notamment :
 
-## Limites
+- stores SQLite et migrations ;
+- conversations ;
+- notes, wikilinks et graphe ;
+- skills par défaut et sélection ;
+- plugin manager et outils externes ;
+- 4Crasy : démarrage loopback et parsing des modèles ;
+- protection SSRF de `web_fetch` ;
+- sécurité des politiques read-only.
 
-- L'autopilote est **borné** : tâches créées par l'utilisateur, une à la fois,
-  opt-in, et l'application doit rester ouverte.
-- La mémoire est **lexicale FTS5**, sans embeddings ni synchronisation cloud.
-- MCP exécute des serveurs avec les permissions de votre session : n'activez
+État de référence : **42 tests passent** et **51 combinaisons vue × largeur**
+ont été vérifiées sans erreur QML.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Ultimate Agent](docs/AGENT.md)
+- [4Crasy](docs/4CRASY.md)
+- [GitHub](docs/GITHUB.md)
+- [Skills](docs/SKILLS.md)
+- [Notes](docs/NOTES.md)
+- [Plugins](docs/PLUGINS.md)
+- [Installation](docs/INSTALLATION.md)
+
+## Limites connues
+
+- 4Crasy expose actuellement des réponses non-streaming ; le harness utilise ce
+  mode.
+- L’autopilote est borné et nécessite que l’application reste ouverte.
+- La mémoire est lexicale FTS5, sans embeddings ni synchronisation cloud.
+- Les serveurs MCP s’exécutent avec les permissions de la session : n’activez
   que des commandes contrôlées.
+- L’écosystème GitHub dépend de `gh` et de son authentification.
 
 ## Licence
 
-MIT.
+MIT — voir [LICENSE](LICENSE).
