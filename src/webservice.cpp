@@ -19,6 +19,7 @@
 
 namespace {
 constexpr int kCacheTtlMs = 10 * 60 * 1000;
+constexpr int kMaxCacheEntries = 64;
 } // namespace
 
 WebService::WebService(QObject *parent)
@@ -64,6 +65,29 @@ void WebService::clearError() { setError({}); }
 void WebService::clearCache() {
     m_cache.clear();
     emit changed();
+}
+
+void WebService::rememberCache(const QString &key, const QJsonObject &value) {
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    m_cache.insert(key, CacheEntry{value, now});
+    if (m_cache.size() <= kMaxCacheEntries)
+        return;
+    // Drop expired entries first, then the oldest ones, so unique URLs cannot
+    // grow the cache without bound during a long session.
+    for (auto it = m_cache.begin(); it != m_cache.end();) {
+        if (now - it->createdAt >= kCacheTtlMs)
+            it = m_cache.erase(it);
+        else
+            ++it;
+    }
+    while (m_cache.size() > kMaxCacheEntries) {
+        auto oldest = m_cache.begin();
+        for (auto it = m_cache.begin(); it != m_cache.end(); ++it) {
+            if (it->createdAt < oldest->createdAt)
+                oldest = it;
+        }
+        m_cache.erase(oldest);
+    }
 }
 
 void WebService::rememberSearch(const QString &provider, const QStringList &queries, int count) {
@@ -125,7 +149,7 @@ QJsonObject WebService::search(const QStringList &queries, int maxResults) {
     }
     setError({});
     m_searchProvider = result.value(QStringLiteral("provider")).toString(m_searchProvider);
-    m_cache.insert(cacheKey, CacheEntry{result, QDateTime::currentMSecsSinceEpoch()});
+    rememberCache(cacheKey, result);
     rememberSearch(m_searchProvider, unique, result.value(QStringLiteral("sources")).toArray().size());
     return result;
 }
@@ -376,10 +400,29 @@ QJsonObject WebService::httpGet(const QString &url, int maxBytes, int timeoutMs)
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateIAH/1.10 web_fetch"));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
     QNetworkReply *reply = m_network->get(request);
+
+    // Stream the body and stop reading as soon as the cap is reached. Reading
+    // everything at finished() would keep the whole response in memory first.
+    QByteArray data;
+    data.reserve(qMin(maxBytes + 1, 64 * 1024));
+    bool capped = false;
+    const auto drain = [&] {
+        while (!capped && reply->bytesAvailable() > 0) {
+            const qint64 room = qint64(maxBytes) + 1 - data.size();
+            if (room <= 0) {
+                capped = true;
+                reply->abort();
+                return;
+            }
+            data += reply->read(qMin<qint64>(room, 64 * 1024));
+        }
+    };
+
     QEventLoop loop;
     QTimer timer;
     timer.setSingleShot(true);
     timer.setInterval(timeoutMs);
+    connect(reply, &QNetworkReply::readyRead, reply, drain);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
     timer.start();
@@ -389,17 +432,19 @@ QJsonObject WebService::httpGet(const QString &url, int maxBytes, int timeoutMs)
         reply->deleteLater();
         return errorObject(QStringLiteral("WEB_FETCH_TIMEOUT"), tr("Délai de récupération dépassé."));
     }
+    drain();
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-    QByteArray data = reply->read(maxBytes + 1);
-    const QString networkError = reply->error() == QNetworkReply::NoError ? QString() : reply->errorString();
     const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    const QString networkError = (reply->error() == QNetworkReply::NoError || capped)
+        ? QString()
+        : reply->errorString();
     reply->deleteLater();
     return QJsonObject{{QStringLiteral("ok"), status >= 200 && status < 400},
                        {QStringLiteral("status"), status},
                        {QStringLiteral("redirect"), redirect.toString()},
                        {QStringLiteral("contentType"), contentType},
-                       {QStringLiteral("truncated"), data.size() > maxBytes},
+                       {QStringLiteral("truncated"), capped || data.size() > maxBytes},
                        {QStringLiteral("body"), QString::fromUtf8(data.left(maxBytes))},
                        {QStringLiteral("error"), networkError}};
 }
@@ -449,7 +494,7 @@ QJsonObject WebService::fetch(const QString &url) {
                        {QStringLiteral("contentType"), type},
                        {QStringLiteral("truncated"), reply.value(QStringLiteral("truncated")).toBool() || body.size() > 200000},
                        {QStringLiteral("body"), body.left(200000)}};
-    m_cache.insert(cacheKey, CacheEntry{result, QDateTime::currentMSecsSinceEpoch()});
+    rememberCache(cacheKey, result);
     emit changed();
     return result;
 }

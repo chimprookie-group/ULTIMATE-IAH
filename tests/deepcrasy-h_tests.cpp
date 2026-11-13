@@ -1,3 +1,4 @@
+#include <QDateTime>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -7,6 +8,8 @@
 #include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QtTest>
+
+#include <memory>
 
 #include "config.h"
 #include "ecosystem.h"
@@ -33,6 +36,11 @@
 #include "githubservice.h"
 #include "theme.h"
 #include "translator.h"
+
+class TestWebService : public WebService {
+public:
+    using WebService::httpGet;
+};
 
 class UltimateIAHTests : public QObject {
     Q_OBJECT
@@ -648,6 +656,33 @@ private slots:
         QCOMPARE(mapped.value("code").toString(), QString("WEB_PRIVATE_HOST"));
     }
 
+    void webFetchStopsAtTheByteCap()
+    {
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+        auto replied = std::make_shared<bool>(false);
+        connect(&server, &QTcpServer::newConnection, &server, [&server, replied] {
+            QTcpSocket *socket = server.nextPendingConnection();
+            connect(socket, &QTcpSocket::readyRead, socket, [socket, replied] {
+                if (*replied) return;
+                *replied = true;
+                socket->readAll();
+                socket->write("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 1000000\r\n\r\n");
+                socket->write(QByteArray(5000, 'a'));
+                socket->flush();
+            });
+        });
+        TestWebService web;
+        const qint64 started = QDateTime::currentMSecsSinceEpoch();
+        const QJsonObject reply = web.httpGet(
+            QStringLiteral("http://127.0.0.1:%1/").arg(server.serverPort()), 1000, 3000);
+        const qint64 elapsed = QDateTime::currentMSecsSinceEpoch() - started;
+        QVERIFY2(elapsed < 2500, qPrintable(QStringLiteral("waited %1 ms").arg(elapsed)));
+        QCOMPARE(reply.value("status").toInt(), 200);
+        QVERIFY(reply.value("truncated").toBool());
+        QCOMPARE(reply.value("body").toString().toUtf8().size(), 1000);
+    }
+
     void updateVersionComparisonRejectsDowngrades()
     {
         QVERIFY(UpdateService::isNewer("1.17.0", "1.16.3"));
@@ -655,6 +690,8 @@ private slots:
         QVERIFY(!UpdateService::isNewer("1.16.3", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0"));
+        QVERIFY(UpdateService::isNewer("1.22.0.1", "1.22.0"));
+        QVERIFY(!UpdateService::isNewer("1.22.0", "1.22.0.1"));
     }
 
     void gitHubPullRequestArgumentsAreExplicit()
