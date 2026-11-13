@@ -550,10 +550,18 @@ private slots:
         QVERIFY2(store.error().isEmpty(), qPrintable(store.error()));
         QCOMPARE(store.bots().size(), 3);
 
-        const int id = store.createBot("Scout", "Veille et synthèse", "Tu explores et tu résumes.", "read-only");
+        const int id = store.createBot("Scout", "Veille et synthèse", "Tu explores et tu résumes.",
+                                       "read-only", "deepseek-official", "deepseek-chat");
         QVERIFY(id > 0);
         QCOMPARE(store.selectedBotId(), id);
         QVERIFY(store.messages().isEmpty());
+        QVariantMap created;
+        for (const QVariant &value : store.bots()) {
+            if (value.toMap().value("id").toInt() == id)
+                created = value.toMap();
+        }
+        QCOMPARE(created.value("provider").toString(), QString("deepseek-official"));
+        QCOMPARE(created.value("model").toString(), QString("deepseek-chat"));
 
         const int message = store.appendMessage(id, "user", "Analyse le workspace", "chat");
         QVERIFY(message > 0);
@@ -564,6 +572,16 @@ private slots:
         const QVariantMap finished = store.runById(run);
         QCOMPARE(finished.value("status").toString(), QString("done"));
         QCOMPARE(finished.value("output").toString(), QString("Résultat vérifié"));
+
+        QVERIFY(store.updateBot(id, "Scout", "Veille et synthèse", "Tu explores et tu résumes.",
+                                "read-only", true, "openrouter", "deepseek/deepseek-chat"));
+        QVariantMap updated;
+        for (const QVariant &value : store.bots()) {
+            if (value.toMap().value("id").toInt() == id)
+                updated = value.toMap();
+        }
+        QCOMPARE(updated.value("provider").toString(), QString("openrouter"));
+        QCOMPARE(updated.value("model").toString(), QString("deepseek/deepseek-chat"));
 
         const int schedule = store.createSchedule(id, "Veille", "Vérifie le workspace", 30);
         QVERIFY(schedule > 0);

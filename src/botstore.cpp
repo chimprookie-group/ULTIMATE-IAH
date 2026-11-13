@@ -63,6 +63,18 @@ bool BotStore::open() {
     return true;
 }
 
+bool BotStore::ensureColumn(const QString &table, const QString &column, const QString &definition) {
+    QSqlQuery info(m_db);
+    if (!info.exec(QStringLiteral("PRAGMA table_info(%1)").arg(table)))
+        return false;
+    while (info.next()) {
+        if (info.value(1).toString() == column)
+            return true;
+    }
+    QSqlQuery alter(m_db);
+    return alter.exec(QStringLiteral("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table, column, definition));
+}
+
 bool BotStore::migrate() {
     QSqlQuery query(m_db);
     if (!query.exec(QStringLiteral(
@@ -72,6 +84,8 @@ bool BotStore::migrate() {
             "description TEXT NOT NULL DEFAULT '',"
             "instructions TEXT NOT NULL DEFAULT '',"
             "permission TEXT NOT NULL DEFAULT 'read-only',"
+            "provider TEXT NOT NULL DEFAULT '',"
+            "model TEXT NOT NULL DEFAULT '',"
             "enabled INTEGER NOT NULL DEFAULT 1,"
             "created_at TEXT NOT NULL,"
             "updated_at TEXT NOT NULL)")))
@@ -113,6 +127,11 @@ bool BotStore::migrate() {
             "last_status TEXT NOT NULL DEFAULT '',"
             "created_at TEXT NOT NULL,"
             "FOREIGN KEY(bot_id) REFERENCES bots(id) ON DELETE CASCADE)")))
+        return false;
+    if (!ensureColumn(QStringLiteral("bots"), QStringLiteral("provider"),
+                      QStringLiteral("TEXT NOT NULL DEFAULT ''"))
+        || !ensureColumn(QStringLiteral("bots"), QStringLiteral("model"),
+                         QStringLiteral("TEXT NOT NULL DEFAULT ''")))
         return false;
     query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_bot_messages_bot ON bot_messages(bot_id, id)"));
     query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_bot_runs_bot ON bot_runs(bot_id, id)"));
@@ -177,7 +196,7 @@ void BotStore::loadBots() {
     QVariantList bots;
     QSqlQuery query(m_db);
     if (query.exec(QStringLiteral(
-            "SELECT id,name,description,instructions,permission,enabled,created_at,updated_at "
+            "SELECT id,name,description,instructions,permission,enabled,created_at,updated_at,provider,model "
             "FROM bots ORDER BY enabled DESC, id ASC"))) {
         while (query.next()) {
             bots.append(QVariantMap{
@@ -189,6 +208,8 @@ void BotStore::loadBots() {
                 {QStringLiteral("enabled"), query.value(5).toBool()},
                 {QStringLiteral("createdAt"), query.value(6).toString()},
                 {QStringLiteral("updatedAt"), query.value(7).toString()},
+                {QStringLiteral("provider"), query.value(8).toString()},
+                {QStringLiteral("model"), query.value(9).toString()},
             });
         }
     }
@@ -288,7 +309,8 @@ void BotStore::selectBot(int id) {
 }
 
 int BotStore::createBot(const QString &name, const QString &description,
-                        const QString &instructions, const QString &permission) {
+                        const QString &instructions, const QString &permission,
+                        const QString &provider, const QString &model) {
     if (!m_ready)
         return -1;
     const QString cleanName = name.trimmed();
@@ -300,12 +322,14 @@ int BotStore::createBot(const QString &name, const QString &description,
         ? QStringLiteral("workspace-write") : QStringLiteral("read-only");
     QSqlQuery query(m_db);
     query.prepare(QStringLiteral(
-        "INSERT INTO bots(name,description,instructions,permission,enabled,created_at,updated_at) "
-        "VALUES(?,?,?,?,1,?,?)"));
+        "INSERT INTO bots(name,description,instructions,permission,provider,model,enabled,created_at,updated_at) "
+        "VALUES(?,?,?,?,?,?,1,?,?)"));
     query.addBindValue(cleanName);
     query.addBindValue(description.trimmed());
     query.addBindValue(instructions.trimmed());
     query.addBindValue(perm);
+    query.addBindValue(provider.trimmed());
+    query.addBindValue(model.trimmed());
     query.addBindValue(nowIso());
     query.addBindValue(nowIso());
     if (!query.exec()) {
@@ -322,7 +346,7 @@ int BotStore::createBot(const QString &name, const QString &description,
 
 bool BotStore::updateBot(int id, const QString &name, const QString &description,
                          const QString &instructions, const QString &permission,
-                         bool enabled) {
+                         bool enabled, const QString &provider, const QString &model) {
     if (!m_ready || id <= 0)
         return false;
     if (name.trimmed().isEmpty()) {
@@ -333,11 +357,13 @@ bool BotStore::updateBot(int id, const QString &name, const QString &description
         ? QStringLiteral("workspace-write") : QStringLiteral("read-only");
     QSqlQuery query(m_db);
     query.prepare(QStringLiteral(
-        "UPDATE bots SET name=?,description=?,instructions=?,permission=?,enabled=?,updated_at=? WHERE id=?"));
+        "UPDATE bots SET name=?,description=?,instructions=?,permission=?,provider=?,model=?,enabled=?,updated_at=? WHERE id=?"));
     query.addBindValue(name.trimmed());
     query.addBindValue(description.trimmed());
     query.addBindValue(instructions.trimmed());
     query.addBindValue(perm);
+    query.addBindValue(provider.trimmed());
+    query.addBindValue(model.trimmed());
     query.addBindValue(enabled ? 1 : 0);
     query.addBindValue(nowIso());
     query.addBindValue(id);

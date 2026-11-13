@@ -64,10 +64,11 @@ public:
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void selectBot(int id);
     Q_INVOKABLE int createBot(const QString &name, const QString &description,
-                              const QString &instructions, const QString &permission);
+                              const QString &instructions, const QString &permission,
+                              const QString &provider = {}, const QString &model = {});
     Q_INVOKABLE bool updateBot(int id, const QString &name, const QString &description,
                                const QString &instructions, const QString &permission,
-                               bool enabled);
+                               bool enabled, const QString &provider = {}, const QString &model = {});
     Q_INVOKABLE bool removeBot(int id);
     Q_INVOKABLE int sendMessage(int botId, const QString &text);
     Q_INVOKABLE void clearConversation(int botId);
@@ -90,7 +91,8 @@ public:
     QJsonObject runJson(int id) const;
     QJsonObject statusJson() const;
     QJsonObject createBotFromApi(const QString &name, const QString &description,
-                                 const QString &instructions, const QString &permission);
+                                 const QString &instructions, const QString &permission,
+                                 const QString &provider = {}, const QString &model = {});
 
 signals:
     void botsChanged();

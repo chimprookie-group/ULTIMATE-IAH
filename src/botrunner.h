@@ -23,7 +23,8 @@ public:
 
     void start(int runId, const QString &botName, const QString &prompt,
                const QString &permission, const QString &workspace,
-               const QString &dshBinary);
+               const QString &dshBinary, const QString &provider = {},
+               const QString &model = {});
     void cancel();
 
 signals:
