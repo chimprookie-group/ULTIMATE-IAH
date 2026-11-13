@@ -986,74 +986,89 @@ Item {
                         }
 
                         Item {
+                            id: composerFieldBox
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 40
-                            TextArea {
-                                id: composerField
+                            Layout.preferredHeight: Math.min(140, Math.max(40, composerField.contentHeight + 12))
+                            clip: true
+
+                            ScrollView {
+                                id: composerScroll
                                 anchors.fill: parent
-                                topPadding: 9
-                                bottomPadding: 7
-                                leftPadding: 6
-                                rightPadding: 6
-                                color: theme.text
-                                font.pixelSize: design.textBody
-                                wrapMode: TextArea.Wrap
+                                clip: true
+                                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                                ScrollBar.vertical: AppScrollBar { policy: ScrollBar.AsNeeded }
                                 background: null
-                                selectByMouse: true
-                                Keys.onPressed: function (event) {
-                                    if (root.commandMode) {
-                                        if (event.key === Qt.Key_Down) {
-                                            root.commandIndex = Math.min(root.filteredCommands.length - 1, root.commandIndex + 1)
-                                            event.accepted = true
-                                            return
+                                padding: 0
+
+                                TextArea {
+                                    id: composerField
+                                    width: composerScroll.availableWidth
+                                    topPadding: 9
+                                    bottomPadding: 7
+                                    leftPadding: 6
+                                    rightPadding: 6
+                                    color: theme.text
+                                    font.pixelSize: design.textBody
+                                    wrapMode: TextArea.WrapAnywhere
+                                    background: null
+                                    selectByMouse: true
+                                    Keys.onPressed: function (event) {
+                                        if (root.commandMode) {
+                                            if (event.key === Qt.Key_Down) {
+                                                root.commandIndex = Math.min(root.filteredCommands.length - 1, root.commandIndex + 1)
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if (event.key === Qt.Key_Up) {
+                                                root.commandIndex = Math.max(0, root.commandIndex - 1)
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if (event.key === Qt.Key_Escape) {
+                                                composerField.text = ""
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
+                                                root.executeCommand(root.filteredCommands[root.commandIndex])
+                                                event.accepted = true
+                                                return
+                                            }
                                         }
-                                        if (event.key === Qt.Key_Up) {
-                                            root.commandIndex = Math.max(0, root.commandIndex - 1)
-                                            event.accepted = true
-                                            return
-                                        }
-                                        if (event.key === Qt.Key_Escape) {
-                                            composerField.text = ""
-                                            event.accepted = true
-                                            return
+                                        if (root.mentionMode) {
+                                            if (event.key === Qt.Key_Down) {
+                                                root.mentionIndex = Math.min(root.filteredMentions.length - 1, root.mentionIndex + 1)
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if (event.key === Qt.Key_Up) {
+                                                root.mentionIndex = Math.max(0, root.mentionIndex - 1)
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if (event.key === Qt.Key_Escape) {
+                                                composerField.text = composerField.text.replace(/@([^\s@]*)$/, "")
+                                                event.accepted = true
+                                                return
+                                            }
+                                            if ((event.key === Qt.Key_Return || event.key === Qt.Key_Tab)
+                                                && root.filteredMentions.length > 0) {
+                                                root.selectMention(root.filteredMentions[root.mentionIndex])
+                                                event.accepted = true
+                                                return
+                                            }
                                         }
                                         if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
-                                            root.executeCommand(root.filteredCommands[root.commandIndex])
+                                            root.send(composerField.text)
                                             event.accepted = true
-                                            return
                                         }
                                     }
-                                    if (root.mentionMode) {
-                                        if (event.key === Qt.Key_Down) {
-                                            root.mentionIndex = Math.min(root.filteredMentions.length - 1, root.mentionIndex + 1)
-                                            event.accepted = true
-                                            return
-                                        }
-                                        if (event.key === Qt.Key_Up) {
-                                            root.mentionIndex = Math.max(0, root.mentionIndex - 1)
-                                            event.accepted = true
-                                            return
-                                        }
-                                        if (event.key === Qt.Key_Escape) {
-                                            composerField.text = composerField.text.replace(/@([^\s@]*)$/, "")
-                                            event.accepted = true
-                                            return
-                                        }
-                                        if ((event.key === Qt.Key_Return || event.key === Qt.Key_Tab)
-                                            && root.filteredMentions.length > 0) {
-                                            root.selectMention(root.filteredMentions[root.mentionIndex])
-                                            event.accepted = true
-                                            return
-                                        }
-                                    }
-                                    if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
-                                        root.send(composerField.text)
-                                        event.accepted = true
-                                    }
+                                    onTextChanged: { root.commandIndex = 0; root.mentionIndex = 0 }
                                 }
-                                onTextChanged: { root.commandIndex = 0; root.mentionIndex = 0 }
                             }
+
                             Text {
+                                z: 2
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 anchors.top: parent.top
