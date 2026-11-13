@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.23.1-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.24.0-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -98,6 +98,14 @@ le provider par défaut, les notes, GitHub, 4Crasy et les composants actifs.
 - **Contexte** : jauge, compaction et pruning des résultats d’outils.
 - **Images** : pièces jointes, aperçu, agrandissement et transmission aux
   modèles compatibles vision.
+- **Composer complet** : permissions, modèle, effort de raisonnement, pièces
+  jointes, commandes `/` et mentions `@` de fichiers du workspace.
+- **Télémétrie** : tours, étapes, jetons entrée/sortie, jetons en cache,
+  jetons/seconde et remplissage du contexte.
+- **Raisonnement et plan** : bloc de réflexion repliable, liste de tâches
+  visible et timeline d’outils groupée par tour.
+- **Providers** : détection automatique des modèles (`/models`) et bascule
+  provider/modèle persistée pour l’agent.
 - **Permissions** : `read-only` ou `workspace-write`, vérifiées dans chaque
   outil.
 - **Outils** : diagnostic, providers, MCP, mémoire, skills, notes, missions,
@@ -250,6 +258,7 @@ Voir [docs/NOTES.md](docs/NOTES.md).
 - bots persistants Atlas, Forge et Sentry ;
 - création, édition, activation et suppression ;
 - exécution par le job agent natif ;
+- provider et modèle propres à chaque bot ;
 - planifications ;
 - API locale `127.0.0.1:8790` protégée par jeton ;
 - dashboard web local et pont MCP `ultimate-iah-bots`.
@@ -353,7 +362,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.23.1-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.24.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -372,7 +381,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.23.1-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.24.0-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
@@ -437,7 +446,7 @@ La suite couvre notamment :
 - protection SSRF de `web_fetch` ;
 - sécurité des politiques read-only.
 
-État de référence : **48 tests passent** et **51 combinaisons vue × largeur**
+État de référence : **49 tests passent** et **51 combinaisons vue × largeur**
 ont été vérifiées sans erreur QML.
 
 ## Documentation
