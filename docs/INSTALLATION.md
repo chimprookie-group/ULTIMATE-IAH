@@ -3,7 +3,7 @@
 ## En une commande
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash
+curl -fsSL https://github.com/chimprookie-group/ULTIMATE-IAH/releases/latest/download/install.sh | bash
 ```
 
 Le script vérifie les dépendances, télécharge le paquet signé par checksum,

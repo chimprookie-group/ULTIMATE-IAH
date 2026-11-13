@@ -42,7 +42,7 @@ Réglages → Mises à jour.
 ## Installation en une commande
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash
+curl -fsSL https://github.com/chimprookie-group/ULTIMATE-IAH/releases/latest/download/install.sh | bash
 ```
 
 L’installateur vérifie les dépendances Arch, télécharge le paquet avec un
@@ -52,7 +52,7 @@ la configuration et le jeton 4Crasy, puis lance le diagnostic du harness.
 Variante avec la suite ArtCraft :
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash -s -- --with-artcraft
+curl -fsSL https://github.com/chimprookie-group/ULTIMATE-IAH/releases/latest/download/install.sh | bash -s -- --with-artcraft
 ```
 
 ## Pourquoi Ultimate IAH
