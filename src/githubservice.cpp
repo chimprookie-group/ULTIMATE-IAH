@@ -331,6 +331,48 @@ QJsonObject GitHubService::createIssueJson(const QString &title, const QString &
     return QJsonObject{{QStringLiteral("ok"), createIssue(title, body)}, {QStringLiteral("error"), error()}};
 }
 
+QVariantMap GitHubService::createPullRequest(const QString &title, const QString &body,
+                                             const QString &base, const QString &head) {
+    QVariantMap result{{QStringLiteral("ok"), false}};
+    if (m_selectedRepo.isEmpty()) {
+        setError(tr("Sélectionnez un dépôt avant de créer une pull request."));
+        result.insert(QStringLiteral("error"), error());
+        return result;
+    }
+    if (title.trimmed().isEmpty()) {
+        setError(tr("Le titre de la pull request est obligatoire."));
+        result.insert(QStringLiteral("error"), error());
+        return result;
+    }
+    const QString targetBase = base.trimmed().isEmpty() ? QStringLiteral("main") : base.trimmed();
+    const QString targetHead = head.trimmed();
+    setLoading(true);
+    QString processError;
+    bool ok = false;
+    const QJsonValue value = runGh(GitHubCli::pullRequestArguments(m_selectedRepo, title, body,
+                                                                  targetBase, targetHead),
+                                   60000, &ok, &processError);
+    setLoading(false);
+    if (!ok) {
+        setError(processError.isEmpty() ? tr("Création de la pull request impossible.") : processError);
+        result.insert(QStringLiteral("error"), error());
+        return result;
+    }
+    setError({});
+    result.insert(QStringLiteral("ok"), true);
+    result.insert(QStringLiteral("repo"), m_selectedRepo);
+    result.insert(QStringLiteral("base"), targetBase);
+    result.insert(QStringLiteral("head"), targetHead);
+    result.insert(QStringLiteral("url"), value.toString().section(QLatin1Char('\n'), 0, 0).trimmed());
+    loadPulls(m_selectedRepo);
+    return result;
+}
+
+QJsonObject GitHubService::createPullRequestJson(const QString &title, const QString &body,
+                                                 const QString &base, const QString &head) {
+    return QJsonObject::fromVariantMap(createPullRequest(title, body, base, head));
+}
+
 QJsonObject GitHubService::cloneJson(const QString &fullName) {
     return QJsonObject{{QStringLiteral("ok"), cloneRepository(fullName)}, {QStringLiteral("error"), error()}};
 }

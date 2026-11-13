@@ -30,6 +30,7 @@
 #include "learningengine.h"
 #include "knowledgebase.h"
 #include "updateservice.h"
+#include "githubservice.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -654,6 +655,20 @@ private slots:
         QVERIFY(!UpdateService::isNewer("1.16.3", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0"));
+    }
+
+    void gitHubPullRequestArgumentsAreExplicit()
+    {
+        const QStringList full = GitHubCli::pullRequestArguments(
+            "owner/repo", "  Fix the bug  ", "Body with 'quotes' and $shell", "", "feat/branch");
+        QCOMPARE(full, QStringList({"pr", "create", "--repo", "owner/repo", "--title", "Fix the bug",
+                                    "--body", "Body with 'quotes' and $shell", "--base", "main",
+                                    "--head", "feat/branch"}));
+        const QStringList local = GitHubCli::pullRequestArguments(
+            "owner/repo", "Title", "", "develop", "  ");
+        QCOMPARE(local, QStringList({"pr", "create", "--repo", "owner/repo", "--title", "Title",
+                                     "--body", "", "--base", "develop"}));
+        QVERIFY(!local.contains("--head"));
     }
 
     void crasyRouterPersistsChannelAndRoutingConfig()

@@ -209,13 +209,13 @@ n’est jamais lu, affiché ou journalisé par l’application.
 - création d’un projet public ou privé ;
 - clonage optionnel dans le workspace ;
 - issues et pull requests ;
-- création d’issue ;
+- création d’issue et de pull request ;
 - outils agent :
 
 ```text
 github_status   github_repos    github_issues
 github_pulls    github_clone    github_create_repo
-github_create_issue
+github_create_issue   github_create_pull
 ```
 
 Les écritures GitHub nécessitent le mode `workspace-write`. Voir
@@ -434,7 +434,7 @@ La suite couvre notamment :
 - protection SSRF de `web_fetch` ;
 - sécurité des politiques read-only.
 
-État de référence : **42 tests passent** et **51 combinaisons vue × largeur**
+État de référence : **47 tests passent** et **51 combinaisons vue × largeur**
 ont été vérifiées sans erreur QML.
 
 ## Documentation

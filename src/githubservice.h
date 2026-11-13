@@ -3,9 +3,31 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
+#include <QStringList>
 #include <QVariantList>
 
 class Backend;
+
+namespace GitHubCli {
+
+// gh arguments for `pr create`. The base falls back to main and the head is
+// omitted when empty so gh can use the workspace's current branch. Kept inline
+// so the argument contract is testable without spawning a process.
+inline QStringList pullRequestArguments(const QString &repo, const QString &title,
+                                        const QString &body, const QString &base,
+                                        const QString &head) {
+    QStringList arguments{QStringLiteral("pr"), QStringLiteral("create"),
+                          QStringLiteral("--repo"), repo,
+                          QStringLiteral("--title"), title.trimmed(),
+                          QStringLiteral("--body"), body,
+                          QStringLiteral("--base"),
+                          base.trimmed().isEmpty() ? QStringLiteral("main") : base.trimmed()};
+    if (!head.trimmed().isEmpty())
+        arguments << QStringLiteral("--head") << head.trimmed();
+    return arguments;
+}
+
+} // namespace GitHubCli
 
 // GitHub ecosystem backed by the authenticated gh CLI. Tokens stay in gh's
 // keyring; Ultimate IAH only parses command output and never reads a token.
@@ -49,6 +71,8 @@ public:
                                              bool privateRepo, bool clone);
     Q_INVOKABLE bool cloneRepository(const QString &fullName);
     Q_INVOKABLE bool createIssue(const QString &title, const QString &body);
+    Q_INVOKABLE QVariantMap createPullRequest(const QString &title, const QString &body,
+                                              const QString &base, const QString &head);
     Q_INVOKABLE void openRepository(const QString &url);
     Q_INVOKABLE void openWorkspace();
     Q_INVOKABLE void clearError();
@@ -59,6 +83,8 @@ public:
     QJsonObject issuesJson(const QString &fullName);
     QJsonObject pullsJson(const QString &fullName);
     QJsonObject createIssueJson(const QString &title, const QString &body);
+    QJsonObject createPullRequestJson(const QString &title, const QString &body,
+                                      const QString &base, const QString &head);
     QJsonObject cloneJson(const QString &fullName);
 
     static QVariantList parseRepositories(const QJsonArray &array);
