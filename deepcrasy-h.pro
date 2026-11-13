@@ -18,6 +18,7 @@ HEADERS += \
     src/connectiondoctor.h \
     src/installationdoctor.h \
     src/agentconversationstore.h \
+    src/agentmessagemodel.h \
     src/updateservice.h \
     src/learningengine.h \
     src/knowledgebase.h \
@@ -57,6 +58,7 @@ SOURCES += \
     src/connectiondoctor.cpp \
     src/installationdoctor.cpp \
     src/agentconversationstore.cpp \
+    src/agentmessagemodel.cpp \
     src/updateservice.cpp \
     src/learningengine.cpp \
     src/knowledgebase.cpp \

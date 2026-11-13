@@ -276,8 +276,24 @@ Item {
         return qsTr("Assistant")
     }
 
-    Component.onCompleted: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh(); root.refreshWorkspaceFiles() }
-    onVisibleChanged: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh(); root.refreshWorkspaceFiles() }
+    Component.onCompleted: {
+        if (visible) {
+            ultimateAgent.refreshEndpoint()
+            skills.refresh()
+            root.refreshWorkspaceFiles()
+        }
+        root.followOutput = true
+        Qt.callLater(function () { root.scrollToBottom(true) })
+    }
+    onVisibleChanged: {
+        if (visible) {
+            ultimateAgent.refreshEndpoint()
+            skills.refresh()
+            root.refreshWorkspaceFiles()
+            root.followOutput = true
+            Qt.callLater(function () { root.scrollToBottom(true) })
+        }
+    }
 
     Connections {
         target: ultimateAgent
@@ -461,7 +477,7 @@ Item {
                         anchors.bottomMargin: design.space2
                         clip: true
                         spacing: 0
-                        model: ultimateAgent.messages
+                        model: ultimateAgent.messageModel
                         interactive: true
                         flickableDirection: Flickable.VerticalFlick
                         ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
