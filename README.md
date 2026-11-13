@@ -37,6 +37,8 @@ Réglages → Mises à jour.
 - mise à jour versionnée des skills par défaut au démarrage ;
 - aucun téléchargement ou redémarrage silencieux.
 
+![Bannière de mise à jour](assets/screenshot-update.png)
+
 ## Installation en une commande
 
 ```sh
