@@ -526,8 +526,8 @@ void UltimateAgent::runRequest() {
         finishWithError(tr("Aucun provider utilisable."));
         return;
     }
-    if (m_round >= 8) {
-        finishWithError(tr("L'agent a dépassé la limite de 8 tours d'outils."));
+    if (m_round >= 100) {
+        finishWithError(tr("L'agent a atteint la limite de 100 tours d'outils."));
         return;
     }
     ++m_round;
