@@ -27,6 +27,7 @@
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "crasyrouter.h"
+#include "updateservice.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -627,6 +628,15 @@ private slots:
         const QJsonObject loopback = web.fetch("http://localhost/private");
         QVERIFY(!loopback.value("ok").toBool());
         QCOMPARE(loopback.value("code").toString(), QString("WEB_PRIVATE_HOST"));
+    }
+
+    void updateVersionComparisonRejectsDowngrades()
+    {
+        QVERIFY(UpdateService::isNewer("1.17.0", "1.16.3"));
+        QVERIFY(UpdateService::isNewer("v1.2", "1.1.9"));
+        QVERIFY(!UpdateService::isNewer("1.16.3", "1.17.0"));
+        QVERIFY(!UpdateService::isNewer("1.17.0", "1.17.0"));
+        QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0"));
     }
 
     void crasyRouterStartsLoopbackApiAndParsesModels()

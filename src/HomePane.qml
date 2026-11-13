@@ -131,6 +131,8 @@ Item {
                 }
             }
 
+            UpdateBanner { Layout.fillWidth: true }
+
             // ── Mission input ────────────────────────────────────────────
             Rectangle {
                 Layout.fillWidth: true

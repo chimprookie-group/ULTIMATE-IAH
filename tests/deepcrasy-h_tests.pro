@@ -20,6 +20,7 @@ HEADERS += \
     ../src/agentconversationstore.h \
     ../src/notestore.h \
     ../src/webservice.h \
+    ../src/updateservice.h \
     ../src/crasyrouter.h \
     ../src/pluginmanager.h \
     ../src/terminalsession.h \
@@ -47,6 +48,7 @@ SOURCES += \
     ../src/agentconversationstore.cpp \
     ../src/notestore.cpp \
     ../src/webservice.cpp \
+    ../src/updateservice.cpp \
     ../src/crasyrouter.cpp \
     ../src/pluginmanager.cpp \
     ../src/theme.cpp \

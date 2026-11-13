@@ -244,6 +244,49 @@ Item {
             }
 
             SettingsSection {
+                title: qsTr("Mises à jour")
+                Layout.fillWidth: true
+                Text {
+                    Layout.fillWidth: true
+                    text: updates.statusText
+                    color: updates.updateAvailable ? theme.accent : theme.mutedText
+                    font.pixelSize: design.textCaption
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: updates.error !== ""
+                          ? updates.error
+                          : qsTr("Version %1 · dernière vérification : %2").arg(updates.currentVersion).arg(updates.lastChecked !== "" ? updates.lastChecked : qsTr("jamais"))
+                    color: updates.error !== "" ? theme.red : theme.dimText
+                    font.family: backend.monoFont
+                    font.pixelSize: design.textMicro
+                    wrapMode: Text.Wrap
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Button { text: qsTr("Vérifier maintenant"); flat: true; enabled: !updates.checking && !updates.installing; onClicked: updates.checkNow() }
+                    ActionButton { text: updates.installing ? qsTr("Installation… %1 %").arg(updates.progress) : qsTr("Installer la mise à jour"); visible: updates.updateAvailable; enabled: !updates.installing; onClicked: updates.install() }
+                    Button { text: qsTr("Notes de version"); flat: true; visible: updates.releaseUrl !== ""; onClicked: Qt.openUrlExternally(updates.releaseUrl) }
+                    Item { Layout.fillWidth: true }
+                    Text { text: qsTr("skills %1 · ArtCraft %2").arg(skills.defaultCount).arg(plugins.installedCount); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                }
+                Rectangle {
+                    Layout.fillWidth: true
+                    visible: updates.installing
+                    Layout.preferredHeight: 3
+                    radius: 2
+                    color: theme.background
+                    Rectangle {
+                        width: parent.width * Math.max(0, Math.min(1, updates.progress / 100))
+                        height: parent.height
+                        radius: parent.radius
+                        color: theme.accent
+                    }
+                }
+            }
+
+            SettingsSection {
                 title: qsTr("À propos")
                 Layout.fillWidth: true
                 RowLayout {

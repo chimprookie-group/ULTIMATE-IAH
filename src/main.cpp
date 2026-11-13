@@ -43,6 +43,7 @@
 #include "webservice.h"
 #include "githubservice.h"
 #include "crasyrouter.h"
+#include "updateservice.h"
 #include "autopilot.h"
 #include "botmanager.h"
 #include "ecosystem.h"
@@ -223,7 +224,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.16.3"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.17.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -404,6 +405,7 @@ int main(int argc, char *argv[]) {
     skills.setWorkspace(backend.workspace());
     NoteStore noteStore;
     PluginManager plugins;
+    UpdateService updates;
     WebService web;
     GitHubService gitHub(&backend);
     CrasyRouter crasy;
@@ -532,6 +534,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("bots", &bots);
     engine.rootContext()->setContextProperty("noteStore", &noteStore);
     engine.rootContext()->setContextProperty("plugins", &plugins);
+    engine.rootContext()->setContextProperty("updates", &updates);
     engine.rootContext()->setContextProperty("web", &web);
     engine.rootContext()->setContextProperty("gitHub", &gitHub);
     engine.rootContext()->setContextProperty("crasy", &crasy);

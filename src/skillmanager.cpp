@@ -63,7 +63,7 @@ QStringList SkillManager::defaultSkillIds() {
 }
 
 QString SkillManager::defaultsMarker() const {
-    return m_root + QStringLiteral("/.defaults-v1");
+    return m_root + QStringLiteral("/.defaults-v2");
 }
 
 int SkillManager::defaultCount() const {
@@ -103,7 +103,7 @@ bool SkillManager::seedDefaults(bool force) {
     }
     QSaveFile marker(defaultsMarker());
     if (marker.open(QIODevice::WriteOnly)) {
-        marker.write(QByteArray("Ultimate IAH default skills v1\n"));
+        marker.write(QByteArray("Ultimate IAH default skills v2\n"));
         marker.commit();
     }
     refresh();

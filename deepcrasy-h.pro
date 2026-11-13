@@ -18,6 +18,7 @@ HEADERS += \
     src/connectiondoctor.h \
     src/installationdoctor.h \
     src/agentconversationstore.h \
+    src/updateservice.h \
     src/crasyrouter.h \
     src/githubservice.h \
     src/webservice.h \
@@ -54,6 +55,7 @@ SOURCES += \
     src/connectiondoctor.cpp \
     src/installationdoctor.cpp \
     src/agentconversationstore.cpp \
+    src/updateservice.cpp \
     src/crasyrouter.cpp \
     src/githubservice.cpp \
     src/webservice.cpp \
