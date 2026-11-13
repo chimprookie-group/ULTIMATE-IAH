@@ -46,7 +46,11 @@ private:
     QString deepSeekKey() const;
     QJsonObject deepSeekSearch(const QStringList &queries, int maxResults);
     QJsonObject duckDuckGoSearch(const QStringList &queries, int maxResults);
+
+protected:
     QJsonObject httpGet(const QString &url, int maxBytes = 5000000, int timeoutMs = 30000);
+
+private:
     QJsonObject httpPost(const QString &url, const QByteArray &body,
                          const QList<QPair<QByteArray, QByteArray>> &headers,
                          int timeoutMs = 30000);
@@ -57,6 +61,7 @@ private:
     static QJsonObject errorObject(const QString &code, const QString &message);
     void setError(const QString &error);
     void rememberSearch(const QString &provider, const QStringList &queries, int count);
+    void rememberCache(const QString &key, const QJsonObject &value);
 
     QNetworkAccessManager *m_network = nullptr;
     QHash<QString, CacheEntry> m_cache;

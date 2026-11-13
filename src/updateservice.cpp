@@ -13,6 +13,8 @@
 #include <QProcess>
 #include <QStandardPaths>
 #include <QTimer>
+
+#include <memory>
 #include <QUrl>
 
 UpdateService::UpdateService(QObject *parent, bool autoCheck)
@@ -81,9 +83,12 @@ bool UpdateService::isNewer(const QString &candidate, const QString &current) {
     };
     const QList<int> a = parts(candidate);
     const QList<int> b = parts(current);
-    for (int i = 0; i < 3; ++i) {
-        if (a.at(i) != b.at(i))
-            return a.at(i) > b.at(i);
+    const int count = qMax(a.size(), b.size());
+    for (int i = 0; i < count; ++i) {
+        const int left = i < a.size() ? a.at(i) : 0;
+        const int right = i < b.size() ? b.at(i) : 0;
+        if (left != right)
+            return left > right;
     }
     return false;
 }
@@ -221,32 +226,40 @@ void UpdateService::downloadPackage() {
     const QString token = githubToken();
     if (!token.isEmpty())
         request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
+    QDir().mkpath(cacheDirectory());
+    m_packagePath = cacheDirectory() + QStringLiteral("/ultimate-iah-") + m_latestVersion
+        + QStringLiteral(".pkg.tar.zst");
+
+    // Stream the package to disk instead of buffering it entirely in memory.
+    auto file = std::make_shared<QFile>(m_packagePath);
+    if (!file->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        setInstalling(false);
+        setError(tr("Écriture du paquet impossible."));
+        return;
+    }
+    auto hash = std::make_shared<QCryptographicHash>(QCryptographicHash::Sha256);
     QNetworkReply *reply = m_network->get(request);
+    connect(reply, &QNetworkReply::readyRead, this, [reply, file, hash] {
+        const QByteArray chunk = reply->readAll();
+        hash->addData(chunk);
+        if (file->write(chunk) != chunk.size())
+            reply->abort();
+    });
     connect(reply, &QNetworkReply::downloadProgress, this, [this](qint64 received, qint64 total) {
         if (total > 0)
             setProgress(5 + int((received * 85) / total));
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply] {
-        const QByteArray data = reply->readAll();
+    connect(reply, &QNetworkReply::finished, this, [this, reply, file, hash] {
         const auto error = reply->error();
         reply->deleteLater();
+        file->close();
         if (error != QNetworkReply::NoError) {
+            QFile::remove(m_packagePath);
             setInstalling(false);
             setError(tr("Téléchargement du paquet impossible."));
             return;
         }
-        QDir().mkpath(cacheDirectory());
-        m_packagePath = cacheDirectory() + QStringLiteral("/ultimate-iah-") + m_latestVersion
-            + QStringLiteral(".pkg.tar.zst");
-        QFile file(m_packagePath);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            setInstalling(false);
-            setError(tr("Écriture du paquet impossible."));
-            return;
-        }
-        file.write(data);
-        file.close();
-        const QByteArray actual = QCryptographicHash::hash(data, QCryptographicHash::Sha256).toHex();
+        const QByteArray actual = hash->result().toHex();
         if (QString::fromLatin1(actual) != m_expectedChecksum) {
             QFile::remove(m_packagePath);
             setInstalling(false);

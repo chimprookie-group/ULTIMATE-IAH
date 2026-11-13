@@ -411,7 +411,7 @@ binaires ArtCraft sont détectés dans
 - secrets : `agent.env`, `bot.token`, `4crasy/token` en `0600` ;
 - GitHub : keyring `gh`, aucun token stocké par l’application ;
 - 4Crasy : loopback uniquement, Bearer token, corps borné ;
-- `web_fetch` : adresses privées bloquées ;
+- `web_fetch` : adresses privées bloquées, corps borné à 5 Mo et cache élagué ;
 - plugins : processus sans shell, arguments explicites ;
 - aucune télémétrie distante.
 
@@ -434,7 +434,7 @@ La suite couvre notamment :
 - protection SSRF de `web_fetch` ;
 - sécurité des politiques read-only.
 
-État de référence : **47 tests passent** et **51 combinaisons vue × largeur**
+État de référence : **48 tests passent** et **51 combinaisons vue × largeur**
 ont été vérifiées sans erreur QML.
 
 ## Documentation
