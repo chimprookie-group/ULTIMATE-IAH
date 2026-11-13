@@ -1299,5 +1299,7 @@
   "payant": "payant",
   "%1 modèle(s) · API locale": "%1 modèle(s) · API locale",
   "Routeur arrêté": "Routeur arrêté",
-  "Routeur libre · %1 modèles": "Routeur libre · %1 modèles"
+  "Routeur libre · %1 modèles": "Routeur libre · %1 modèles",
+  "Provider": "Provider",
+  "aucun provider par défaut": "aucun provider par défaut"
 }

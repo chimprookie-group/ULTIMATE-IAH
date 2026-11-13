@@ -14,6 +14,16 @@ Item {
     readonly property bool wide: contentWidth >= 760
     property real reveal: 0
 
+    readonly property string providerLabel: {
+        const id = connections.defaultProvider
+        const list = connections.providers
+        for (let i = 0; i < list.length; ++i) {
+            if (list[i].id === id)
+                return list[i].name
+        }
+        return id !== "" ? id : qsTr("Provider")
+    }
+
     function stateColor(state) {
         if (state === "running" || state === "ready")
             return theme.green
@@ -98,7 +108,7 @@ Item {
                         model: [
                             { label: qsTr("Ultimate Agent"), state: "running" },
                             { label: qsTr("Terminal"), state: terminal.running ? "running" : "stopped" },
-                            { label: "DeepSeek", state: connections.deepseekConfigured ? "running" : "stopped" },
+                            { label: root.providerLabel, state: connections.defaultProvider !== "" ? "running" : "stopped" },
                             { label: "MCP", state: mcpManager.servers.length > 0 ? "running" : "stopped" },
                             { label: qsTr("Bots"), state: bots.serverRunning ? "running" : "stopped" },
                             { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" },
@@ -434,11 +444,11 @@ Item {
                             }
                             ServiceRow {
                                 Layout.fillWidth: true
-                                name: qsTr("DeepSeek API")
-                                detail: connections.deepseekConfigured
+                                name: root.providerLabel
+                                detail: connections.defaultProvider !== ""
                                         ? (connections.defaultModel !== "" ? connections.defaultModel : qsTr("clé configurée"))
-                                        : qsTr("clé API manquante")
-                                stateColor: connections.deepseekConfigured ? theme.green : theme.orange
+                                        : qsTr("aucun provider par défaut")
+                                stateColor: connections.defaultProvider !== "" ? theme.green : theme.orange
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("connections")
                             }

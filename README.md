@@ -249,7 +249,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-iah-1.16.1-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `ultimate-hai` et `deepcrasy-h`. Les données existantes sont conservées dans

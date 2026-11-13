@@ -1299,5 +1299,7 @@
   "payant": "paid",
   "%1 modèle(s) · API locale": "%1 model(s) · local API",
   "Routeur arrêté": "Router stopped",
-  "Routeur libre · %1 modèles": "Free router · %1 models"
+  "Routeur libre · %1 modèles": "Free router · %1 models",
+  "Provider": "Provider",
+  "aucun provider par défaut": "no default provider"
 }
