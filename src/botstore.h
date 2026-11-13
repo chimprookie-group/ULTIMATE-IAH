@@ -36,10 +36,11 @@ public:
     Q_INVOKABLE void selectBot(int id);
     Q_INVOKABLE int createBot(const QString &name, const QString &description,
                               const QString &instructions = {},
-                              const QString &permission = QStringLiteral("read-only"));
+                              const QString &permission = QStringLiteral("read-only"),
+                              const QString &provider = {}, const QString &model = {});
     Q_INVOKABLE bool updateBot(int id, const QString &name, const QString &description,
                                const QString &instructions, const QString &permission,
-                               bool enabled);
+                               bool enabled, const QString &provider = {}, const QString &model = {});
     Q_INVOKABLE bool removeBot(int id);
     Q_INVOKABLE int appendMessage(int botId, const QString &role, const QString &content,
                                   const QString &kind = QStringLiteral("chat"), int runId = -1);
@@ -73,6 +74,7 @@ signals:
 private:
     bool open();
     bool migrate();
+    bool ensureColumn(const QString &table, const QString &column, const QString &definition);
     void seed();
     void loadBots();
     void loadMessages();

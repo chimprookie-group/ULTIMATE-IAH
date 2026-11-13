@@ -40,7 +40,8 @@ QProcessEnvironment BotRunner::agentEnvironment() const {
 
 void BotRunner::start(int runId, const QString &botName, const QString &prompt,
                       const QString &permission, const QString &workspace,
-                      const QString &dshBinary) {
+                      const QString &dshBinary, const QString &provider,
+                      const QString &model) {
     if (m_process)
         return;
     if (prompt.trimmed().isEmpty()) {
@@ -105,10 +106,15 @@ void BotRunner::start(int runId, const QString &botName, const QString &prompt,
     m_timeout.start();
     const QString mode = permission == QLatin1String("workspace-write")
         ? QStringLiteral("workspace-write") : QStringLiteral("read-only");
-    m_process->start(binary, {QStringLiteral("--agent-job"),
-                              QStringLiteral("--agent-prompt"), prompt,
-                              QStringLiteral("--workspace"), workspace,
-                              QStringLiteral("--permission"), mode});
+    QStringList arguments{QStringLiteral("--agent-job"),
+                          QStringLiteral("--agent-prompt"), prompt,
+                          QStringLiteral("--workspace"), workspace,
+                          QStringLiteral("--permission"), mode};
+    if (!provider.trimmed().isEmpty())
+        arguments << QStringLiteral("--agent-provider") << provider.trimmed();
+    if (!model.trimmed().isEmpty())
+        arguments << QStringLiteral("--agent-model") << model.trimmed();
+    m_process->start(binary, arguments);
 }
 
 void BotRunner::cancel() {

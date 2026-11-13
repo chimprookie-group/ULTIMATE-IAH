@@ -35,6 +35,23 @@ Item {
         instructionsField.text = bot.instructions !== undefined ? bot.instructions : ""
         permissionBox.currentIndex = bot.permission === "workspace-write" ? 1 : 0
         enabledBox.checked = bot.enabled !== undefined ? bot.enabled : true
+        botModel.currentIndex = -1
+        const choices = connections.modelChoices
+        for (let i = 0; i < choices.length; ++i) {
+            if (choices[i].provider === bot.provider && choices[i].model === bot.model) {
+                botModel.currentIndex = i
+                break
+            }
+        }
+        if (botModel.currentIndex < 0 && bot.provider === undefined && choices.length > 0) {
+            for (let j = 0; j < choices.length; ++j) {
+                if (choices[j].provider === connections.defaultProvider
+                    && choices[j].model === connections.defaultModelId) {
+                    botModel.currentIndex = j
+                    break
+                }
+            }
+        }
         editor.title = id > 0 ? qsTr("Modifier le bot") : qsTr("Nouveau bot")
         editor.open()
     }
@@ -50,14 +67,21 @@ Item {
     function saveEditor() {
         if (nameField.text.trim() === "")
             return
+        let provider = ""
+        let model = ""
+        if (botModel.currentIndex >= 0 && botModel.currentIndex < connections.modelChoices.length) {
+            provider = connections.modelChoices[botModel.currentIndex].provider
+            model = connections.modelChoices[botModel.currentIndex].model
+        }
         if (editingId > 0)
             bots.updateBot(editingId, nameField.text, descriptionField.text,
                            instructionsField.text,
                            permissionBox.currentIndex === 1 ? "workspace-write" : "read-only",
-                           enabledBox.checked)
+                           enabledBox.checked, provider, model)
         else
             bots.createBot(nameField.text, descriptionField.text, instructionsField.text,
-                           permissionBox.currentIndex === 1 ? "workspace-write" : "read-only")
+                           permissionBox.currentIndex === 1 ? "workspace-write" : "read-only",
+                           provider, model)
         editor.close()
     }
 
@@ -550,6 +574,13 @@ Item {
             Text { text: editor.title; color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
             SettingsField { id: nameField; Layout.fillWidth: true; placeholderText: qsTr("Nom du bot") }
             SettingsField { id: descriptionField; Layout.fillWidth: true; placeholderText: qsTr("Rôle court") }
+            AppComboBox {
+                id: botModel
+                Layout.fillWidth: true
+                model: connections.modelChoices
+                textRole: "label"
+            }
+            Text { Layout.fillWidth: true; text: qsTr("Modèle du bot — le défaut global sert si aucun n'est choisi."); color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap }
             Text { text: qsTr("Instructions"); color: theme.dimText; font.pixelSize: design.textMicro }
             Rectangle {
                 Layout.fillWidth: true

@@ -112,6 +112,7 @@ public:
     QString reasoningEffort() const { return m_reasoningEffort; }
     void setPermissionMode(const QString &mode);
     void setModelId(const QString &model);
+    void setRuntimeModel(const QString &provider, const QString &model);
     void setReasoningEffort(const QString &effort);
 
     Q_INVOKABLE void sendMessage(const QString &text);
@@ -238,6 +239,7 @@ private:
     QString m_mode = QStringLiteral("assistant");
     QString m_permissionMode = QStringLiteral("workspace-write");
     QString m_modelOverride;
+    QString m_providerOverride;
     QString m_reasoningEffort;
     QVariantList m_todos;
     QElapsedTimer m_requestTimer;

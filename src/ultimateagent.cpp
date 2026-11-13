@@ -227,7 +227,8 @@ QString UltimateAgent::credential(const QString &name) const {
 UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
     if (m_connections) {
         const QVariantList providers = m_connections->providers();
-        const QString wanted = m_connections->defaultProvider();
+        const QString wanted = m_providerOverride.isEmpty()
+            ? m_connections->defaultProvider() : m_providerOverride;
         for (const QVariant &value : providers) {
             const QVariantMap provider = value.toMap();
             if (!wanted.isEmpty() && provider.value(QStringLiteral("id")).toString() != wanted)
@@ -883,6 +884,12 @@ void UltimateAgent::setModelId(const QString &model) {
     if (m_modelOverride == model)
         return;
     m_modelOverride = model;
+    refreshEndpoint();
+}
+
+void UltimateAgent::setRuntimeModel(const QString &provider, const QString &model) {
+    m_providerOverride = provider.trimmed();
+    m_modelOverride = model.trimmed();
     refreshEndpoint();
 }
 

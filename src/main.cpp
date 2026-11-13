@@ -282,6 +282,8 @@ int main(int argc, char *argv[]) {
     QString agentPrompt;
     QString agentPermission = QStringLiteral("workspace-write");
     int windowHeight = 0;
+    QString agentProvider;
+    QString agentModel;
     int windowWidth = 0;
     int delay = 1800;
     for (int i = 0; i < arguments.size(); ++i) {
@@ -308,6 +310,10 @@ int main(int argc, char *argv[]) {
             agentPrompt = arguments.at(++i);
         } else if (argument == "--permission" && i + 1 < arguments.size()) {
             agentPermission = arguments.at(++i);
+        } else if (argument == "--agent-provider" && i + 1 < arguments.size()) {
+            agentProvider = arguments.at(++i);
+        } else if (argument == "--agent-model" && i + 1 < arguments.size()) {
+            agentModel = arguments.at(++i);
         } else if (argument == "--height" && i + 1 < arguments.size()) {
             windowHeight = arguments.at(++i).toInt();
         } else if (argument == "--width" && i + 1 < arguments.size()) {
@@ -456,6 +462,8 @@ int main(int argc, char *argv[]) {
         if (!workspace.isEmpty())
             backend.setWorkspace(workspace);
         ultimateAgent.setPermissionMode(agentPermission);
+        if (!agentProvider.isEmpty() || !agentModel.isEmpty())
+            ultimateAgent.setRuntimeModel(agentProvider, agentModel);
         if (agentPrompt.trimmed().isEmpty()) {
             QTextStream(stderr) << "ultimate-iah: --agent-job requires --agent-prompt" << Qt::endl;
             return 2;

@@ -135,14 +135,16 @@ void BotManager::refresh() { m_store->refresh(); }
 void BotManager::selectBot(int id) { m_store->selectBot(id); }
 
 int BotManager::createBot(const QString &name, const QString &description,
-                          const QString &instructions, const QString &permission) {
-    return m_store->createBot(name, description, instructions, permission);
+                          const QString &instructions, const QString &permission,
+                          const QString &provider, const QString &model) {
+    return m_store->createBot(name, description, instructions, permission, provider, model);
 }
 
 bool BotManager::updateBot(int id, const QString &name, const QString &description,
                            const QString &instructions, const QString &permission,
-                           bool enabled) {
-    return m_store->updateBot(id, name, description, instructions, permission, enabled);
+                           bool enabled, const QString &provider, const QString &model) {
+    return m_store->updateBot(id, name, description, instructions, permission, enabled,
+                              provider, model);
 }
 
 bool BotManager::removeBot(int id) {
@@ -266,7 +268,9 @@ void BotManager::startJob(const Job &job) {
                     buildPrompt(bot, job.task),
                     bot.value(QStringLiteral("permission")).toString(),
                     m_backend ? m_backend->workspace() : QDir::homePath(),
-                    m_dshBinary);
+                    m_dshBinary,
+                    bot.value(QStringLiteral("provider")).toString(),
+                    bot.value(QStringLiteral("model")).toString());
     emit runningChanged();
     emit statusChanged();
 }
@@ -417,8 +421,10 @@ QJsonObject BotManager::statusJson() const {
 
 QJsonObject BotManager::createBotFromApi(const QString &name, const QString &description,
                                          const QString &instructions,
-                                         const QString &permission) {
-    const int id = createBot(name, description, instructions, permission);
+                                         const QString &permission,
+                                         const QString &provider,
+                                         const QString &model) {
+    const int id = createBot(name, description, instructions, permission, provider, model);
     if (id < 0)
         return QJsonObject{{QStringLiteral("error"), error()}};
     return botJson(id);
