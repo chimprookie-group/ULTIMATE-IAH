@@ -11,11 +11,68 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUrl>
 
 #include <memory>
-#include <QUrl>
+
+namespace {
+
+struct ParsedVersion {
+    QList<int> core;
+    QStringList prerelease;
+    bool hasPrerelease = false;
+};
+
+ParsedVersion parseVersion(QString value) {
+    ParsedVersion parsed;
+    value = value.trimmed();
+    value.remove(QRegularExpression(QStringLiteral("^[vV]")));
+    value = value.section(QLatin1Char('+'), 0, 0);
+    const QStringList dashParts = value.split(QLatin1Char('-'));
+    if (dashParts.size() > 1) {
+        parsed.hasPrerelease = true;
+        parsed.prerelease = dashParts.mid(1).join(QLatin1Char('-')).split(QLatin1Char('.'));
+    }
+    for (const QString &part : dashParts.value(0).split(QLatin1Char('.'))) {
+        bool ok = false;
+        const int number = part.toInt(&ok);
+        parsed.core.append(ok ? number : 0);
+    }
+    while (parsed.core.size() < 3)
+        parsed.core.append(0);
+    return parsed;
+}
+
+// Semantic Versioning 2.0 precedence for prerelease identifiers: numeric
+// identifiers compare numerically, alphanumeric ones lexically, numeric ranks
+// lower than alphanumeric, and a shorter set ranks lower when it is a prefix.
+int comparePrerelease(const QStringList &left, const QStringList &right) {
+    const int common = qMin(left.size(), right.size());
+    for (int i = 0; i < common; ++i) {
+        bool leftNumeric = false;
+        bool rightNumeric = false;
+        const int leftNumber = left.at(i).toInt(&leftNumeric);
+        const int rightNumber = right.at(i).toInt(&rightNumeric);
+        if (leftNumeric && rightNumeric) {
+            if (leftNumber != rightNumber)
+                return leftNumber < rightNumber ? -1 : 1;
+        } else if (leftNumeric != rightNumeric) {
+            return leftNumeric ? -1 : 1;
+        } else {
+            const int comparison = QString::compare(left.at(i), right.at(i));
+            if (comparison != 0)
+                return comparison < 0 ? -1 : 1;
+        }
+    }
+    if (left.size() == right.size())
+        return 0;
+    return left.size() < right.size() ? -1 : 1;
+}
+
+} // namespace
 
 UpdateService::UpdateService(QObject *parent, bool autoCheck)
     : QObject(parent), m_network(new QNetworkAccessManager(this)), m_autoCheck(autoCheck) {
@@ -72,25 +129,20 @@ QString UpdateService::statusText() const {
 }
 
 bool UpdateService::isNewer(const QString &candidate, const QString &current) {
-    auto parts = [](QString value) {
-        value.remove(QRegularExpression(QStringLiteral("^[vV]")));
-        value = value.section(QLatin1Char('-'), 0, 0).section(QLatin1Char('+'), 0, 0);
-        QList<int> out;
-        for (const QString &part : value.split(QLatin1Char('.')))
-            out.append(part.toInt());
-        while (out.size() < 3) out.append(0);
-        return out;
-    };
-    const QList<int> a = parts(candidate);
-    const QList<int> b = parts(current);
-    const int count = qMax(a.size(), b.size());
+    const ParsedVersion a = parseVersion(candidate);
+    const ParsedVersion b = parseVersion(current);
+    const int count = qMax(a.core.size(), b.core.size());
     for (int i = 0; i < count; ++i) {
-        const int left = i < a.size() ? a.at(i) : 0;
-        const int right = i < b.size() ? b.at(i) : 0;
+        const int left = i < a.core.size() ? a.core.at(i) : 0;
+        const int right = i < b.core.size() ? b.core.at(i) : 0;
         if (left != right)
             return left > right;
     }
-    return false;
+    if (a.hasPrerelease != b.hasPrerelease)
+        return !a.hasPrerelease;
+    if (!a.hasPrerelease)
+        return false;
+    return comparePrerelease(a.prerelease, b.prerelease) > 0;
 }
 
 void UpdateService::setChecking(bool value) {
