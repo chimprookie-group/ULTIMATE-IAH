@@ -39,6 +39,7 @@ ApplicationWindow {
         if (backend.view === "bots") return qsTr("Bots")
         if (backend.view === "notes") return qsTr("Notes")
         if (backend.view === "github") return qsTr("GitHub")
+        if (backend.view === "crasy") return "4Crasy"
         if (backend.view === "plugins") return qsTr("Plugins")
         if (backend.view === "installation") return qsTr("Installation")
         if (backend.view === "autopilot") return qsTr("Autopilote")
@@ -113,6 +114,7 @@ ApplicationWindow {
         add(qsTr("Agent"), qsTr("Bots"), "Ctrl+Alt+B", "view:bots", "icons/agents.svg")
         add(qsTr("Connaissance"), qsTr("Notes"), "Ctrl+Alt+N", "view:notes", "icons/notes.svg")
         add(qsTr("Opérer"), qsTr("GitHub"), "Ctrl+Alt+H", "view:github", "icons/github.svg")
+        add(qsTr("Exécution"), "4Crasy", "Ctrl+Alt+4", "view:crasy", "icons/4crasy.svg")
         add(qsTr("Système"), qsTr("Plugins"), "Ctrl+Alt+P", "view:plugins", "icons/plug.svg")
         add(qsTr("Système"), qsTr("Installation"), "Ctrl+Alt+I", "view:installation", "icons/shield.svg")
         add(qsTr("Navigation"), qsTr("Mémoire"), "Ctrl+Alt+M", "view:memory", "icons/spark.svg")
@@ -184,6 +186,7 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+Alt+B"; context: Qt.ApplicationShortcut; onActivated: backend.setView("bots") }
     Shortcut { sequence: "Ctrl+Alt+N"; context: Qt.ApplicationShortcut; onActivated: backend.setView("notes") }
     Shortcut { sequence: "Ctrl+Alt+H"; context: Qt.ApplicationShortcut; onActivated: backend.setView("github") }
+    Shortcut { sequence: "Ctrl+Alt+4"; context: Qt.ApplicationShortcut; onActivated: backend.setView("crasy") }
     Shortcut { sequence: "Ctrl+Alt+P"; context: Qt.ApplicationShortcut; onActivated: backend.setView("plugins") }
     Shortcut { sequence: "Ctrl+Alt+M"; context: Qt.ApplicationShortcut; onActivated: backend.setView("memory") }
     Shortcut { sequence: "Ctrl+Alt+A"; context: Qt.ApplicationShortcut; onActivated: backend.setView("autopilot") }
@@ -452,6 +455,11 @@ ApplicationWindow {
                 GitHubPane {
                     anchors.fill: parent
                     visible: backend.view === "github"
+                }
+
+                CrasyPane {
+                    anchors.fill: parent
+                    visible: backend.view === "crasy"
                 }
 
                 PluginsPane {

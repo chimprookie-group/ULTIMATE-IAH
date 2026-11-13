@@ -158,6 +158,7 @@ Item {
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/autopilot.svg"; label: qsTr("Autopilote"); hint: qsTr("Tâches autonomes (Ctrl+Alt+A)"); active: backend.view === "autopilot"; onClicked: backend.setView("autopilot") }
 
                 SidebarGroup { title: qsTr("EXÉCUTION"); compact: root.compact }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/4crasy.svg"; label: "4Crasy"; hint: qsTr("Routeur de modèles gratuits (Ctrl+Alt+4)"); active: backend.view === "crasy"; onClicked: backend.setView("crasy") }
                 SidebarItem {
                     Layout.fillWidth: true; compact: root.compact; icon: "icons/terminal.svg"; label: qsTr("Terminal agent"); hint: qsTr("Terminal agent (Ctrl+2)")
                     active: backend.view === "terminal"

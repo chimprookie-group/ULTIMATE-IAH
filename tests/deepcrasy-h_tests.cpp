@@ -26,6 +26,7 @@
 #include "notestore.h"
 #include "pluginmanager.h"
 #include "webservice.h"
+#include "crasyrouter.h"
 #include "theme.h"
 #include "translator.h"
 
@@ -605,6 +606,7 @@ private slots:
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
         SkillManager skills(dir.path() + "/skills");
+        skills.setWorkspace(dir.path());
         QVERIFY(skills.seedDefaults());
         QCOMPARE(skills.defaultCount(), 12);
         const QVariantMap research = skills.readSkill("research");
@@ -613,7 +615,7 @@ private slots:
         const QVariantList suggestions = skills.suggest("recherche web sources", 2);
         QVERIFY(!suggestions.isEmpty());
         QCOMPARE(suggestions.first().toMap().value("id").toString(), QString("research"));
-        QVERIFY(skills.skills().size() >= 12);
+        QCOMPARE(skills.skills().size(), 12);
     }
 
     void webFetchBlocksPrivateHosts()
@@ -625,6 +627,28 @@ private slots:
         const QJsonObject loopback = web.fetch("http://localhost/private");
         QVERIFY(!loopback.value("ok").toBool());
         QCOMPARE(loopback.value("code").toString(), QString("WEB_PRIVATE_HOST"));
+    }
+
+    void crasyRouterStartsLoopbackApiAndParsesModels()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        CrasyRouter router(dir.path());
+        router.setAutoRefresh(false);
+        QVERIFY(router.start(0));
+        QVERIFY(router.running());
+        QVERIFY(router.endpoint().startsWith("http://127.0.0.1:"));
+        QVERIFY(router.token().size() >= 24);
+        router.stop();
+        QVERIFY(!router.running());
+        const QJsonArray models{
+            QJsonObject{{"id", "free/model"}, {"pricing", QJsonObject{{"prompt", "0"}, {"completion", "0"}}}},
+            QJsonObject{{"id", "paid/model"}, {"pricing", QJsonObject{{"prompt", "0.1"}, {"completion", "0.2"}}}},
+        };
+        const QVariantList parsed = CrasyRouter::parseModels(models, "test");
+        QCOMPARE(parsed.size(), 2);
+        QVERIFY(parsed.at(0).toMap().value("free").toBool());
+        QVERIFY(!parsed.at(1).toMap().value("free").toBool());
     }
 
     void pluginManagerDiscoversAndRunsExternalCommands()

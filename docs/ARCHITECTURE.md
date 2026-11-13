@@ -27,6 +27,8 @@ Application Qt 6 / QML native agentique pour Omarchy.
   backlinks et graphe force-directed.
 - **SkillManager** : bibliothèque par défaut de 12 skills, seeding idempotent,
   lecture et sélection automatique par mots-clés.
+- **CrasyRouter** : routeur libre natif, API OpenAI-compatible loopback,
+  découverte de modèles, routage et fallback.
 - **GitHubService** : connexion gh, dépôts, création/clonage, issues et PR,
   outils agent et vue GitHub.
 - **WebService** : web_search native (DeepSeek Search, secours DuckDuckGo),

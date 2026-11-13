@@ -24,6 +24,7 @@
         <file>skills/default/automation.md</file>
         <file>skills/default/refactor.md</file>
         <file>skills/default/artcraft.md</file>
+        <file>CrasyPane.qml</file>
         <file>GitHubPane.qml</file>
         <file>PluginsPane.qml</file>
         <file>NotesPane.qml</file>
@@ -62,6 +63,7 @@
         <file>icons/split.svg</file>
         <file>icons/gear.svg</file>
         <file>icons/help.svg</file>
+        <file>icons/4crasy.svg</file>
         <file>icons/github.svg</file>
         <file>icons/folder.svg</file>
         <file>icons/reload.svg</file>

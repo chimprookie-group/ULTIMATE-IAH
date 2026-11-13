@@ -104,7 +104,8 @@ Item {
                             { label: qsTr("Notes"), state: noteStore.count > 0 ? "running" : "stopped" },
                             { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" },
                             { label: qsTr("Web"), state: web.searchReady ? "running" : "stopped" },
-                            { label: qsTr("GitHub"), state: gitHub.authenticated ? "running" : "stopped" }
+                            { label: qsTr("GitHub"), state: gitHub.authenticated ? "running" : "stopped" },
+                            { label: "4Crasy", state: crasy.running ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -497,6 +498,15 @@ Item {
                                 stateColor: gitHub.authenticated ? theme.green : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("github")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: "4Crasy"
+                                detail: crasy.running ? qsTr("%1 modèle(s) · API locale").arg(crasy.models.length) : qsTr("Routeur arrêté")
+                                stateColor: crasy.running ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("crasy")
                             }
 
                             Rectangle { Layout.fillWidth: true; Layout.topMargin: design.space2; height: 1; color: theme.border }

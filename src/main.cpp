@@ -42,6 +42,7 @@
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "githubservice.h"
+#include "crasyrouter.h"
 #include "autopilot.h"
 #include "botmanager.h"
 #include "ecosystem.h"
@@ -222,7 +223,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.15.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.16.1"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -247,6 +248,8 @@ int main(int argc, char *argv[]) {
     bool demo = false;
     bool agentJob = false;
     bool agentDock = false;
+    bool routerService = false;
+    bool routerConfigure = false;
     QString screenshot;
     QString view;
     QString workspace;
@@ -264,6 +267,10 @@ int main(int argc, char *argv[]) {
             agentJob = true;
         } else if (argument == "--agent-dock") {
             agentDock = true;
+        } else if (argument == "--router-service") {
+            routerService = true;
+        } else if (argument == "--router-configure") {
+            routerConfigure = true;
         } else if (argument == "--screenshot" && i + 1 < arguments.size()) {
             screenshot = arguments.at(++i);
         } else if (argument == "--view" && i + 1 < arguments.size()) {
@@ -291,6 +298,8 @@ int main(int argc, char *argv[]) {
         qputenv("QT_QPA_PLATFORM", "offscreen");
         qputenv("ULTIMATE_IAH_AGENT_JOB", "1");
     }
+    if (routerService)
+        qputenv("QT_QPA_PLATFORM", "offscreen");
 
     // The QML disk cache keys qrc URLs by path, so a rebuilt binary can keep
     // serving an old QML resource from cache. Start fresh every time; the
@@ -304,7 +313,7 @@ int main(int argc, char *argv[]) {
     qputenv("QSG_RENDER_LOOP", "basic");
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    if (!agentJob)
+    if (!agentJob && !routerService)
         QtWebEngineQuick::initialize();
 
     QGuiApplication app(argc, argv);
@@ -320,7 +329,7 @@ int main(int argc, char *argv[]) {
     QQuickWindow *mainWindow = nullptr;
     const QString instanceName = QStringLiteral("ultimate-iah-%1").arg(QString::number(getuid()));
     QLocalServer instanceServer;
-    if (screenshot.isEmpty() && !demo && !agentJob) {
+    if (screenshot.isEmpty() && !demo && !agentJob && !routerService && !routerConfigure) {
         QLocalSocket probe;
         probe.connectToServer(instanceName);
         if (probe.waitForConnected(250)) {
@@ -378,6 +387,28 @@ int main(int argc, char *argv[]) {
     PluginManager plugins;
     WebService web;
     GitHubService gitHub(&backend);
+    CrasyRouter crasy;
+    if (routerConfigure || routerService) {
+        if (!crasy.start()) {
+            QTextStream(stderr) << "4Crasy: " << crasy.error() << Qt::endl;
+            return 1;
+        }
+        if (routerConfigure) {
+            connections.saveProvider(QStringLiteral("4crasy"), QStringLiteral("4Crasy"),
+                                     crasy.endpoint(), crasy.token(), QStringLiteral("auto"), true);
+            if (!connections.error().isEmpty()) {
+                QTextStream(stderr) << "4Crasy provider: " << connections.error() << Qt::endl;
+                return 1;
+            }
+            QTextStream(stdout) << "4Crasy configured as default provider: " << crasy.endpoint() << Qt::endl;
+        } else {
+            QTextStream(stdout) << "4Crasy API " << crasy.endpoint()
+                                << " token-file " << QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+                                       + QStringLiteral("/4crasy/token") << Qt::endl;
+        }
+        QTextStream(stdout).flush();
+        return app.exec();
+    }
     QObject::connect(&backend, &Backend::workspaceChanged, &skills, [&backend, &skills] {
         skills.setWorkspace(backend.workspace());
     });
@@ -391,7 +422,7 @@ int main(int argc, char *argv[]) {
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
-                                &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub);
+                                &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub, &crasy);
     if (agentJob) {
         if (!workspace.isEmpty())
             backend.setWorkspace(workspace);
@@ -484,6 +515,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("plugins", &plugins);
     engine.rootContext()->setContextProperty("web", &web);
     engine.rootContext()->setContextProperty("gitHub", &gitHub);
+    engine.rootContext()->setContextProperty("crasy", &crasy);
     engine.rootContext()->setContextProperty("ecosystem", &ecosystem);
     engine.rootContext()->setContextProperty("workspaceModel", &workspaceModel);
     engine.addImageProvider(QStringLiteral("themeicon"), new IconProvider);

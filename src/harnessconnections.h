@@ -37,6 +37,7 @@ public:
     Q_INVOKABLE void removeProvider(const QString &id);
     Q_INVOKABLE void setDefault(const QString &provider, const QString &model);
     Q_INVOKABLE void clearError();
+    QString providerApiKey(const QString &id) const;
 
     static QString defaultOverlayPath();
 

@@ -117,6 +117,7 @@ def provider_summary(provider_id, entry):
         "api": entry.get("api", "openai-completions"),
         "models": ids,
         "hasKey": bool(key),
+        "apiKeyEnv": env,
         "keyMasked": ("••••" + key[-4:]) if key else "",
         "builtin": provider_id == "deepseek-official",
     }
@@ -350,6 +351,37 @@ void HarnessConnections::setDefault(const QString &provider, const QString &mode
 }
 
 void HarnessConnections::clearError() { setError({}); }
+
+QString HarnessConnections::providerApiKey(const QString &id) const {
+    QString envName;
+    for (const QVariant &value : m_providers) {
+        const QVariantMap provider = value.toMap();
+        if (provider.value(QStringLiteral("id")).toString() == id) {
+            envName = provider.value(QStringLiteral("apiKeyEnv")).toString();
+            break;
+        }
+    }
+    if (envName.isEmpty()) return {};
+    const QString fromEnvironment = qEnvironmentVariable(envName.toUtf8().constData());
+    if (!fromEnvironment.isEmpty()) return fromEnvironment;
+    QFile envFile(m_envPath);
+    if (envFile.open(QIODevice::ReadOnly)) {
+        for (const QString &line : QString::fromUtf8(envFile.readAll()).split('\n')) {
+            const int equals = line.indexOf('=');
+            if (equals > 0 && line.left(equals) == envName)
+                return line.mid(equals + 1).trimmed();
+        }
+    }
+    QFile creds(credentialsPath());
+    if (!creds.open(QIODevice::ReadOnly)) return {};
+    const QString text = QString::fromUtf8(creds.readAll());
+    QRegularExpression expression(QStringLiteral("(?m)^\\s*%1\\s*[:=]\\s*(\\S+)").arg(QRegularExpression::escape(envName)));
+    const auto match = expression.match(text);
+    if (!match.hasMatch()) return {};
+    QString key = match.captured(1).trimmed();
+    key.remove(QRegularExpression(QStringLiteral("^[\\\"']|[\\\"']$")));
+    return key;
+}
 
 void HarnessConnections::setError(const QString &error) {
     if (error == m_error)

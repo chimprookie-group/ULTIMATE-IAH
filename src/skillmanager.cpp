@@ -181,6 +181,7 @@ QString SkillManager::slug(const QString &name) const {
 
 void SkillManager::refresh() {
     QVariantList skills;
+    QSet<QString> seen;
     QList<QPair<QString, QString>> roots;
     roots.append({m_root, QStringLiteral("user")});
     roots.append({m_workspace + "/.agents/skills", QStringLiteral("project")});
@@ -216,6 +217,9 @@ void SkillManager::refresh() {
                 if (!clean.isEmpty())
                     tags.append(clean);
             }
+            if (seen.contains(entry.fileName()))
+                continue;
+            seen.insert(entry.fileName());
             skills.append(QVariantMap{
                 {"id", entry.fileName()}, {"name", name}, {"description", description},
                 {"path", file}, {"scope", root.second}, {"tags", tags},

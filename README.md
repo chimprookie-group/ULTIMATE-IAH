@@ -115,13 +115,25 @@ Ultimate Agent expose deux outils web réels :
 
 Le panneau Plugins expose la carte complète du harness :
 
-- **29 capacités du noyau** actives par défaut : agent loop, sessions, outils,
+- **30 capacités du noyau** actives par défaut : agent loop, sessions, outils,
   fichiers, shell, web search/fetch, MCP, skills, plan, objectifs, jobs,
   sous-agents, planification, token meter, compaction, persona, notes, mémoire,
   providers, ArtCraft, etc.
 - **12 extensions expérimentales** visibles mais désactivées par défaut.
 - Chaque capacité indique son outil natif ou sa vue de contrôle.
 - Les outils réellement installés restent détectés dynamiquement.
+
+## 4Crasy
+
+Routeur natif de modèles gratuits intégré au harness :
+
+- API OpenAI-compatible sur `127.0.0.1:8788/v1` ;
+- endpoints `/health`, `/v1/models`, `/v1/chat/completions` ;
+- jeton Bearer stocké en mode privé, écoute loopback uniquement ;
+- découverte OpenRouter, Groq, Gemini, DeepSeek et Ollama ;
+- routage automatique par tâche, préférence gratuite et fallback ;
+- bouton **Utiliser dans le harness** qui configure le provider par défaut ;
+- modes headless `--router-service` et `--router-configure`.
 
 ## Bibliothèque de skills
 
@@ -237,7 +249,7 @@ Le registre natif expose les outils au harness Ultimate Agent :
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-sudo pacman -U ultimate-iah-1.15.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.16.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet remplace `ultimate-hai` et `deepcrasy-h`. Les données existantes sont conservées dans

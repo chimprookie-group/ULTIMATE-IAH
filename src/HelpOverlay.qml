@@ -23,6 +23,7 @@ Item {
         { keys: "Ctrl+Alt+N", what: qsTr("Notes et vault Markdown") },
         { keys: "Ctrl+Alt+P", what: qsTr("Plugins et ArtCraft") },
         { keys: "Ctrl+Alt+H", what: qsTr("GitHub et projets") },
+        { keys: "Ctrl+Alt+4", what: "4Crasy — routeur de modèles" },
         { keys: "Ctrl+Alt+M", what: qsTr("Mémoire persistante") },
         { keys: "Ctrl+Alt+A", what: qsTr("Autopilote") },
         { keys: "Ctrl+4", what: qsTr("Settings") },
