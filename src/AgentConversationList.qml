@@ -12,6 +12,15 @@ Item {
     signal deleteRequested(string id, string title)
     signal pinRequested(string id)
 
+    function cleanPreview(text) {
+        var value = String(text)
+        value = value.replace(/^#+\s*/g, "")
+        value = value.replace(/`/g, "")
+        value = value.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+        value = value.replace(/\s+/g, " ").trim()
+        return value !== "" ? value : qsTr("Discussion vide")
+    }
+
     ListView {
         anchors.fill: parent
         clip: true
@@ -22,8 +31,8 @@ Item {
 
         delegate: Rectangle {
             id: row
-            width: ListView.view.width
-            height: 64
+            width: ListView.view.width - 8
+            height: 66
             radius: design.radiusSm
             color: modelData.id === root.currentId
                    ? theme.raised
@@ -43,10 +52,10 @@ Item {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.leftMargin: design.space2
-                anchors.rightMargin: design.space1
-                anchors.topMargin: 8
-                anchors.bottomMargin: 8
-                spacing: 2
+                anchors.rightMargin: 6
+                anchors.topMargin: 6
+                anchors.bottomMargin: 6
+                spacing: 1
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -67,16 +76,18 @@ Item {
                         elide: Text.ElideRight
                     }
                     Text {
+                        Layout.maximumWidth: 34
                         text: Qt.formatDateTime(new Date(modelData.updatedAt), "dd/MM")
                         color: theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: 8
+                        elide: Text.ElideRight
                     }
                 }
 
                 Text {
                     Layout.fillWidth: true
-                    text: modelData.preview !== "" ? modelData.preview : qsTr("Discussion vide")
+                    text: root.cleanPreview(modelData.preview)
                     color: theme.dimText
                     font.pixelSize: design.textMicro
                     elide: Text.ElideRight
@@ -93,23 +104,23 @@ Item {
                         font.pixelSize: 8
                     }
                     IconButton {
-                        implicitWidth: 20
-                        implicitHeight: 20
+                        implicitWidth: 18
+                        implicitHeight: 18
                         icon: "icons/pin.svg"
                         active: modelData.pinned
                         hint: modelData.pinned ? qsTr("Désépingler") : qsTr("Épingler")
                         onClicked: root.pinRequested(modelData.id)
                     }
                     IconButton {
-                        implicitWidth: 20
-                        implicitHeight: 20
+                        implicitWidth: 18
+                        implicitHeight: 18
                         icon: "icons/pencil.svg"
                         hint: qsTr("Renommer")
                         onClicked: root.renameRequested(modelData.id, modelData.title)
                     }
                     IconButton {
-                        implicitWidth: 20
-                        implicitHeight: 20
+                        implicitWidth: 18
+                        implicitHeight: 18
                         icon: "icons/close.svg"
                         hint: qsTr("Supprimer la discussion")
                         onClicked: root.deleteRequested(modelData.id, modelData.title)
