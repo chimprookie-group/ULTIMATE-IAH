@@ -690,6 +690,13 @@ private slots:
         QVERIFY(!UpdateService::isNewer("1.16.3", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0", "1.17.0"));
         QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0"));
+        QVERIFY(UpdateService::isNewer("1.17.0", "1.17.0-rc1"));
+        QVERIFY(UpdateService::isNewer("1.17.0-rc2", "1.17.0-rc1"));
+        QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0-rc2"));
+        QVERIFY(!UpdateService::isNewer("1.17.0-beta", "1.17.0-rc1"));
+        QVERIFY(UpdateService::isNewer("1.17.0-rc1", "1.17.0-beta"));
+        QVERIFY(UpdateService::isNewer("1.17.0-rc.10", "1.17.0-rc.2"));
+        QVERIFY(!UpdateService::isNewer("1.17.0+build1", "1.17.0"));
         QVERIFY(UpdateService::isNewer("1.22.0.1", "1.22.0"));
         QVERIFY(!UpdateService::isNewer("1.22.0", "1.22.0.1"));
     }
@@ -789,6 +796,9 @@ private slots:
         const int proposalId = proposals.first().toMap().value("id").toInt();
         QVERIFY(learning.approveProposal(proposalId));
         QVERIFY(skills.skills().size() >= 1);
+        const QVariantMap learnedSkill = skills.skills().first().toMap();
+        QVERIFY(!learnedSkill.value("name").toString().contains(QStringLiteral("proposé")));
+        QVERIFY(!learnedSkill.value("id").toString().startsWith(QStringLiteral("skill-propose")));
         QVERIFY(learning.clear());
         QCOMPARE(learning.stats().value("events").toInt(), 0);
     }

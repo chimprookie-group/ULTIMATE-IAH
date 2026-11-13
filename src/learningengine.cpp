@@ -385,7 +385,14 @@ bool LearningEngine::approveProposal(int id) {
     const QString title = find.value(1).toString();
     const QString body = find.value(2).toString();
     if (m_skills) {
-        const QString name = title;
+        // The proposal title carries a display prefix; the skill itself must use
+        // the lesson title so its id stays readable.
+        const QString prefix = tr("Skill proposé : ");
+        QString name = title;
+        if (name.startsWith(prefix))
+            name = name.mid(prefix.size()).trimmed();
+        if (name.isEmpty())
+            name = title;
         if (!m_skills->createSkill(name, tr("Skill appris automatiquement par Ultimate IAH."), body))
             return false;
     }
