@@ -26,6 +26,60 @@ Item {
     property int commandIndex: 0
     property int mentionIndex: 0
     property var workspaceFiles: []
+    property var expandedGroups: ({})
+
+    function groupOk(items) {
+        for (var i = 0; i < items.length; ++i) {
+            if (!items[i].ok) return false
+        }
+        return true
+    }
+
+    function groupSummary(items) {
+        var names = []
+        for (var i = 0; i < items.length; ++i) {
+            if (names.indexOf(items[i].tool) < 0) names.push(items[i].tool)
+        }
+        return names.join(", ")
+    }
+
+    function toggleGroup(key) {
+        var copy = {}
+        for (var name in expandedGroups) copy[name] = expandedGroups[name]
+        copy[key] = !copy[key]
+        expandedGroups = copy
+    }
+
+    function buildTimeline() {
+        var rows = []
+        var pending = []
+        function flush() {
+            if (pending.length > 0) {
+                rows.push({ role: "steps", items: pending, key: pending[0].index })
+                pending = []
+            }
+        }
+        var messages = ultimateAgent.messages
+        for (var i = 0; i < messages.length; ++i) {
+            var message = messages[i]
+            if (message.role === "tool") {
+                var item = {}
+                for (var field in message) item[field] = message[field]
+                item.index = i
+                pending.push(item)
+            } else {
+                flush()
+                var row = {}
+                for (var field2 in message) row[field2] = message[field2]
+                row.index = i
+                rows.push(row)
+            }
+        }
+        flush()
+        return rows
+    }
+
+    readonly property var timeline: buildTimeline()
 
     readonly property var commands: [
         { id: "new", label: "/new", detail: qsTr("Nouvelle discussion") },
@@ -363,7 +417,7 @@ Item {
                         anchors.bottomMargin: design.space2
                         clip: true
                         spacing: design.space3
-                        model: ultimateAgent.messages
+                        model: root.timeline
                         boundsBehavior: Flickable.StopAtBounds
                         ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
 
@@ -372,7 +426,8 @@ Item {
                             height: Math.max(userBlock.visible ? userBlock.height : 0,
                                              Math.max(assistantBlock.visible ? assistantBlock.height : 0,
                                                       Math.max(toolBlock.visible ? toolBlock.height : 0,
-                                                               reasoningBlock.visible ? reasoningBlock.height : 0)))
+                                                               Math.max(reasoningBlock.visible ? reasoningBlock.height : 0,
+                                                                        stepsBlock.visible ? stepsBlock.height : 0))))
 
                             Column {
                                 id: userBlock
@@ -455,6 +510,88 @@ Item {
                                     wrapMode: Text.Wrap
                                     textFormat: Text.MarkdownText
                                     onLinkActivated: function (link) { Qt.openUrlExternally(link) }
+                                }
+                            }
+
+                            Rectangle {
+                                id: stepsBlock
+                                visible: modelData.role === "steps"
+                                width: parent.width
+                                implicitHeight: stepsColumn.implicitHeight + design.space3
+                                height: implicitHeight
+                                radius: design.radiusMd
+                                color: theme.chip
+                                border.width: 1
+                                border.color: theme.border
+                                property bool expanded: root.expandedGroups[modelData.key] === true
+                                ColumnLayout {
+                                    id: stepsColumn
+                                    anchors.fill: parent
+                                    anchors.margins: design.space2
+                                    spacing: 2
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: design.space2
+                                        StatusDot { size: 5; color: root.groupOk(modelData.items) ? theme.green : theme.red }
+                                        Text {
+                                            text: qsTr("%1 étape(s)").arg(modelData.items.length)
+                                            color: theme.text
+                                            font.family: backend.monoFont
+                                            font.pixelSize: design.textCaption
+                                        }
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: root.groupSummary(modelData.items)
+                                            color: theme.dimText
+                                            font.pixelSize: design.textMicro
+                                            elide: Text.ElideRight
+                                        }
+                                        Text {
+                                            text: stepsBlock.expanded ? qsTr("Masquer") : qsTr("Voir")
+                                            color: theme.accent
+                                            font.pixelSize: design.textMicro
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: root.toggleGroup(modelData.key)
+                                            }
+                                        }
+                                    }
+                                    Repeater {
+                                        model: stepsBlock.expanded ? modelData.items : []
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 1
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: design.space2
+                                                StatusDot { size: 4; color: modelData.ok ? theme.green : theme.red }
+                                                Text { text: modelData.tool || ""; color: theme.text; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                                                Text { Layout.fillWidth: true; text: modelData.detail || ""; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                                                Text {
+                                                    text: modelData.expanded ? qsTr("Masquer") : qsTr("Détails")
+                                                    color: theme.accent
+                                                    font.pixelSize: design.textMicro
+                                                    MouseArea {
+                                                        anchors.fill: parent
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: ultimateAgent.toggleToolDetails(modelData.index)
+                                                    }
+                                                }
+                                            }
+                                            Text {
+                                                Layout.fillWidth: true
+                                                visible: !!modelData.expanded
+                                                text: modelData.payload || ""
+                                                color: theme.dimText
+                                                font.family: backend.monoFont
+                                                font.pixelSize: design.textMicro
+                                                wrapMode: Text.WrapAnywhere
+                                                maximumLineCount: 12
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
