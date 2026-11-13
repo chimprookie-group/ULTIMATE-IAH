@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QRegularExpression>
@@ -58,6 +59,7 @@ bool LearningEngine::open() {
     QSqlQuery pragma(db);
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
+    QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
     return true;
 }
 
@@ -328,6 +330,7 @@ void LearningEngine::refresh() {
     }
     QSqlQuery metric(db);
     metric.exec(QStringLiteral("SELECT COUNT(*), SUM(CASE WHEN outcome='success' THEN 1 ELSE 0 END) FROM events"));
+    QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
     const bool hasMetric = metric.next();
     const int totalEvents = hasMetric ? metric.value(0).toInt() : 0;
     const int successes = hasMetric ? metric.value(1).toInt() : 0;
