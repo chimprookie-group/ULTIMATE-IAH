@@ -23,6 +23,22 @@ les skills, les bots, les providers et la création assistée.
 
 ---
 
+## Installation en une commande
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash
+```
+
+L’installateur vérifie les dépendances Arch, télécharge le paquet avec un
+**checksum SHA256 obligatoire**, l’installe via `pkexec`, initialise les skills,
+la configuration et le jeton 4Crasy, puis lance le diagnostic du harness.
+
+Variante avec la suite ArtCraft :
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash -s -- --with-artcraft
+```
+
 ## Pourquoi Ultimate IAH
 
 Les outils d’IA sont souvent dispersés entre un chat, un terminal, un éditeur,
@@ -263,7 +279,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.16.3-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -282,7 +298,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.16.3-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,

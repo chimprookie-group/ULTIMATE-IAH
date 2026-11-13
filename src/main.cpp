@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.16.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.16.3"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -232,6 +232,25 @@ int main(int argc, char *argv[]) {
 
     if (arguments.value(0) == "--version" || arguments.value(0) == "-v") {
         QTextStream(stdout) << "Ultimate IAH " << QCoreApplication::applicationVersion() << '\n';
+        return 0;
+    }
+    if (arguments.value(0) == "bootstrap") {
+        QCoreApplication app(argc, argv);
+        const QString config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+        const QString data = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        QDir().mkpath(config);
+        QDir().mkpath(data);
+        QFile::setPermissions(config, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        QFile::setPermissions(data, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        SkillManager skills;
+        skills.seedDefaults();
+        CrasyRouter router;
+        QTextStream(stdout) << "Ultimate IAH bootstrap\n"
+                            << "config=" << config << "\n"
+                            << "data=" << data << "\n"
+                            << "skills=" << skills.defaultCount() << "\n"
+                            << "4crasy-token=" << QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+                                   + QStringLiteral("/4crasy/token") << "\n";
         return 0;
     }
     if (arguments.value(0) == "doctor") {

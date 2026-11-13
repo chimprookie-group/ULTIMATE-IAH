@@ -1,9 +1,19 @@
-# Installation complète
+# Installation
+
+## En une commande
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/chimprookie-group/ULTIMATE-IAH/main/install.sh | bash
+```
+
+Le script vérifie les dépendances, télécharge le paquet signé par checksum,
+installe via `pkexec`, initialise les skills/4Crasy et exécute `doctor`.
+ complète
 
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-iah-1.16.2-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.16.3-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
