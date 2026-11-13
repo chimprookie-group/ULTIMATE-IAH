@@ -277,7 +277,7 @@ Le paquet fournit :
 ### Depuis les sources
 
 ```sh
-git clone https://github.com/iatexplique-debug/ULTIMATE-IAH.git
+git clone https://github.com/chimprookie-group/ULTIMATE-IAH.git
 cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
