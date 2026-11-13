@@ -446,35 +446,17 @@ Item {
                         flickableDirection: Flickable.VerticalFlick
                         ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
 
-                        footer: Item {
-                            width: messageList.width
-                            height: ultimateAgent.busy ? 26 : 0
-                            visible: ultimateAgent.busy
-                            RowLayout {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: design.space2
-                                ThemedIcon { source: "icons/fin.svg"; width: 14; height: 14; color: theme.mutedText }
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: root.reasoningLabel(root.thinkingSeconds) + " \u2026"
-                                    color: theme.mutedText
-                                    font.pixelSize: design.textMicro
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-
                         delegate: Item {
                             id: delegateItem
                             readonly property bool hiddenTool: modelData.role === "tool"
                                 && index > 0 && ultimateAgent.messages[index - 1].role === "tool"
+                            readonly property bool hiddenReasoning: modelData.role === "reasoning"
                             width: ListView.view.width - design.space3
-                            height: hiddenTool ? 0 : Math.max(userBlock.visible ? userBlock.height : 0,
-                                             Math.max(assistantBlock.visible ? assistantBlock.height : 0,
-                                                      Math.max(reasoningBlock.visible ? reasoningBlock.height : 0,
-                                                               stepsBlock.visible ? stepsBlock.height : 0)))
+                            visible: !hiddenReasoning
+                            height: (hiddenTool || hiddenReasoning) ? 0
+                                    : Math.max(userBlock.visible ? userBlock.height : 0,
+                                               Math.max(assistantBlock.visible ? assistantBlock.height : 0,
+                                                        stepsBlock.visible ? stepsBlock.height : 0))
 
                             Column {
                                 id: userBlock
@@ -634,69 +616,9 @@ Item {
                                 }
                             }
 
-                            Item {
-                                id: reasoningBlock
-                                visible: modelData.role === "reasoning"
-                                width: parent.width
-                                implicitHeight: reasoningColumn.implicitHeight
-                                height: implicitHeight
-
-                                Column {
-                                    id: reasoningColumn
-                                    width: parent.width
-                                    spacing: design.space1
-
-                                    Item {
-                                        width: parent.width
-                                        height: reasoningHeader.implicitHeight + 4
-                                        RowLayout {
-                                            id: reasoningHeader
-                                            anchors.left: parent.left
-                                            anchors.right: parent.right
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: design.space2
-                                            ThemedIcon { source: "icons/fin.svg"; width: 14; height: 14; color: theme.mutedText }
-                                            Text {
-                                                Layout.fillWidth: true
-                                                text: root.reasoningLabel(modelData.seconds || 0)
-                                                      + (modelData.expanded ? "" : " \u2026")
-                                                color: theme.mutedText
-                                                font.pixelSize: design.textMicro
-                                                elide: Text.ElideRight
-                                            }
-                                            ThemedIcon {
-                                                source: "icons/chevron.svg"
-                                                rotation: modelData.expanded ? 270 : 90
-                                                width: 10
-                                                height: 10
-                                                color: theme.dimText
-                                            }
-                                        }
-                                        TapHandler { onTapped: ultimateAgent.toggleToolDetails(model.index) }
-                                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                                    }
-
-                                    Item {
-                                        width: parent.width
-                                        height: reasoningText.implicitHeight
-                                        visible: !!modelData.expanded
-                                        Text {
-                                            id: reasoningText
-                                            x: 21
-                                            width: parent.width - 21
-                                            text: modelData.text || ""
-                                            color: theme.dimText
-                                            font.pixelSize: design.textCaption
-                                            wrapMode: Text.Wrap
-                                            maximumLineCount: 60
-                                            elide: Text.ElideRight
-                                        }
-                                    }
-                                }
                             }
 
                         }
-                    }
 
                     ScrollView {
                         id: welcomeScroll
@@ -915,6 +837,27 @@ Item {
                             border.color: theme.border
                             Image { anchors.fill: parent; anchors.margins: 2; source: "file://" + modelData.path; asynchronous: true; fillMode: Image.PreserveAspectCrop; cache: false }
                             IconButton { anchors.top: parent.top; anchors.right: parent.right; implicitWidth: 18; implicitHeight: 18; icon: "icons/close.svg"; hint: qsTr("Retirer l'image"); onClicked: ultimateAgent.removeAttachment(index) }
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: design.space2
+                    Layout.rightMargin: design.space2
+                    Layout.bottomMargin: design.space1
+                    visible: ultimateAgent.busy
+                    implicitHeight: visible ? 22 : 0
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: design.space2
+                        ThemedIcon { source: "icons/fin.svg"; width: 13; height: 13; color: theme.mutedText }
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.reasoningLabel(root.thinkingSeconds) + " \u2026"
+                            color: theme.mutedText
+                            font.pixelSize: design.textMicro
+                            elide: Text.ElideRight
                         }
                     }
                 }
