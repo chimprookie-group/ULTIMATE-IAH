@@ -22,6 +22,7 @@ class HarnessConnections : public QObject {
     Q_PROPERTY(QString envPath READ envPath NOTIFY changed)
     Q_PROPERTY(bool detecting READ detecting NOTIFY detectingChanged)
     Q_PROPERTY(QString detectionStatus READ detectionStatus NOTIFY detectionStatusChanged)
+    Q_PROPERTY(QVariantList detectedModels READ detectedModels NOTIFY detectedModelsChanged)
 
 public:
     explicit HarnessConnections(const QString &overlayPath = {}, QObject *parent = nullptr);
@@ -35,6 +36,7 @@ public:
     QString envPath() const { return m_envPath; }
     bool detecting() const { return m_detecting; }
     QString detectionStatus() const { return m_detectionStatus; }
+    QVariantList detectedModels() const { return m_detectedModels; }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void saveDeepSeek(const QString &apiKey);
@@ -46,6 +48,9 @@ public:
     Q_INVOKABLE void setDefault(const QString &provider, const QString &model);
     Q_INVOKABLE void clearError();
     Q_INVOKABLE void detectModels(const QString &id);
+    Q_INVOKABLE void detectModelsFor(const QString &baseUrl, const QString &apiKey,
+                                     const QString &api, const QString &providerId = {});
+    Q_INVOKABLE void clearDetectedModels();
     QString providerApiKey(const QString &id) const;
 
     static QString defaultOverlayPath();
@@ -57,12 +62,16 @@ signals:
     void deepSeekChanged();
     void detectingChanged();
     void detectionStatusChanged();
+    void detectedModelsChanged();
 
 private:
     bool run(const QJsonObject &request, QJsonObject &result);
     void setError(const QString &error);
     void setDetecting(bool detecting);
     void setDetectionStatus(const QString &status);
+    void startModelDetection(const QString &baseUrl, const QString &apiKey, const QString &api,
+                             const QString &providerId, const QString &providerName,
+                             const QString &apiKeyEnv, bool persist);
     QString harnessProfile() const;
     QString pythonHelper() const;
 
@@ -76,6 +85,7 @@ private:
     bool m_deepseekConfigured = false;
     bool m_detecting = false;
     QString m_detectionStatus;
+    QVariantList m_detectedModels;
     QNetworkAccessManager *m_network = nullptr;
     QPointer<QNetworkReply> m_detectReply;
     QString m_detectProvider;

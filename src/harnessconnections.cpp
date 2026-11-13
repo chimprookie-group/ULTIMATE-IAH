@@ -399,6 +399,13 @@ void HarnessConnections::setDetectionStatus(const QString &status) {
     emit detectionStatusChanged();
 }
 
+void HarnessConnections::clearDetectedModels() {
+    if (m_detectedModels.isEmpty())
+        return;
+    m_detectedModels.clear();
+    emit detectedModelsChanged();
+}
+
 void HarnessConnections::detectModels(const QString &id) {
     QVariantMap provider;
     for (const QVariant &value : m_providers) {
@@ -412,23 +419,48 @@ void HarnessConnections::detectModels(const QString &id) {
         setError(tr("Provider inconnu : %1").arg(id));
         return;
     }
-    const QString key = providerApiKey(id);
+    QString name = provider.value(QStringLiteral("name")).toString();
+    if (name.isEmpty())
+        name = id;
+    startModelDetection(provider.value(QStringLiteral("baseURL")).toString(),
+                        providerApiKey(id),
+                        provider.value(QStringLiteral("api")).toString(),
+                        id, name, provider.value(QStringLiteral("apiKeyEnv")).toString(), true);
+}
+
+void HarnessConnections::detectModelsFor(const QString &baseUrl, const QString &apiKey,
+                                         const QString &api, const QString &providerId) {
+    QString key = apiKey.trimmed();
+    if (key.isEmpty() && !providerId.isEmpty())
+        key = providerApiKey(providerId);
     if (key.isEmpty()) {
         setError(tr("Ajoutez une clé API avant de détecter les modèles."));
         return;
     }
-    QString base = provider.value(QStringLiteral("baseURL")).toString().trimmed();
+    startModelDetection(baseUrl, key,
+                        api.isEmpty() ? QStringLiteral("openai-completions") : api,
+                        providerId, {}, {}, false);
+}
+
+void HarnessConnections::startModelDetection(const QString &baseUrl, const QString &apiKey,
+                                             const QString &api, const QString &providerId,
+                                             const QString &providerName,
+                                             const QString &apiKeyEnv, bool persist) {
+    QString base = baseUrl.trimmed();
     while (base.endsWith(QLatin1Char('/')))
         base.chop(1);
     if (base.isEmpty()) {
         setError(tr("URL de base absente."));
         return;
     }
-    const QString api = provider.value(QStringLiteral("api")).toString();
-    const QString apiKeyEnv = provider.value(QStringLiteral("apiKeyEnv")).toString();
-    QString name = provider.value(QStringLiteral("name")).toString();
+    const QString key = apiKey.trimmed();
+    if (key.isEmpty()) {
+        setError(tr("Ajoutez une clé API avant de détecter les modèles."));
+        return;
+    }
+    QString name = providerName;
     if (name.isEmpty())
-        name = id;
+        name = providerId.isEmpty() ? base : providerId;
     QUrl url(base + QStringLiteral("/models"));
     if (api == QLatin1String("anthropic-messages")) {
         QUrlQuery query;
@@ -446,11 +478,12 @@ void HarnessConnections::detectModels(const QString &id) {
         m_detectReply->deleteLater();
         m_detectReply = nullptr;
     }
+    clearDetectedModels();
     setDetectionStatus(tr("Détection des modèles pour %1…").arg(name));
     setDetecting(true);
     QNetworkReply *reply = m_network->get(request);
     m_detectReply = reply;
-    connect(reply, &QNetworkReply::finished, this, [this, reply, id, name, base, api, apiKeyEnv, key] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, providerId, name, base, api, apiKeyEnv, key, persist] {
         if (m_detectReply == reply)
             m_detectReply = nullptr;
         const QByteArray payload = reply->readAll();
@@ -478,23 +511,30 @@ void HarnessConnections::detectModels(const QString &id) {
             setDetecting(false);
             return;
         }
-        QJsonObject saveRequest{{QStringLiteral("op"), QStringLiteral("saveProvider")},
-                                {QStringLiteral("id"), id},
-                                {QStringLiteral("name"), name},
-                                {QStringLiteral("baseURL"), base},
-                                {QStringLiteral("api"), api},
-                                {QStringLiteral("apiKey"), key},
-                                {QStringLiteral("apiKeyEnv"), apiKeyEnv},
-                                {QStringLiteral("models"), models},
-                                {QStringLiteral("makeDefault"), false}};
-        QJsonObject result;
-        if (!run(saveRequest, result)) {
-            setDetectionStatus(tr("Échec de l'enregistrement des modèles."));
-            setDetecting(false);
-            return;
+        m_detectedModels = models.toVariantList();
+        emit detectedModelsChanged();
+        if (persist && !providerId.isEmpty()) {
+            QJsonObject saveRequest{{QStringLiteral("op"), QStringLiteral("saveProvider")},
+                                    {QStringLiteral("id"), providerId},
+                                    {QStringLiteral("name"), name},
+                                    {QStringLiteral("baseURL"), base},
+                                    {QStringLiteral("api"), api},
+                                    {QStringLiteral("apiKey"), key},
+                                    {QStringLiteral("apiKeyEnv"), apiKeyEnv},
+                                    {QStringLiteral("models"), models},
+                                    {QStringLiteral("makeDefault"), false}};
+            QJsonObject result;
+            if (!run(saveRequest, result)) {
+                setDetectionStatus(tr("Échec de l'enregistrement des modèles."));
+                setDetecting(false);
+                return;
+            }
+            refresh();
+            setDetectionStatus(tr("%1 modèles détectés et enregistrés pour %2.")
+                                   .arg(models.size()).arg(name));
+        } else {
+            setDetectionStatus(tr("%1 modèles détectés pour %2.").arg(models.size()).arg(name));
         }
-        refresh();
-        setDetectionStatus(tr("%1 modèles détectés pour %2.").arg(models.size()).arg(name));
         setDetecting(false);
     });
 }

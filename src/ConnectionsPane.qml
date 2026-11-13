@@ -12,6 +12,7 @@ Item {
     property string editingProviderId: ""
     property bool showDiagnostics: false
     property string editorNote: ""
+    property string editorTitle: ""
     readonly property var visiblePresets: {
         var result = []
         var query = root.filterText.trim().toLowerCase()
@@ -54,10 +55,11 @@ Item {
         providerBase.text = preset.base
         providerKey.text = ""
         providerModels.text = preset.models
+        connections.clearDetectedModels()
         providerApi.currentIndex = preset.api === "anthropic-messages" ? 1 : 0
         makeDefault.checked = true
         root.editorNote = preset.note
-        editor.title = qsTr("Configurer %1").arg(preset.name)
+        root.editorTitle = qsTr("Configurer %1").arg(preset.name)
         editor.open()
     }
 
@@ -69,10 +71,11 @@ Item {
         providerBase.text = provider.baseURL
         providerKey.text = ""
         providerModels.text = provider.models.join("\n")
+        connections.clearDetectedModels()
         providerApi.currentIndex = provider.api === "anthropic-messages" ? 1 : 0
         makeDefault.checked = connections.defaultProvider === provider.id
         root.editorNote = provider.baseURL
-        editor.title = qsTr("Modifier %1").arg(provider.name)
+        root.editorTitle = qsTr("Modifier %1").arg(provider.name)
         editor.open()
     }
 
@@ -84,10 +87,11 @@ Item {
         providerBase.text = ""
         providerKey.text = ""
         providerModels.text = ""
+        connections.clearDetectedModels()
         providerApi.currentIndex = 0
         makeDefault.checked = true
         root.editorNote = qsTr("Endpoint OpenAI-compatible personnalisé.")
-        editor.title = qsTr("Nouveau provider")
+        root.editorTitle = qsTr("Nouveau provider")
         editor.open()
     }
 
@@ -240,7 +244,7 @@ Item {
                         model: root.categories
                         onActivated: root.selectedCategory = currentText
                     }
-                    ActionButton { text: qsTr("Personnalisé"); onClicked: root.openCustom() }
+                    ActionButton { text: qsTr("Endpoint personnalisé"); onClicked: root.openCustom() }
                 }
 
                 Text {
@@ -445,14 +449,14 @@ Item {
         id: editor
         modal: true
         width: Math.min(640, root.width - design.space7)
-        height: Math.min(680, root.height - design.space7)
+        height: Math.min(740, root.height - design.space7)
         x: (root.width - width) / 2
         y: (root.height - height) / 2
         padding: design.space5
         background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
         contentItem: ColumnLayout {
             spacing: design.space2
-            Text { text: editor.title; color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold; elide: Text.ElideRight }
+            Text { text: root.editorTitle; color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold; elide: Text.ElideRight }
             Text { Layout.fillWidth: true; text: root.editorNote; color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
             RowLayout {
                 Layout.fillWidth: true
@@ -466,8 +470,43 @@ Item {
                 SettingsField { id: providerBase; Layout.fillWidth: true; placeholderText: qsTr("URL de base https://…") }
                 AppComboBox { id: providerApi; Layout.preferredWidth: 170; model: ["OpenAI-compatible", "Anthropic Messages"]; font.pixelSize: design.textCaption }
             }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Endpoint libre : remplacez l'URL pour pointer ce provider vers une passerelle ou un compatible.")
+                color: theme.dimText
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+            }
             SettingsField { id: providerKey; Layout.fillWidth: true; placeholderText: qsTr("Clé API (optionnelle pour un endpoint local)"); echoMode: TextInput.Password }
-            Text { text: qsTr("Modèles, un par ligne : id=Nom affiché"); color: theme.dimText; font.pixelSize: design.textMicro }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: design.space2
+                Text { Layout.fillWidth: true; text: qsTr("Modèles, un par ligne : id=Nom affiché"); color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                GhostButton {
+                    text: connections.detecting ? qsTr("Détection…") : qsTr("Détecter via l'API")
+                    enabled: !connections.detecting && providerBase.text.trim() !== ""
+                             && (providerKey.text.trim() !== "" || root.editingProviderId !== "")
+                    flat: true
+                    font.pixelSize: design.textMicro
+                    onClicked: {
+                        connections.clearError()
+                        connections.detectModelsFor(providerBase.text, providerKey.text,
+                            providerApi.currentIndex === 1 ? "anthropic-messages" : "openai-completions",
+                            root.editingProviderId)
+                    }
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: connections.detectionStatus !== "" || connections.error !== ""
+                text: connections.error !== "" ? connections.error : connections.detectionStatus
+                color: connections.error !== "" ? theme.red : theme.dimText
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
+            }
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 112
@@ -501,6 +540,21 @@ Item {
                 GhostButton { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
                 ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveProvider() }
             }
+        }
+    }
+
+    Connections {
+        target: connections
+        function onDetectedModelsChanged() {
+            if (!editor.opened || connections.detectedModels.length === 0)
+                return
+            var lines = []
+            for (var i = 0; i < connections.detectedModels.length; ++i) {
+                var model = connections.detectedModels[i]
+                lines.push(model.name !== undefined && model.name !== "" && model.name !== model.id
+                           ? model.id + "=" + model.name : model.id)
+            }
+            providerModels.text = lines.join("\n")
         }
     }
 }
