@@ -749,7 +749,7 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignRight
                     spacing: 8
 
-                    Button {
+                    GhostButton {
                         text: qsTr("Keep working")
                         flat: true
                         onClicked: win.quitConfirm = false

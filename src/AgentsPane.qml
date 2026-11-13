@@ -119,7 +119,7 @@ Item {
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
-                        Button { text: qsTr("Annuler"); flat: true; font.pixelSize: design.textMicro; onClicked: missions.cancel() }
+                        GhostButton { text: qsTr("Annuler"); flat: true; font.pixelSize: design.textMicro; onClicked: missions.cancel() }
                     }
                     Text {
                         Layout.fillWidth: true
@@ -276,7 +276,7 @@ Item {
                                 font.pixelSize: design.textMicro
                                 font.weight: Font.DemiBold
                             }
-                            Button {
+                            GhostButton {
                                 text: qsTr("Supprimer")
                                 flat: true
                                 font.pixelSize: design.textMicro
@@ -355,7 +355,7 @@ Item {
                             Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.role; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
                             Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                         }
-                        Button {
+                        GhostButton {
                             visible: !modelData.builtin
                             text: qsTr("Supprimer")
                             flat: true
@@ -406,14 +406,14 @@ Item {
                             Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.scope; color: theme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
                             Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                         }
-                        Button {
+                        GhostButton {
                             text: qsTr("Utiliser")
                             flat: true
                             font.pixelSize: design.textMicro
                             implicitHeight: design.controlHeightSm
                             onClicked: missionTask.text = qsTr("Utilise le skill « %1 » (%2) pour cette mission.").arg(modelData.name).arg(modelData.path)
                         }
-                        Button {
+                        GhostButton {
                             visible: modelData.scope === "user"
                             text: qsTr("Supprimer")
                             flat: true
@@ -458,7 +458,7 @@ Item {
                         color: theme.red
                         font.pixelSize: design.textMicro
                     }
-                    Button { text: qsTr("Bibliothèque par défaut"); flat: true; font.pixelSize: design.textMicro; onClicked: { skills.seedDefaults(true); Window.window.showToast(qsTr("Bibliothèque de skills restaurée.")) } }
+                    GhostButton { text: qsTr("Bibliothèque par défaut"); flat: true; font.pixelSize: design.textMicro; onClicked: { skills.seedDefaults(true); Window.window.showToast(qsTr("Bibliothèque de skills restaurée.")) } }
                     ActionButton { text: qsTr("Créer le skill"); onClicked: root.addSkill() }
                 }
             }

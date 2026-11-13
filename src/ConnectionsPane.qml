@@ -343,8 +343,8 @@ Item {
                                     Text { id: defaultLabel; anchors.centerIn: parent; text: qsTr("par défaut"); color: theme.green; font.pixelSize: 8 }
                                 }
                                 Text { text: modelData.hasKey ? modelData.keyMasked : qsTr("sans clé"); color: modelData.hasKey ? theme.green : theme.yellow; font.family: backend.monoFont; font.pixelSize: design.textMicro }
-                                Button { visible: !modelData.builtin; text: qsTr("Modifier"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openEdit(modelData) }
-                                Button { visible: !modelData.builtin; text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { connections.removeProvider(modelData.id) } }
+                                GhostButton { visible: !modelData.builtin; text: qsTr("Modifier"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openEdit(modelData) }
+                                GhostButton { visible: !modelData.builtin; text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { connections.removeProvider(modelData.id) } }
                             }
                             Text { Layout.fillWidth: true; text: modelData.baseURL + "  ·  " + (modelData.api !== undefined ? modelData.api : "openai-completions"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
                             Flow {
@@ -353,7 +353,7 @@ Item {
                                 visible: !modelData.builtin
                                 Repeater {
                                     model: modelData.models
-                                    Button {
+                                    GhostButton {
                                         text: modelData
                                         flat: true
                                         font.pixelSize: design.textMicro
@@ -374,7 +374,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: connectionDoctor.summary !== "" ? connectionDoctor.summary : qsTr("Vérifiez la clé DeepSeek, les providers, MCP et le workspace."); color: connectionDoctor.failed > 0 ? theme.orange : theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
-                    Button { text: root.showDiagnostics ? qsTr("Masquer") : qsTr("Afficher"); flat: true; font.pixelSize: design.textCaption; onClicked: root.showDiagnostics = !root.showDiagnostics }
+                    GhostButton { text: root.showDiagnostics ? qsTr("Masquer") : qsTr("Afficher"); flat: true; font.pixelSize: design.textCaption; onClicked: root.showDiagnostics = !root.showDiagnostics }
                     ActionButton { text: connectionDoctor.running ? qsTr("Vérification…") : qsTr("Vérifier"); enabled: !connectionDoctor.running; onClicked: connectionDoctor.run() }
                 }
                 Repeater {
@@ -411,11 +411,11 @@ Item {
                 Flow {
                     Layout.fillWidth: true
                     spacing: design.space2
-                    Button { text: "MCP"; flat: true; onClicked: backend.setView("mcp") }
-                    Button { text: qsTr("Mémoire"); flat: true; onClicked: backend.setView("memory") }
-                    Button { text: qsTr("Bots"); flat: true; onClicked: backend.setView("bots") }
-                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
-                    Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
+                    GhostButton { text: "MCP"; flat: true; onClicked: backend.setView("mcp") }
+                    GhostButton { text: qsTr("Mémoire"); flat: true; onClicked: backend.setView("memory") }
+                    GhostButton { text: qsTr("Bots"); flat: true; onClicked: backend.setView("bots") }
+                    GhostButton { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
+                    GhostButton { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
                 }
             }
         }
@@ -476,9 +476,9 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { visible: root.editingProviderId !== ""; text: qsTr("Supprimer"); flat: true; onClicked: { connections.removeProvider(root.editingProviderId); editor.close() } }
+                GhostButton { visible: root.editingProviderId !== ""; text: qsTr("Supprimer"); flat: true; onClicked: { connections.removeProvider(root.editingProviderId); editor.close() } }
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
                 ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveProvider() }
             }
         }

@@ -111,7 +111,7 @@ Item {
                                     Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
                                     Text { Layout.fillWidth: true; text: modelData.detail; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                                 }
-                                Button { text: modelData.action; flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView(modelData.view) }
+                                GhostButton { text: modelData.action; flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView(modelData.view) }
                             }
                             Rectangle { Layout.fillWidth: true; height: 1; color: theme.border; opacity: 0.6 }
                         }
@@ -189,14 +189,14 @@ Item {
                         spacing: 4
                         Repeater {
                             model: ecosystem.project.commands !== undefined ? ecosystem.project.commands : []
-                            Button {
+                            GhostButton {
                                 text: modelData.label
                                 flat: true
                                 font.pixelSize: design.textCaption
                                 onClicked: root.commandRequested(modelData.command)
                             }
                         }
-                        Button {
+                        GhostButton {
                             text: qsTr("Git diff")
                             flat: true
                             font.pixelSize: design.textCaption
@@ -256,7 +256,7 @@ Item {
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
-                                Button {
+                                GhostButton {
                                     text: qsTr("Confier")
                                     flat: true
                                     font.pixelSize: design.textCaption

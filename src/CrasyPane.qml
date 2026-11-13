@@ -26,7 +26,7 @@ Item {
     function openAddChannel() {
         editingChannel = ({})
         channelId.text = ""
-        channelId.editable = true
+        channelId.readOnly = false
         channelName.text = ""
         channelBase.text = "https://"
         channelEnv.text = ""
@@ -43,7 +43,7 @@ Item {
     function openEditChannel(channel) {
         editingChannel = channel
         channelId.text = channel.id
-        channelId.editable = false
+        channelId.readOnly = true
         channelName.text = channel.name
         channelBase.text = channel.baseUrl
         channelEnv.text = channel.apiKeyEnv
@@ -157,7 +157,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: qsTr("Jeton Bearer : ••••••••%1").arg(crasy.token.substring(Math.max(0, crasy.token.length - 4))); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
-                    Button { text: qsTr("Copier le jeton"); flat: true; font.pixelSize: design.textMicro; onClicked: { crasy.copyToken(); Window.window.showToast(qsTr("Jeton 4Crasy copié.")) } }
+                    GhostButton { text: qsTr("Copier le jeton"); flat: true; font.pixelSize: design.textMicro; onClicked: { crasy.copyToken(); Window.window.showToast(qsTr("Jeton 4Crasy copié.")) } }
                     ActionButton { text: qsTr("Utiliser dans le harness"); enabled: crasy.running; onClicked: root.useInHarness() }
                 }
                 Text { Layout.fillWidth: true; text: qsTr("L'API expose /v1/models et /v1/chat/completions. Elle n'écoute que sur la loopback et exige le jeton."); color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap }
@@ -212,8 +212,8 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: qsTr("Chaque canal peut être configuré, testé, priorisé ou retiré."); color: theme.dimText; font.pixelSize: design.textMicro }
-                    Button { text: qsTr("Ajouter un canal"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openAddChannel() }
-                    Button { text: qsTr("Découvrir"); flat: true; font.pixelSize: design.textMicro; onClicked: crasy.refreshModels() }
+                    GhostButton { text: qsTr("Ajouter un canal"); flat: true; font.pixelSize: design.textMicro; onClicked: root.openAddChannel() }
+                    GhostButton { text: qsTr("Découvrir"); flat: true; font.pixelSize: design.textMicro; onClicked: crasy.refreshModels() }
                 }
                 Repeater {
                     model: crasy.channels
@@ -239,7 +239,7 @@ Item {
                             Text { text: modelData.hasKey ? "" : qsTr("clé absente"); color: theme.orange; font.pixelSize: 8 }
                             Text { text: modelData.free ? qsTr("free") : qsTr("payant"); color: modelData.free ? theme.green : theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
                             CheckBox { checked: modelData.enabled; onToggled: crasy.setChannelEnabled(modelData.id, checked) }
-                            Button { text: qsTr("Configurer"); flat: true; font.pixelSize: 8; onClicked: root.openEditChannel(modelData) }
+                            GhostButton { text: qsTr("Configurer"); flat: true; font.pixelSize: 8; onClicked: root.openEditChannel(modelData) }
                         }
                     }
                 }
@@ -311,7 +311,7 @@ Item {
         property string channelTitle: qsTr("Canal")
         modal: true
         width: Math.min(650, root.width - design.space5)
-        height: 570
+        height: 455
         x: (root.width - width) / 2
         y: (root.height - height) / 2
         padding: design.space4
@@ -337,16 +337,16 @@ Item {
                 CheckBox { id: channelFree; text: qsTr("Gratuit") }
                 CheckBox { id: channelEnabled; text: qsTr("Actif") }
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Tester"); flat: true; onClicked: root.testResult = crasy.testChannel(channelId.text) }
+                GhostButton { text: qsTr("Tester"); flat: true; onClicked: root.testResult = crasy.testChannel(channelId.text) }
             }
             Text { Layout.fillWidth: true; text: root.testResult; color: theme.accent; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; visible: root.testResult !== "" }
             Text { Layout.fillWidth: true; text: qsTr("Une clé enregistrée est conservée si le champ reste vide. Le fichier est protégé en 0600."); color: theme.dimText; font.pixelSize: 8; wrapMode: Text.Wrap }
             Item { Layout.fillHeight: true }
             RowLayout {
                 Layout.fillWidth: true
-                Button { id: deleteChannel; text: qsTr("Supprimer"); flat: true; visible: false; onClicked: { crasy.removeChannel(channelId.text); channelDialog.close() } }
+                GhostButton { id: deleteChannel; text: qsTr("Supprimer"); flat: true; visible: false; onClicked: { crasy.removeChannel(channelId.text); channelDialog.close() } }
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: channelDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: channelDialog.close() }
                 ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveChannel() }
             }
         }

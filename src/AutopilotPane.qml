@@ -279,21 +279,21 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 4
-                            Button {
+                            GhostButton {
                                 text: qsTr("Exécuter")
                                 flat: true
                                 font.pixelSize: design.textMicro
                                 enabled: !autopilot.running
                                 onClicked: autopilot.runNow(modelData.id)
                             }
-                            Button {
+                            GhostButton {
                                 text: modelData.enabled ? qsTr("Mettre en pause") : qsTr("Reprendre")
                                 flat: true
                                 font.pixelSize: design.textMicro
                                 onClicked: autopilot.toggleJob(modelData.id)
                             }
                             Item { Layout.fillWidth: true }
-                            Button {
+                            GhostButton {
                                 text: qsTr("Supprimer")
                                 flat: true
                                 font.pixelSize: design.textMicro

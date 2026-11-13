@@ -293,13 +293,13 @@ Item {
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
-                            Button {
+                            GhostButton {
                                 text: modelData.pinned ? qsTr("Épinglée") : qsTr("Épingler")
                                 flat: true
                                 font.pixelSize: design.textMicro
                                 onClicked: memory.togglePin(modelData.id)
                             }
-                            Button {
+                            GhostButton {
                                 text: qsTr("Supprimer")
                                 flat: true
                                 font.pixelSize: design.textMicro

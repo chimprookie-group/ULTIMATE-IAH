@@ -115,7 +115,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: qsTr("14 applications créatives pilotables par CLI et MCP. Chaque outil est enregistré dans Ultimate Agent sous artcraft_<craft>."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
-                    Button { text: qsTr("Guide d'installation"); flat: true; font.pixelSize: design.textMicro; onClicked: plugins.openArtcraftInstallGuide() }
+                    GhostButton { text: qsTr("Guide d'installation"); flat: true; font.pixelSize: design.textMicro; onClicked: plugins.openArtcraftInstallGuide() }
                 }
                 Text { Layout.fillWidth: true; text: plugins.artcraftPath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
 
@@ -150,7 +150,7 @@ Item {
                                     Layout.fillWidth: true
                                     Text { text: modelData.toolName; color: theme.accent; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideRight }
                                     Item { Layout.fillWidth: true }
-                                    Button {
+                                    GhostButton {
                                         text: modelData.enabled ? qsTr("Désactiver") : qsTr("Activer")
                                         flat: true
                                         font.pixelSize: 8
@@ -178,7 +178,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: qsTr("Provider : %1 · cache : %2 entrée(s)").arg(web.searchProvider).arg(web.cacheEntries); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
-                    Button { text: qsTr("Vider le cache"); flat: true; font.pixelSize: design.textMicro; onClicked: web.clearCache() }
+                    GhostButton { text: qsTr("Vider le cache"); flat: true; font.pixelSize: design.textMicro; onClicked: web.clearCache() }
                 }
                 Repeater {
                     model: web.recentSearches
@@ -296,7 +296,7 @@ Item {
                                 Layout.fillWidth: true
                                 StatusDot { size: 4; color: modelData.installed ? theme.green : theme.dimText }
                                 Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.version; color: theme.text; font.pixelSize: design.textCaption }
-                                Button { text: modelData.enabled ? qsTr("Désactiver") : qsTr("Activer"); flat: true; font.pixelSize: 8; enabled: modelData.installed; onClicked: plugins.setEnabled(modelData.id, !modelData.enabled) }
+                                GhostButton { text: modelData.enabled ? qsTr("Désactiver") : qsTr("Activer"); flat: true; font.pixelSize: 8; enabled: modelData.installed; onClicked: plugins.setEnabled(modelData.id, !modelData.enabled) }
                             }
                             Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                         }
@@ -311,10 +311,10 @@ Item {
                 Flow {
                     Layout.fillWidth: true
                     spacing: design.space2
-                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
-                    Button { text: qsTr("Notes + graphe"); flat: true; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
-                    Button { text: qsTr("Skills"); flat: true; onClicked: backend.setView("agents") }
-                    Button { text: "MCP"; flat: true; onClicked: backend.setView("mcp") }
+                    GhostButton { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
+                    GhostButton { text: qsTr("Notes + graphe"); flat: true; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
+                    GhostButton { text: qsTr("Skills"); flat: true; onClicked: backend.setView("agents") }
+                    GhostButton { text: "MCP"; flat: true; onClicked: backend.setView("mcp") }
                 }
             }
         }

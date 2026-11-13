@@ -536,7 +536,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
                 ActionButton { text: qsTr("Supprimer"); danger: true; onClicked: { noteStore.deleteNote(root.deletePath); deleteDialog.close() } }
             }
         }

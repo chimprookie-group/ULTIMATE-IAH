@@ -48,7 +48,7 @@ Rectangle {
                 enabled: !updates.installing
                 onClicked: updates.install()
             }
-            Button {
+            GhostButton {
                 text: qsTr("Notes de version")
                 flat: true
                 font.pixelSize: design.textMicro

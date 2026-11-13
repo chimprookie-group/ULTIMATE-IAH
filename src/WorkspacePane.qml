@@ -158,7 +158,7 @@ Item {
                     font.pixelSize: design.textCaption
                     elide: Text.ElideMiddle
                 }
-                Button {
+                GhostButton {
                     text: qsTr("Refresh")
                     flat: true
                     onClicked: root.refresh()
@@ -358,20 +358,20 @@ Item {
                                 onClicked: root.toggleDiff()
                             }
                         }
-                        Button {
+                        GhostButton {
                             text: qsTr("Confier à Ultimate Agent")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.askAboutFile()
                         }
                         Item { Layout.fillWidth: true }
-                        Button {
+                        GhostButton {
                             text: qsTr("Copy path")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.copyPath()
                         }
-                        Button {
+                        GhostButton {
                             text: qsTr("Open")
                             flat: true
                             font.pixelSize: design.textCaption

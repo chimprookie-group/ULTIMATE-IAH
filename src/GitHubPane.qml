@@ -115,7 +115,7 @@ Item {
                             font.pixelSize: design.textMicro
                             onClicked: { backend.setView("terminal"); terminal.run("gh auth login --web") }
                         }
-                        Button { text: qsTr("Workspace"); flat: true; font.pixelSize: design.textMicro; onClicked: gitHub.openWorkspace() }
+                        GhostButton { text: qsTr("Workspace"); flat: true; font.pixelSize: design.textMicro; onClicked: gitHub.openWorkspace() }
                     }
                     Text {
                         Layout.fillWidth: true
@@ -251,9 +251,9 @@ Item {
                                 font.pixelSize: design.textMicro
                                 onActivated: function (index) { gitHub.selectRepository(gitHub.repositories[index].fullName) }
                             }
-                            Button { text: qsTr("Ouvrir"); flat: true; font.pixelSize: design.textMicro; enabled: selected.url !== undefined; onClicked: gitHub.openRepository(selected.url) }
-                            Button { text: qsTr("Cloner"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: root.cloneSelected() }
-                            Button { text: root.wide ? qsTr("Nouvelle issue") : qsTr("Issue"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: issueDialog.open() }
+                            GhostButton { text: qsTr("Ouvrir"); flat: true; font.pixelSize: design.textMicro; enabled: selected.url !== undefined; onClicked: gitHub.openRepository(selected.url) }
+                            GhostButton { text: qsTr("Cloner"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: root.cloneSelected() }
+                            GhostButton { text: root.wide ? qsTr("Nouvelle issue") : qsTr("Issue"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: issueDialog.open() }
                             Item { Layout.fillWidth: true }
                             Button { text: qsTr("Issues"); flat: !root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = false }
                             Button { text: root.wide ? qsTr("Pull requests") : "PR"; flat: root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = true }
@@ -331,7 +331,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: repoDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: repoDialog.close() }
                 ActionButton { text: qsTr("Créer"); enabled: repoName.text.trim() !== ""; onClicked: root.createRepository() }
             }
         }
@@ -362,7 +362,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: issueDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: issueDialog.close() }
                 ActionButton { text: qsTr("Créer"); enabled: issueTitle.text.trim() !== ""; onClicked: root.createIssue() }
             }
         }

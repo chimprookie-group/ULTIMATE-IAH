@@ -226,8 +226,8 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: design.space2
-                        Button { text: qsTr("Ouvrir Ultimate Agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("agent") }
-                        Button { text: qsTr("Terminal agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
+                        GhostButton { text: qsTr("Ouvrir Ultimate Agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("agent") }
+                        GhostButton { text: qsTr("Terminal agent"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
                         Item { Layout.fillWidth: true }
                         Text {
                             visible: root.wide
@@ -294,11 +294,11 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: design.space1
-                            Button { text: qsTr("Projet"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("ecosystem") }
-                            Button { text: qsTr("Fichiers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("workspace") }
-                            Button { text: "Git diff"; flat: true; font.pixelSize: design.textCaption; onClicked: root.commandRequested("git diff") }
+                            GhostButton { text: qsTr("Projet"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("ecosystem") }
+                            GhostButton { text: qsTr("Fichiers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("workspace") }
+                            GhostButton { text: "Git diff"; flat: true; font.pixelSize: design.textCaption; onClicked: root.commandRequested("git diff") }
                             Item { Layout.fillWidth: true }
-                            Button { text: qsTr("Changer"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.pickWorkspace() }
+                            GhostButton { text: qsTr("Changer"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.pickWorkspace() }
                         }
                     }
 
@@ -319,7 +319,7 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: design.space2
-                            Button { text: qsTr("Ouvrir le terminal"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
+                            GhostButton { text: qsTr("Ouvrir le terminal"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("terminal") }
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: terminal.running ? terminal.shell : qsTr("arrêté")
@@ -415,7 +415,7 @@ Item {
                                     font.weight: Font.Bold
                                 }
                                 Item { Layout.fillWidth: true }
-                                Button {
+                                GhostButton {
                                     text: qsTr("Tout voir")
                                     flat: true
                                     font.pixelSize: design.textCaption
@@ -525,10 +525,10 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: design.space1
-                                Button { text: qsTr("Providers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("connections") }
-                                Button { text: qsTr("Réglages"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("settings") }
+                                GhostButton { text: qsTr("Providers"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("connections") }
+                                GhostButton { text: qsTr("Réglages"); flat: true; font.pixelSize: design.textCaption; onClicked: backend.setView("settings") }
                                 Item { Layout.fillWidth: true }
-                                Button { text: qsTr("Palette"); flat: true; font.pixelSize: design.textCaption; onClicked: root.openPalette() }
+                                GhostButton { text: qsTr("Palette"); flat: true; font.pixelSize: design.textCaption; onClicked: root.openPalette() }
                             }
                         }
                     }

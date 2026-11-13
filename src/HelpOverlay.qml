@@ -206,14 +206,14 @@ Item {
                     color: theme.dimText
                     font.pixelSize: design.textMicro
                 }
-                Button {
+                GhostButton {
                     text: "↑"
                     flat: true
                     font.pixelSize: design.textLabel
                     enabled: shortcutScroll.contentY > 0
                     onClicked: shortcutScroll.contentY = Math.max(0, shortcutScroll.contentY - 180)
                 }
-                Button {
+                GhostButton {
                     text: "↓"
                     flat: true
                     font.pixelSize: design.textLabel
@@ -222,7 +222,7 @@ Item {
                         shortcutScroll.contentHeight - shortcutScroll.height,
                         shortcutScroll.contentY + 180)
                 }
-                Button {
+                GhostButton {
                     text: qsTr("Fermer")
                     flat: true
                     font.pixelSize: design.textCaption

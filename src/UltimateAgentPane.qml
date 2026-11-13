@@ -220,7 +220,7 @@ Item {
                         onDeleteRequested: function (id, title) { root.openDelete(id, title) }
                         onPinRequested: function (id) { ultimateAgent.pinConversation(id) }
                     }
-                    Button {
+                    GhostButton {
                         Layout.fillWidth: true
                         text: qsTr("Nouvelle discussion")
                         flat: true
@@ -452,7 +452,7 @@ Item {
                             RowLayout {
                                 width: parent.width
                                 Text { Layout.fillWidth: true; text: qsTr("Actions rapides"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
-                                Button { text: qsTr("Graphe Notes"); flat: true; font.pixelSize: design.textMicro; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
+                                GhostButton { text: qsTr("Graphe Notes"); flat: true; font.pixelSize: design.textMicro; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
                                 Text { text: qsTr("Compétences →"); color: theme.accent; font.pixelSize: design.textMicro; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: optionsDialog.open() } }
                             }
 
@@ -715,7 +715,7 @@ Item {
                 onDeleteRequested: function (id, title) { historyDialog.close(); root.openDelete(id, title) }
                 onPinRequested: function (id) { ultimateAgent.pinConversation(id) }
             }
-            Button {
+            GhostButton {
                 Layout.fillWidth: true
                 text: qsTr("Nouvelle discussion")
                 flat: true
@@ -750,7 +750,7 @@ Item {
                     Layout.fillWidth: true
                     Text { Layout.fillWidth: true; text: qsTr("Mode de travail"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                     Text { text: qsTr("Contexte %1 %").arg(ultimateAgent.contextPercent); color: ultimateAgent.contextPercent > 80 ? theme.orange : theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
-                    Button { text: qsTr("Compacter"); flat: true; font.pixelSize: design.textMicro; onClicked: ultimateAgent.compactConversation() }
+                    GhostButton { text: qsTr("Compacter"); flat: true; font.pixelSize: design.textMicro; onClicked: ultimateAgent.compactConversation() }
                 }
                 RowLayout {
                     Layout.fillWidth: true
@@ -802,7 +802,7 @@ Item {
                                 Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                             }
                             Text { text: modelData.scope; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
-                            Button {
+                            GhostButton {
                                 text: ultimateAgent.activeSkills.indexOf(modelData.id) >= 0 ? qsTr("Retirer") : qsTr("Activer")
                                 flat: true
                                 font.pixelSize: design.textMicro
@@ -816,10 +816,10 @@ Item {
                 Text { text: qsTr("Conversation"); color: theme.text; font.pixelSize: design.textLabel; font.weight: Font.DemiBold }
                 RowLayout {
                     Layout.fillWidth: true
-                    Button { text: qsTr("Copier le transcript"); flat: true; font.pixelSize: design.textMicro; onClicked: { ultimateAgent.copyText(ultimateAgent.conversationMarkdown(ultimateAgent.conversationId)); Window.window.showToast(qsTr("Transcript copié.")) } }
+                    GhostButton { text: qsTr("Copier le transcript"); flat: true; font.pixelSize: design.textMicro; onClicked: { ultimateAgent.copyText(ultimateAgent.conversationMarkdown(ultimateAgent.conversationId)); Window.window.showToast(qsTr("Transcript copié.")) } }
                     Item { Layout.fillWidth: true }
-                    Button { text: qsTr("Vider"); flat: true; font.pixelSize: design.textMicro; onClicked: { ultimateAgent.clearConversation(); optionsDialog.close() } }
-                    Button { text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { optionsDialog.close(); root.openDelete(ultimateAgent.conversationId, ultimateAgent.conversationTitle) } }
+                    GhostButton { text: qsTr("Vider"); flat: true; font.pixelSize: design.textMicro; onClicked: { ultimateAgent.clearConversation(); optionsDialog.close() } }
+                    GhostButton { text: qsTr("Supprimer"); flat: true; font.pixelSize: design.textMicro; onClicked: { optionsDialog.close(); root.openDelete(ultimateAgent.conversationId, ultimateAgent.conversationTitle) } }
                 }
                 Text { Layout.fillWidth: true; text: qsTr("Les images sont copiées dans les données de l'application. Quatre images de 12 Mo maximum par message."); color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap }
             }
@@ -842,7 +842,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: renameDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: renameDialog.close() }
                 ActionButton { text: qsTr("Renommer"); onClicked: { ultimateAgent.renameConversation(root.renameId, renameField.text); renameDialog.close() } }
             }
         }
@@ -864,7 +864,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
                 ActionButton { text: qsTr("Supprimer"); danger: true; onClicked: { ultimateAgent.deleteConversation(root.deleteId); deleteDialog.close() } }
             }
         }

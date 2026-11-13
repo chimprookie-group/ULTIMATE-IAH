@@ -218,9 +218,9 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: design.space2
-                    Button { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
-                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
-                    Button { text: qsTr("Diagnostics"); flat: true; onClicked: backend.runDiagnostics() }
+                    GhostButton { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
+                    GhostButton { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
+                    GhostButton { text: qsTr("Diagnostics"); flat: true; onClicked: backend.runDiagnostics() }
                 }
             }
 
@@ -241,11 +241,11 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Button { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
-                    Button { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
-                    Button { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
-                    Button { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
-                    Button { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
+                    GhostButton { text: qsTr("Providers"); flat: true; onClicked: backend.setView("connections") }
+                    GhostButton { text: qsTr("MCP"); flat: true; onClicked: backend.setView("mcp") }
+                    GhostButton { text: qsTr("Ultimate Agent"); flat: true; onClicked: backend.setView("agent") }
+                    GhostButton { text: qsTr("Agents"); flat: true; onClicked: backend.setView("agents") }
+                    GhostButton { text: qsTr("Installation"); flat: true; onClicked: backend.setView("installation") }
                     Item { Layout.fillWidth: true }
                     Text {
                         text: connections.deepseekConfigured ? qsTr("DeepSeek connecté") : qsTr("DeepSeek non configuré")
@@ -277,9 +277,9 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: design.space2
-                    Button { text: qsTr("Vérifier maintenant"); flat: true; enabled: !updates.checking && !updates.installing; onClicked: updates.checkNow() }
+                    GhostButton { text: qsTr("Vérifier maintenant"); flat: true; enabled: !updates.checking && !updates.installing; onClicked: updates.checkNow() }
                     ActionButton { text: updates.installing ? qsTr("Installation… %1 %").arg(updates.progress) : qsTr("Installer la mise à jour"); visible: updates.updateAvailable; enabled: !updates.installing; onClicked: updates.install() }
-                    Button { text: qsTr("Notes de version"); flat: true; visible: updates.releaseUrl !== ""; onClicked: Qt.openUrlExternally(updates.releaseUrl) }
+                    GhostButton { text: qsTr("Notes de version"); flat: true; visible: updates.releaseUrl !== ""; onClicked: Qt.openUrlExternally(updates.releaseUrl) }
                     Item { Layout.fillWidth: true }
                     Text { text: qsTr("skills %1 · ArtCraft %2").arg(skills.defaultCount).arg(plugins.installedCount); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                 }

@@ -274,9 +274,9 @@ Item {
                     Layout.fillWidth: true
                     spacing: 4
                     Text { text: qsTr("Exemples :"); color: theme.dimText; font.pixelSize: 8 }
-                    Button { text: "Filesystem"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFilesystem() }
-                    Button { text: "Fetch"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFetch() }
-                    Button { text: "Git"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetGit() }
+                    GhostButton { text: "Filesystem"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFilesystem() }
+                    GhostButton { text: "Fetch"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetFetch() }
+                    GhostButton { text: "Git"; flat: true; font.pixelSize: design.textMicro; onClicked: root.presetGit() }
                     Item { Layout.fillWidth: true }
                     ActionButton { text: qsTr("Ajouter"); onClicked: root.addServer() }
                 }
@@ -330,7 +330,7 @@ Item {
                                     mcpManager.setEnabled(modelData.id, checked)
                                 }
                             }
-                            Button {
+                            GhostButton {
                                 text: qsTr("Supprimer")
                                 flat: true
                                 font.pixelSize: design.textMicro

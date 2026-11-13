@@ -173,15 +173,15 @@ Item {
                                 elide: Text.ElideRight
                             }
                         }
-                        Button { text: qsTr("Copier le jeton"); flat: true; font.pixelSize: design.textMicro; onClicked: bots.copyToken() }
-                        Button {
+                        GhostButton { text: qsTr("Copier le jeton"); flat: true; font.pixelSize: design.textMicro; onClicked: bots.copyToken() }
+                        GhostButton {
                             text: qsTr("Dashboard")
                             flat: true
                             font.pixelSize: design.textMicro
                             enabled: bots.serverRunning
                             onClicked: Qt.openUrlExternally(bots.serverUrl)
                         }
-                        Button {
+                        GhostButton {
                             text: bots.serverRunning ? qsTr("Arrêter") : qsTr("Démarrer")
                             flat: true
                             font.pixelSize: design.textMicro
@@ -290,14 +290,14 @@ Item {
                                         Text { Layout.fillWidth: true; text: modelData.title; color: theme.text; font.pixelSize: design.textMicro; elide: Text.ElideRight }
                                         Text { Layout.fillWidth: true; text: qsTr("toutes les %1 min").arg(modelData.intervalMinutes); color: theme.dimText; font.pixelSize: 8 }
                                     }
-                                    Button { text: modelData.enabled ? qsTr("Pause") : qsTr("Reprendre"); flat: true; font.pixelSize: 8; onClicked: bots.toggleSchedule(modelData.id, !modelData.enabled) }
+                                    GhostButton { text: modelData.enabled ? qsTr("Pause") : qsTr("Reprendre"); flat: true; font.pixelSize: 8; onClicked: bots.toggleSchedule(modelData.id, !modelData.enabled) }
                                     IconButton { icon: "icons/close.svg"; hint: qsTr("Supprimer"); onClicked: bots.removeSchedule(modelData.id) }
                                 }
                             }
                         }
                     }
 
-                    Button {
+                    GhostButton {
                         Layout.fillWidth: true
                         text: qsTr("Nouveau bot")
                         flat: true
@@ -453,7 +453,7 @@ Item {
                             elide: Text.ElideLeft
                             Layout.maximumWidth: parent.width * 0.5
                         }
-                        Button {
+                        GhostButton {
                             visible: bots.running
                             text: qsTr("Annuler")
                             flat: true
@@ -580,9 +580,9 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { visible: editingId > 0; text: qsTr("Supprimer"); flat: true; onClicked: { editor.close(); root.requestDelete(editingId) } }
+                GhostButton { visible: editingId > 0; text: qsTr("Supprimer"); flat: true; onClicked: { editor.close(); root.requestDelete(editingId) } }
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: editor.close() }
                 ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveEditor() }
             }
         }
@@ -611,7 +611,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: deleteDialog.close() }
                 ActionButton { text: qsTr("Supprimer"); danger: true; onClicked: { if (root.deleteId > 0) bots.removeBot(root.deleteId); deleteDialog.close() } }
             }
         }
@@ -641,7 +641,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button { text: qsTr("Annuler"); flat: true; onClicked: scheduleDialog.close() }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: scheduleDialog.close() }
                 ActionButton { text: qsTr("Planifier"); onClicked: root.createSchedule() }
             }
         }
