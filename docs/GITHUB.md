@@ -12,6 +12,7 @@ keyring gh et n’est jamais lu par l’application.
 - `github_clone` (workspace-write)
 - `github_create_repo` (workspace-write)
 - `github_create_issue` (workspace-write)
+- `github_create_pull` (workspace-write)
 
 ## Vue GitHub
 
@@ -20,7 +21,7 @@ keyring gh et n’est jamais lu par l’application.
 - Détail du dépôt, issues et pull requests.
 - Création d’un projet privé/public avec clonage.
 - Clonage d’un dépôt existant.
-- Création d’issue.
+- Création d’issue et de pull request.
 
 ## Sécurité
 

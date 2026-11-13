@@ -37,12 +37,24 @@ Item {
         }
     }
 
+    function createPullRequest() {
+        if (pullTitle.text.trim() === "") return
+        const result = gitHub.createPullRequest(pullTitle.text, pullBody.text, pullBase.text, pullHead.text)
+        if (result.ok === true) {
+            pullTitle.text = ""
+            pullBody.text = ""
+            pullDialog.close()
+            Window.window.showToast(qsTr("Pull request créée."))
+        }
+    }
+
     function createRepository() {
         if (repoName.text.trim() === "") return
         const result = gitHub.createRepository(repoName.text, repoDescription.text, privateSwitch.checked, cloneSwitch.checked)
         if (result.ok === true) {
             repoDialog.close()
-            createName.text = ""
+            repoName.text = ""
+            repoDescription.text = ""
             Window.window.showToast(qsTr("Projet GitHub créé."))
         }
     }
@@ -254,6 +266,7 @@ Item {
                             GhostButton { text: qsTr("Ouvrir"); flat: true; font.pixelSize: design.textMicro; enabled: selected.url !== undefined; onClicked: gitHub.openRepository(selected.url) }
                             GhostButton { text: qsTr("Cloner"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: root.cloneSelected() }
                             GhostButton { text: root.wide ? qsTr("Nouvelle issue") : qsTr("Issue"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: issueDialog.open() }
+                            GhostButton { text: root.wide ? qsTr("Nouvelle PR") : "+ PR"; flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: pullDialog.open() }
                             Item { Layout.fillWidth: true }
                             GhostButton { text: qsTr("Issues"); flat: !root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = false }
                             GhostButton { text: root.wide ? qsTr("Pull requests") : "PR"; flat: root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = true }
@@ -364,6 +377,43 @@ Item {
                 Item { Layout.fillWidth: true }
                 GhostButton { text: qsTr("Annuler"); flat: true; onClicked: issueDialog.close() }
                 ActionButton { text: qsTr("Créer"); enabled: issueTitle.text.trim() !== ""; onClicked: root.createIssue() }
+            }
+        }
+    }
+
+    Dialog {
+        id: pullDialog
+        modal: true
+        width: Math.min(560, root.width - design.space5)
+        height: Math.min(500, root.height - design.space5)
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            Text { text: qsTr("Nouvelle pull request"); color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
+            SettingsField { id: pullTitle; Layout.fillWidth: true; placeholderText: qsTr("Titre") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: design.space2
+                SettingsField { id: pullBase; Layout.fillWidth: true; text: "main"; placeholderText: qsTr("Branche cible") }
+                SettingsField { id: pullHead; Layout.fillWidth: true; placeholderText: qsTr("Branche source (workspace)") }
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: theme.background
+                border.width: 1
+                border.color: pullBody.activeFocus ? theme.accent : theme.border
+                radius: design.radiusSm
+                TextArea { id: pullBody; anchors.fill: parent; anchors.margins: 6; color: theme.text; font.pixelSize: design.textCaption; wrapMode: TextArea.Wrap; background: null }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                GhostButton { text: qsTr("Annuler"); flat: true; onClicked: pullDialog.close() }
+                ActionButton { text: qsTr("Créer"); enabled: pullTitle.text.trim() !== ""; onClicked: root.createPullRequest() }
             }
         }
     }
