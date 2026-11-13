@@ -156,7 +156,9 @@ Item {
     }
 
     property bool followOutput: true
-    property bool showScrollButton: false
+    readonly property bool showScrollButton: messageList.count > 0
+        && messageList.contentHeight > messageList.height + 80
+        && (messageList.contentHeight - (messageList.contentY + messageList.height)) > 80
     property real lastContentY: 0
     property int thinkingSeconds: 0
     property bool reasoningExpanded: false
@@ -202,7 +204,6 @@ Item {
 
     function scrollToBottomAnimated() {
         root.followOutput = true
-        root.showScrollButton = false
         Qt.callLater(function () {
             if (messageList.count > 0)
                 messageList.positionViewAtEnd()
@@ -288,7 +289,6 @@ Item {
         function onBusyChanged() { if (!ultimateAgent.busy) root.scrollToBottom() }
         function onConversationIdChanged() {
             root.followOutput = true
-            root.showScrollButton = false
             root.scrollToBottom(true)
         }
     }
@@ -1053,34 +1053,25 @@ Item {
                         }
 
                         Rectangle {
-                            id: composerScrollButton
                             visible: root.showScrollButton && !root.empty
                             Layout.alignment: Qt.AlignVCenter
-                            implicitWidth: 56
-                            implicitHeight: 28
-                            radius: 14
-                            color: scrollMouse.containsMouse ? theme.chip : "transparent"
+                            implicitWidth: 30
+                            implicitHeight: 30
+                            radius: 15
+                            color: scrollDownMouse.containsMouse ? theme.chip : "transparent"
                             border.width: 1
-                            border.color: scrollMouse.containsMouse ? theme.borderStrong : theme.border
+                            border.color: scrollDownMouse.containsMouse ? theme.borderStrong : theme.border
                             Accessible.name: qsTr("Aller à la fin de la conversation")
-                            RowLayout {
+                            ThemedIcon {
                                 anchors.centerIn: parent
-                                spacing: 3
-                                ThemedIcon {
-                                    source: "icons/chevron.svg"
-                                    rotation: 90
-                                    width: 10
-                                    height: 10
-                                    color: theme.accent
-                                }
-                                Text {
-                                    text: qsTr("Fin")
-                                    color: theme.accent
-                                    font.pixelSize: design.textMicro
-                                }
+                                source: "icons/chevron.svg"
+                                rotation: 90
+                                width: 13
+                                height: 13
+                                color: theme.accent
                             }
                             MouseArea {
-                                id: scrollMouse
+                                id: scrollDownMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
