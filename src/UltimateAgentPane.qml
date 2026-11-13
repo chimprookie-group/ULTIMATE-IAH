@@ -23,6 +23,59 @@ Item {
     property string renameValue: ""
     property string deleteId: ""
     property string deleteValue: ""
+    property int commandIndex: 0
+
+    readonly property var commands: [
+        { id: "new", label: "/new", detail: qsTr("Nouvelle discussion") },
+        { id: "clear", label: "/clear", detail: qsTr("Vider la conversation") },
+        { id: "compact", label: "/compact", detail: qsTr("Compacter le contexte") },
+        { id: "export", label: "/export", detail: qsTr("Copier le transcript Markdown") },
+        { id: "history", label: "/history", detail: qsTr("Ouvrir les discussions") },
+        { id: "model", label: "/model", detail: qsTr("Choisir le provider et le modèle") },
+        { id: "permission", label: "/permission", detail: qsTr("Basculer lecture seule / accès complet") },
+        { id: "effort", label: "/effort", detail: qsTr("Changer l'effort de raisonnement") },
+        { id: "skills", label: "/skills", detail: qsTr("Choisir les compétences") },
+        { id: "stop", label: "/stop", detail: qsTr("Arrêter l'agent") },
+        { id: "help", label: "/help", detail: qsTr("Afficher les commandes") }
+    ]
+    readonly property bool commandMode: composerField.text.startsWith("/")
+                                          && composerField.text.indexOf(" ") < 0
+    readonly property var filteredCommands: {
+        if (!root.commandMode)
+            return []
+        const query = composerField.text.substring(1).toLowerCase()
+        var result = []
+        for (var i = 0; i < root.commands.length; ++i) {
+            const command = root.commands[i]
+            if (command.id.indexOf(query) === 0 || command.detail.toLowerCase().indexOf(query) >= 0)
+                result.push(command)
+        }
+        return result
+    }
+
+    function executeCommand(command) {
+        if (command === undefined)
+            return
+        composerField.text = ""
+        if (command.id === "new") ultimateAgent.newConversation()
+        else if (command.id === "clear") ultimateAgent.clearConversation()
+        else if (command.id === "compact") ultimateAgent.compactConversation()
+        else if (command.id === "export") {
+            ultimateAgent.copyText(ultimateAgent.conversationMarkdown(ultimateAgent.conversationId))
+            Window.window.showToast(qsTr("Transcript copié."))
+        } else if (command.id === "history") root.openHistory()
+        else if (command.id === "model") modelDialog.open()
+        else if (command.id === "permission")
+            ultimateAgent.permissionMode = ultimateAgent.permissionMode === "read-only" ? "workspace-write" : "read-only"
+        else if (command.id === "effort") {
+            const efforts = ["", "low", "medium", "high"]
+            const index = efforts.indexOf(ultimateAgent.reasoningEffort)
+            ultimateAgent.reasoningEffort = efforts[(index + 1) % efforts.length]
+        } else if (command.id === "skills") optionsDialog.open()
+        else if (command.id === "stop") ultimateAgent.cancel()
+        else if (command.id === "help") helpDialog.open()
+        composerField.forceActiveFocus()
+    }
 
     function send(text) {
         const value = String(text).trim()
@@ -716,6 +769,7 @@ Item {
 
                 // Composer
                 Rectangle {
+                    id: composerBox
                     Layout.fillWidth: true
                     Layout.leftMargin: design.space1
                     Layout.rightMargin: design.space1
@@ -785,11 +839,34 @@ Item {
                                 background: null
                                 selectByMouse: true
                                 Keys.onPressed: function (event) {
+                                    if (root.commandMode) {
+                                        if (event.key === Qt.Key_Down) {
+                                            root.commandIndex = Math.min(root.filteredCommands.length - 1, root.commandIndex + 1)
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if (event.key === Qt.Key_Up) {
+                                            root.commandIndex = Math.max(0, root.commandIndex - 1)
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if (event.key === Qt.Key_Escape) {
+                                            composerField.text = ""
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
+                                            root.executeCommand(root.filteredCommands[root.commandIndex])
+                                            event.accepted = true
+                                            return
+                                        }
+                                    }
                                     if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
                                         root.send(composerField.text)
                                         event.accepted = true
                                     }
                                 }
+                                onTextChanged: root.commandIndex = 0
                             }
                             Text {
                                 anchors.left: parent.left
@@ -894,6 +971,132 @@ Item {
                     font.pixelSize: 9
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: modelDialog
+        modal: true
+        width: Math.min(460, root.width - design.space5)
+        height: Math.min(520, root.height - design.space6)
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            Text { text: qsTr("Provider et modèle"); color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical: AppScrollBar {}
+                ColumnLayout {
+                    width: Math.min(420, parent.width)
+                    Repeater {
+                        model: ultimateAgent.modelChoices
+                        GhostButton {
+                            Layout.fillWidth: true
+                            text: modelData.label
+                            flat: ultimateAgent.modelChoice !== modelData.value
+                            highlighted: ultimateAgent.modelChoice === modelData.value
+                            font.pixelSize: design.textCaption
+                            onClicked: { ultimateAgent.modelChoice = modelData.value; modelDialog.close() }
+                        }
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; visible: ultimateAgent.modelChoices.length === 0; text: qsTr("Aucun provider configuré."); color: theme.dimText; font.pixelSize: design.textMicro }
+                GhostButton { text: qsTr("Fermer"); flat: true; onClicked: modelDialog.close() }
+            }
+        }
+    }
+
+    Dialog {
+        id: helpDialog
+        modal: true
+        width: Math.min(520, root.width - design.space5)
+        height: Math.min(560, root.height - design.space6)
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            Text { text: qsTr("Commandes"); color: theme.brightText; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical: AppScrollBar {}
+                ColumnLayout {
+                    width: Math.min(460, parent.width)
+                    Repeater {
+                        model: root.commands
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text { text: modelData.label; color: theme.accent; font.family: backend.monoFont; font.pixelSize: design.textCaption; Layout.preferredWidth: 90 }
+                            Text { Layout.fillWidth: true; text: modelData.detail; color: theme.mutedText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                        }
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                GhostButton { text: qsTr("Fermer"); flat: true; onClicked: helpDialog.close() }
+            }
+        }
+    }
+
+    Popup {
+        id: commandPopup
+        parent: composerBox
+        width: composerBox.width
+        height: Math.min(root.filteredCommands.length * 35 + 12, 280)
+        padding: 6
+        closePolicy: Popup.NoAutoClose
+        focus: false
+        visible: root.commandMode && root.filteredCommands.length > 0
+        x: 0
+        y: -height - 6
+        background: Rectangle {
+            radius: design.radiusMd
+            color: theme.raised
+            border.width: 1
+            border.color: theme.borderStrong
+        }
+        contentItem: ListView {
+            clip: true
+            model: root.filteredCommands
+            spacing: 1
+            currentIndex: root.commandIndex
+            onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: AppScrollBar { policy: ScrollBar.AsNeeded }
+            delegate: Rectangle {
+                width: ListView.view.width
+                height: 34
+                radius: design.radiusSm
+                color: index === root.commandIndex ? theme.menuSelected : "transparent"
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: design.space2
+                    anchors.rightMargin: design.space2
+                    spacing: design.space2
+                    Text { text: modelData.label; color: theme.accent; font.family: backend.monoFont; font.pixelSize: design.textCaption }
+                    Text { Layout.fillWidth: true; text: modelData.detail; color: theme.mutedText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.executeCommand(modelData)
                 }
             }
         }
