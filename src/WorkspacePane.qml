@@ -16,7 +16,7 @@ Item {
     readonly property bool markdownPreview: !showingDiff
         && /\.(md|markdown|mdx)$/i.test(selectedPath)
     readonly property string previewText: markdownPreview
-        ? shownText.replace(/!\[[^\]]*\]\([^)]*\)/g, "") : shownText
+        ? shownText.replace(/<img\b[^>]*>/gi, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "") : shownText
 
     readonly property int leftWidth: Math.max(230, Math.min(320, width * 0.3))
     readonly property var selectedFile: {

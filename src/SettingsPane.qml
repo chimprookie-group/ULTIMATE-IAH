@@ -43,6 +43,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Apparence")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 Text {
@@ -74,6 +76,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Langue")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 Text {
@@ -122,6 +126,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Démarrage")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 Flow {
@@ -169,6 +175,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Espace de travail")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 RowLayout {
@@ -197,6 +205,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Ultimate Agent")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 Text {
                     Layout.fillWidth: true
@@ -216,6 +226,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Providers")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 Text {
@@ -288,6 +300,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("À propos")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 RowLayout {
                     Layout.fillWidth: true

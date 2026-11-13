@@ -383,6 +383,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Skills")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 Text {

@@ -108,6 +108,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Suite ArtCraft")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
 
                 RowLayout {
@@ -164,6 +166,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Recherche web")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 RowLayout {
                     Layout.fillWidth: true
@@ -189,6 +193,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Noyau DSH")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 RowLayout {
                     Layout.fillWidth: true
@@ -230,6 +236,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Extensions expérimentales")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 Text { Layout.fillWidth: true; text: qsTr("Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
                 GridLayout {
@@ -266,6 +274,8 @@ Item {
 
             SettingsSection {
                 title: qsTr("Plugins externes")
+                collapsible: true
+                expanded: false
                 Layout.fillWidth: true
                 Text { Layout.fillWidth: true; text: qsTr("Déposez un manifeste JSON dans le dossier plugins pour enregistrer une commande comme outil agent. Format : id, name, description, command, args."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
                 Text { Layout.fillWidth: true; visible: root.external.length === 0; text: qsTr("Aucun plugin externe installé."); color: theme.dimText; font.pixelSize: design.textCaption }

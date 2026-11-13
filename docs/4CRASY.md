@@ -23,6 +23,16 @@ Les modèles sont découverts via `/models`. Les prix à zéro sont marqués
 `free`. Le routage privilégie les modèles gratuits, le contexte, le type de
 tâche et la priorité du canal.
 
+## Configuration
+
+Chaque canal est configurable dans l’interface : nom, URL de base, variable
+d’environnement de clé, clé API, priorité, statut gratuit/payant, activation,
+test de connexion, ajout et suppression. La configuration est persistée dans
+`router.json` avec permissions `0600`.
+
+Réglages globaux : port API, stratégie `free`/`balanced`/`quality`, fallback
+maximal, mode gratuit strict et démarrage automatique avec l’application.
+
 ## Intégration
 
 Depuis l'interface : **Utiliser dans le harness** configure automatiquement un

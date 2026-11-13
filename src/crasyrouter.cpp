@@ -60,6 +60,8 @@ CrasyRouter::CrasyRouter(const QString &configDir, QObject *parent)
     }
     QFile::setPermissions(tokenPath(), QFile::ReadOwner | QFile::WriteOwner);
     rebuildChannelView();
+    if (m_autoStart)
+        QTimer::singleShot(0, this, [this] { start(); });
 }
 
 CrasyRouter::~CrasyRouter() { stop(); }
@@ -68,7 +70,7 @@ QString CrasyRouter::configPath() const { return m_configDir + QStringLiteral("/
 QString CrasyRouter::tokenPath() const { return m_configDir + QStringLiteral("/token"); }
 QString CrasyRouter::endpoint() const {
     return running() ? QStringLiteral("http://127.0.0.1:%1/v1").arg(m_server.serverPort())
-                     : QStringLiteral("http://127.0.0.1:8788/v1");
+                     : QStringLiteral("http://127.0.0.1:%1/v1").arg(m_port);
 }
 int CrasyRouter::freeModelCount() const {
     int count = 0;
@@ -106,51 +108,93 @@ void CrasyRouter::loadConfig() {
              QStringLiteral("GROQ_API_KEY"), 2, true, true},
             {QStringLiteral("gemini"), QStringLiteral("Gemini"), QStringLiteral("https://generativelanguage.googleapis.com/v1beta/openai"),
              QStringLiteral("GEMINI_API_KEY"), 3, true, true},
+            {QStringLiteral("cerebras"), QStringLiteral("Cerebras"), QStringLiteral("https://api.cerebras.ai/v1"),
+             QStringLiteral("CEREBRAS_API_KEY"), 4, true, true},
+            {QStringLiteral("mistral"), QStringLiteral("Mistral"), QStringLiteral("https://api.mistral.ai/v1"),
+             QStringLiteral("MISTRAL_API_KEY"), 5, true, true},
+            {QStringLiteral("huggingface"), QStringLiteral("Hugging Face"), QStringLiteral("https://router.huggingface.co/v1"),
+             QStringLiteral("HF_TOKEN"), 6, true, true},
             {QStringLiteral("deepseek"), QStringLiteral("DeepSeek"), QStringLiteral("https://api.deepseek.com/v1"),
-             QStringLiteral("DEEPSEEK_API_KEY"), 4, true, false},
+             QStringLiteral("DEEPSEEK_API_KEY"), 7, true, false},
             {QStringLiteral("ollama"), QStringLiteral("Ollama local"), QStringLiteral("http://127.0.0.1:11434/v1"),
              QString(), 0, true, true},
         };
-        for (Channel &channel : m_channelData) channel.apiKey = resolveKey(channel.apiKeyEnv);
+        for (Channel &channel : m_channelData)
+            if (channel.apiKey.isEmpty())
+            channel.apiKey = resolveKey(channel.apiKeyEnv);
     };
     defaults();
     QFile file(configPath());
-    if (!file.open(QIODevice::ReadOnly)) return;
+    if (!file.open(QIODevice::ReadOnly)) {
+        rebuildChannelView();
+        return;
+    }
     const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
+    m_port = qBound(1024, root.value(QStringLiteral("port")).toInt(m_port), 65535);
+    m_freeOnly = root.value(QStringLiteral("freeOnly")).toBool(m_freeOnly);
+    m_maxFallbacks = qBound(0, root.value(QStringLiteral("maxFallbacks")).toInt(m_maxFallbacks), 5);
+    m_autoStart = root.value(QStringLiteral("autoStart")).toBool(m_autoStart);
+    m_strategy = root.value(QStringLiteral("strategy")).toString(m_strategy);
+    m_preferFree = root.value(QStringLiteral("preferFree")).toBool(m_preferFree);
     const QJsonArray channelsArray = root.value(QStringLiteral("channels")).toArray();
-    if (channelsArray.isEmpty()) return;
+    if (channelsArray.isEmpty()) {
+        rebuildChannelView();
+        return;
+    }
     QList<Channel> configured;
     for (const QJsonValue &value : channelsArray) {
         const QJsonObject object = value.toObject();
-        const QString id = object.value(QStringLiteral("id")).toString();
+        const QString id = object.value(QStringLiteral("id")).toString().trimmed();
         if (id.isEmpty()) continue;
-        for (Channel channel : m_channelData) {
-            if (channel.id != id) continue;
-            channel.enabled = object.value(QStringLiteral("enabled")).toBool(channel.enabled);
-            channel.free = object.value(QStringLiteral("free")).toBool(channel.free);
-            channel.priority = object.value(QStringLiteral("priority")).toInt(channel.priority);
+        Channel channel;
+        channel.id = id;
+        channel.name = object.value(QStringLiteral("name")).toString(id);
+        channel.baseUrl = object.value(QStringLiteral("baseUrl")).toString();
+        channel.apiKeyEnv = object.value(QStringLiteral("apiKeyEnv")).toString();
+        channel.apiKey = object.value(QStringLiteral("apiKey")).toString();
+        channel.priority = qBound(0, object.value(QStringLiteral("priority")).toInt(5), 100);
+        channel.enabled = object.value(QStringLiteral("enabled")).toBool(true);
+        channel.free = object.value(QStringLiteral("free")).toBool(true);
+        if (channel.apiKey.isEmpty())
+            if (channel.apiKey.isEmpty())
+            channel.apiKey = resolveKey(channel.apiKeyEnv);
+        if (!channel.baseUrl.isEmpty())
             configured.append(channel);
-            break;
-        }
     }
     if (!configured.isEmpty())
         m_channelData = configured;
+    rebuildChannelView();
 }
 
 bool CrasyRouter::saveConfig() const {
     QDir().mkpath(m_configDir);
     QJsonArray channelsArray;
     for (const Channel &channel : m_channelData) {
-        channelsArray.append(QJsonObject{{QStringLiteral("id"), channel.id},
-                                         {QStringLiteral("enabled"), channel.enabled},
-                                         {QStringLiteral("free"), channel.free},
-                                         {QStringLiteral("priority"), channel.priority}});
+        QJsonObject object{{QStringLiteral("id"), channel.id},
+                           {QStringLiteral("name"), channel.name},
+                           {QStringLiteral("baseUrl"), channel.baseUrl},
+                           {QStringLiteral("apiKeyEnv"), channel.apiKeyEnv},
+                           {QStringLiteral("priority"), channel.priority},
+                           {QStringLiteral("enabled"), channel.enabled},
+                           {QStringLiteral("free"), channel.free}};
+        if (!channel.apiKey.isEmpty())
+            object.insert(QStringLiteral("apiKey"), channel.apiKey);
+        channelsArray.append(object);
     }
     QSaveFile file(configPath());
     if (!file.open(QIODevice::WriteOnly)) return false;
-    file.write(jsonBytes(QJsonObject{{QStringLiteral("channels"), channelsArray},
-                                     {QStringLiteral("preferFree"), m_preferFree}}));
-    return file.commit();
+    file.write(jsonBytes(QJsonObject{
+        {QStringLiteral("channels"), channelsArray},
+        {QStringLiteral("port"), m_port},
+        {QStringLiteral("freeOnly"), m_freeOnly},
+        {QStringLiteral("maxFallbacks"), m_maxFallbacks},
+        {QStringLiteral("autoStart"), m_autoStart},
+        {QStringLiteral("strategy"), m_strategy},
+        {QStringLiteral("preferFree"), m_preferFree},
+    }));
+    if (!file.commit()) return false;
+    QFile::setPermissions(configPath(), QFile::ReadOwner | QFile::WriteOwner);
+    return true;
 }
 
 void CrasyRouter::rebuildChannelView() {
@@ -160,18 +204,137 @@ void CrasyRouter::rebuildChannelView() {
             {QStringLiteral("id"), channel.id},
             {QStringLiteral("name"), channel.name},
             {QStringLiteral("baseUrl"), channel.baseUrl},
+            {QStringLiteral("apiKeyEnv"), channel.apiKeyEnv},
             {QStringLiteral("enabled"), channel.enabled},
             {QStringLiteral("free"), channel.free},
             {QStringLiteral("priority"), channel.priority},
             {QStringLiteral("hasKey"), !channel.apiKey.isEmpty() || channel.apiKeyEnv.isEmpty()},
             {QStringLiteral("modelCount"), channel.modelIds.size()},
-            {QStringLiteral("status"), channel.modelIds.isEmpty()
-                 ? (channel.enabled ? QStringLiteral("idle") : QStringLiteral("disabled"))
-                 : QStringLiteral("ready")},
+            {QStringLiteral("freeModelCount"), channel.freeModelIds.size()},
+            {QStringLiteral("status"), !channel.enabled ? QStringLiteral("disabled")
+                 : (channel.modelIds.isEmpty() ? QStringLiteral("idle") : QStringLiteral("ready"))},
         });
     }
     m_channels = view;
+    m_configState = QStringLiteral("saved");
     emit changed();
+}
+
+void CrasyRouter::saveSettings(int port, bool freeOnly, int maxFallbacks,
+                              bool autoStart, const QString &strategy) {
+    m_port = qBound(1024, port, 65535);
+    m_freeOnly = freeOnly;
+    m_maxFallbacks = qBound(0, maxFallbacks, 5);
+    m_autoStart = autoStart;
+    m_strategy = (strategy == QLatin1String("free") || strategy == QLatin1String("quality"))
+        ? strategy : QStringLiteral("balanced");
+    saveConfig();
+    emit changed();
+}
+
+bool CrasyRouter::saveChannel(const QString &idValue, const QString &nameValue,
+                             const QString &baseUrlValue, const QString &apiKeyEnv,
+                             const QString &apiKey, int priority, bool free, bool enabled) {
+    QString id = idValue.trimmed().toLower();
+    id.replace(QRegularExpression(QStringLiteral("[^a-z0-9_-]+")), QStringLiteral("-"));
+    id.remove(QRegularExpression(QStringLiteral("^-+|-+$")));
+    if (id.isEmpty())
+        id = QStringLiteral("channel");
+    const QUrl url(baseUrlValue.trimmed());
+    if (!url.isValid() || (url.scheme() != QLatin1String("http") && url.scheme() != QLatin1String("https"))) {
+        setError(tr("URL de base HTTP(S) invalide."));
+        return false;
+    }
+    Channel *target = nullptr;
+    for (Channel &channel : m_channelData) {
+        if (channel.id == id) { target = &channel; break; }
+    }
+    if (!target) {
+        m_channelData.append(Channel{});
+        target = &m_channelData.last();
+        target->id = id;
+    }
+    target->name = nameValue.trimmed().isEmpty() ? id : nameValue.trimmed();
+    target->baseUrl = url.toString().endsWith(QLatin1Char('/'))
+        ? url.toString().chopped(1) : url.toString();
+    target->apiKeyEnv = apiKeyEnv.trimmed();
+    if (!apiKey.trimmed().isEmpty())
+        target->apiKey = apiKey.trimmed();
+    else if (target->apiKey.isEmpty())
+        target->apiKey = resolveKey(target->apiKeyEnv);
+    target->priority = qBound(0, priority, 100);
+    target->free = free;
+    target->enabled = enabled;
+    if (!saveConfig()) {
+        setError(tr("Impossible d'enregistrer la configuration 4Crasy."));
+        return false;
+    }
+    setError({});
+    rebuildChannelView();
+    return true;
+}
+
+bool CrasyRouter::removeChannel(const QString &id) {
+    for (int i = 0; i < m_channelData.size(); ++i) {
+        if (m_channelData.at(i).id != id) continue;
+        m_channelData.removeAt(i);
+        for (int m = m_models.size() - 1; m >= 0; --m) {
+            if (m_models.at(m).toMap().value(QStringLiteral("channel")).toString() == id)
+                m_models.removeAt(m);
+        }
+        saveConfig();
+        rebuildChannelView();
+        return true;
+    }
+    return false;
+}
+
+void CrasyRouter::resetChannels() {
+    QFile::remove(configPath());
+    loadConfig();
+    saveConfig();
+}
+
+QString CrasyRouter::testChannel(const QString &id) {
+    for (Channel &channel : m_channelData) {
+        if (channel.id != id) continue;
+        if (channel.baseUrl.isEmpty()) return tr("URL de base absente.");
+        if (!channel.apiKeyEnv.isEmpty() && channel.apiKey.isEmpty())
+            return tr("Clé API absente.");
+        QNetworkRequest request{QUrl(channel.baseUrl + QStringLiteral("/models"))};
+        request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("4Crasy/1.0"));
+        if (!channel.apiKey.isEmpty())
+            request.setRawHeader("Authorization", "Bearer " + channel.apiKey.toUtf8());
+        QNetworkReply *reply = m_network->get(request);
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
+        timer.setInterval(8000);
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+        timer.start();
+        loop.exec();
+        const bool finished = reply->isFinished();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QByteArray data = finished ? reply->readAll() : QByteArray();
+        reply->abort();
+        reply->deleteLater();
+        if (!finished || status < 200 || status >= 300)
+            return tr("Échec HTTP %1.").arg(status > 0 ? QString::number(status) : tr("timeout"));
+        const QJsonObject root = QJsonDocument::fromJson(data).object();
+        QJsonArray models = root.value(QStringLiteral("data")).toArray();
+        if (models.isEmpty()) models = root.value(QStringLiteral("models")).toArray();
+        channel.modelIds.clear();
+        channel.freeModelIds.clear();
+        for (const QJsonValue &value : models) {
+            const QJsonObject object = value.toObject();
+            const QString modelId = object.value(QStringLiteral("id")).toString(object.value(QStringLiteral("name")).toString());
+            if (!modelId.isEmpty()) channel.modelIds.append(modelId);
+        }
+        rebuildChannelView();
+        return tr("Connexion OK · %1 modèle(s).").arg(channel.modelIds.size());
+    }
+    return tr("Canal introuvable.");
 }
 
 void CrasyRouter::addModel(const QString &channel, const QJsonObject &model) {
@@ -228,7 +391,8 @@ void CrasyRouter::refreshModels() {
     for (Channel &channel : m_channelData) {
         channel.modelIds.clear();
         channel.freeModelIds.clear();
-        channel.apiKey = resolveKey(channel.apiKeyEnv);
+        if (channel.apiKey.isEmpty())
+            channel.apiKey = resolveKey(channel.apiKeyEnv);
         if (!channel.enabled) continue;
         if (!channel.apiKeyEnv.isEmpty() && channel.apiKey.isEmpty()) continue;
         QNetworkRequest request{QUrl(channel.baseUrl + QStringLiteral("/models"))};
@@ -281,6 +445,45 @@ void CrasyRouter::setPreferFree(bool enabled) {
     emit changed();
 }
 
+void CrasyRouter::setFreeOnly(bool enabled) {
+    if (m_freeOnly == enabled) return;
+    m_freeOnly = enabled;
+    saveConfig();
+    emit changed();
+}
+
+void CrasyRouter::setPort(int value) {
+    const int port = qBound(1024, value, 65535);
+    if (m_port == port) return;
+    m_port = port;
+    saveConfig();
+    emit changed();
+}
+
+void CrasyRouter::setMaxFallbacks(int value) {
+    const int count = qBound(0, value, 5);
+    if (m_maxFallbacks == count) return;
+    m_maxFallbacks = count;
+    saveConfig();
+    emit changed();
+}
+
+void CrasyRouter::setStrategy(const QString &value) {
+    const QString strategy = (value == QLatin1String("free") || value == QLatin1String("quality"))
+        ? value : QStringLiteral("balanced");
+    if (m_strategy == strategy) return;
+    m_strategy = strategy;
+    saveConfig();
+    emit changed();
+}
+
+void CrasyRouter::setAutoStart(bool enabled) {
+    if (m_autoStart == enabled) return;
+    m_autoStart = enabled;
+    saveConfig();
+    emit changed();
+}
+
 bool CrasyRouter::setChannelEnabled(const QString &id, bool enabled) {
     bool found = false;
     for (Channel &channel : m_channelData) {
@@ -311,6 +514,8 @@ QString CrasyRouter::chooseChannel(const QJsonObject &request, const QString &re
     auto score = [&](const QVariantMap &model) {
         int value = 1000 - model.value(QStringLiteral("channelPriority")).toInt() * 20;
         if (m_preferFree && model.value(QStringLiteral("free")).toBool()) value += 300;
+        if (m_strategy == QLatin1String("quality") && !model.value(QStringLiteral("free")).toBool()) value += 80;
+        if (m_strategy == QLatin1String("free") && model.value(QStringLiteral("free")).toBool()) value += 160;
         if (requestedModel != QLatin1String("auto") && model.value(QStringLiteral("id")).toString() == requestedModel) value += 10000;
         const QString id = model.value(QStringLiteral("id")).toString().toLower();
         if (code && (id.contains("code") || id.contains("coder") || id.contains("deepseek"))) value += 120;
@@ -328,6 +533,7 @@ QString CrasyRouter::chooseChannel(const QJsonObject &request, const QString &re
         const auto iterator = std::find_if(m_channelData.cbegin(), m_channelData.cend(),
                                            [&](const Channel &c) { return c.id == channelId; });
         if (iterator == m_channelData.cend() || !iterator->enabled) continue;
+        if (m_freeOnly && !model.value(QStringLiteral("free")).toBool()) continue;
         model.insert(QStringLiteral("channelPriority"), iterator->priority);
         if (bestModel.isEmpty() || score(model) > score(bestModel)) {
             bestModel = model;
@@ -354,7 +560,8 @@ QString CrasyRouter::routePreview(const QString &prompt, const QString &requeste
 
 bool CrasyRouter::start(quint16 preferredPort) {
     if (m_server.isListening()) return true;
-    if (!m_server.listen(QHostAddress::LocalHost, preferredPort)
+    const quint16 requestedPort = preferredPort == 8788 ? quint16(m_port) : preferredPort;
+    if (!m_server.listen(QHostAddress::LocalHost, requestedPort)
         && !m_server.listen(QHostAddress::LocalHost, 0)) {
         setError(tr("Impossible de démarrer 4Crasy : %1").arg(m_server.errorString()));
         return false;
@@ -398,6 +605,12 @@ QJsonObject CrasyRouter::status() const {
         {QStringLiteral("requests"), m_requestCount},
         {QStringLiteral("preferFree"), m_preferFree},
         {QStringLiteral("tokenConfigured"), !m_token.isEmpty()},
+        {QStringLiteral("port"), m_port},
+        {QStringLiteral("freeOnly"), m_freeOnly},
+        {QStringLiteral("maxFallbacks"), m_maxFallbacks},
+        {QStringLiteral("strategy"), m_strategy},
+        {QStringLiteral("autoStart"), m_autoStart},
+        {QStringLiteral("configPath"), configPath()},
     };
 }
 
@@ -478,6 +691,7 @@ void CrasyRouter::handleConnection(QTcpSocket *socket) {
             QJsonArray data;
             for (const QVariant &value : m_models) {
                 const QVariantMap model = value.toMap();
+                if (m_freeOnly && !model.value(QStringLiteral("free")).toBool()) continue;
                 data.append(QJsonObject{{QStringLiteral("id"), model.value(QStringLiteral("id")).toString()},
                                         {QStringLiteral("object"), QStringLiteral("model")},
                                         {QStringLiteral("owned_by"), model.value(QStringLiteral("channel")).toString()},
@@ -522,7 +736,7 @@ void CrasyRouter::handleConnection(QTcpSocket *socket) {
                     continue;
                 fallbacks.append(QJsonObject{{QStringLiteral("channel"), candidateMap.value(QStringLiteral("channel")).toString()},
                                              {QStringLiteral("model"), candidateMap.value(QStringLiteral("id")).toString()}});
-                if (fallbacks.size() >= 4) break;
+                if (fallbacks.size() >= m_maxFallbacks) break;
             }
             sendProxy(guard, *channelIterator, request, chosenModel, fallbacks, 0);
             return;

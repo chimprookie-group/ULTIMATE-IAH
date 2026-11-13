@@ -27,6 +27,13 @@ class CrasyRouter : public QObject {
     Q_PROPERTY(QVariantList recentRoutes READ recentRoutes NOTIFY changed)
     Q_PROPERTY(bool autoRefresh READ autoRefresh WRITE setAutoRefresh NOTIFY changed)
     Q_PROPERTY(bool preferFree READ preferFree WRITE setPreferFree NOTIFY changed)
+    Q_PROPERTY(bool freeOnly READ freeOnly WRITE setFreeOnly NOTIFY changed)
+    Q_PROPERTY(int port READ port WRITE setPort NOTIFY changed)
+    Q_PROPERTY(int maxFallbacks READ maxFallbacks WRITE setMaxFallbacks NOTIFY changed)
+    Q_PROPERTY(QString strategy READ strategy WRITE setStrategy NOTIFY changed)
+    Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY changed)
+    Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(QString configState READ configState NOTIFY changed)
 
 public:
     explicit CrasyRouter(const QString &configDir = {}, QObject *parent = nullptr);
@@ -43,18 +50,37 @@ public:
     QVariantList recentRoutes() const { return m_recentRoutes; }
     bool autoRefresh() const { return m_autoRefresh; }
     bool preferFree() const { return m_preferFree; }
+    bool freeOnly() const { return m_freeOnly; }
+    int port() const { return m_port; }
+    int maxFallbacks() const { return m_maxFallbacks; }
+    QString strategy() const { return m_strategy; }
+    bool autoStart() const { return m_autoStart; }
+    QString configState() const { return m_configState; }
 
     Q_INVOKABLE bool start(quint16 preferredPort = 8788);
     Q_INVOKABLE void stop();
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void refreshModels();
     Q_INVOKABLE bool setChannelEnabled(const QString &id, bool enabled);
+    Q_INVOKABLE bool saveChannel(const QString &id, const QString &name, const QString &baseUrl,
+                                 const QString &apiKeyEnv, const QString &apiKey,
+                                 int priority, bool free, bool enabled);
+    Q_INVOKABLE bool removeChannel(const QString &id);
+    Q_INVOKABLE QString testChannel(const QString &id);
+    Q_INVOKABLE void resetChannels();
+    Q_INVOKABLE void saveSettings(int port, bool freeOnly, int maxFallbacks,
+                                  bool autoStart, const QString &strategy);
     Q_INVOKABLE QString routePreview(const QString &prompt = {},
                                      const QString &requestedModel = QStringLiteral("auto"));
     Q_INVOKABLE void clearError();
     Q_INVOKABLE void copyToken() const;
     void setAutoRefresh(bool enabled);
     void setPreferFree(bool enabled);
+    void setFreeOnly(bool enabled);
+    void setPort(int value);
+    void setMaxFallbacks(int value);
+    void setStrategy(const QString &value);
+    void setAutoStart(bool value);
 
     QJsonObject status() const;
     static QVariantList parseModels(const QJsonArray &array, const QString &channel);
@@ -110,4 +136,10 @@ private:
     int m_requestCount = 0;
     bool m_autoRefresh = true;
     bool m_preferFree = true;
+    bool m_freeOnly = false;
+    int m_port = 8788;
+    int m_maxFallbacks = 3;
+    QString m_strategy = QStringLiteral("balanced");
+    bool m_autoStart = false;
+    QString m_configState = QStringLiteral("loaded");
 };

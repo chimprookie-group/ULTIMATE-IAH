@@ -639,6 +639,38 @@ private slots:
         QVERIFY(!UpdateService::isNewer("1.17.0-rc1", "1.17.0"));
     }
 
+    void crasyRouterPersistsChannelAndRoutingConfig()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        CrasyRouter router(dir.path());
+        router.setAutoRefresh(false);
+        QVERIFY(router.saveChannel("custom", "Custom", "https://example.com/v1",
+                                   "CUSTOM_KEY", "secret", 7, false, true));
+        QCOMPARE(router.channels().size(), 9);
+        bool found = false;
+        for (const QVariant &value : router.channels()) {
+            const QVariantMap channel = value.toMap();
+            if (channel.value("id").toString() == "custom") {
+                found = true;
+                QCOMPARE(channel.value("priority").toInt(), 7);
+                QVERIFY(!channel.value("free").toBool());
+                QVERIFY(channel.value("hasKey").toBool());
+            }
+        }
+        QVERIFY(found);
+        router.setPort(8899);
+        router.setFreeOnly(true);
+        router.setMaxFallbacks(2);
+        router.setStrategy("quality");
+        QCOMPARE(router.port(), 8899);
+        QVERIFY(router.freeOnly());
+        QCOMPARE(router.maxFallbacks(), 2);
+        QCOMPARE(router.strategy(), QString("quality"));
+        QVERIFY(router.removeChannel("custom"));
+        QCOMPARE(router.channels().size(), 8);
+    }
+
     void crasyRouterStartsLoopbackApiAndParsesModels()
     {
         QTemporaryDir dir;
