@@ -438,6 +438,23 @@ Item {
                         model: ultimateAgent.messages
                         interactive: true
                         flickableDirection: Flickable.VerticalFlick
+                        WheelHandler {
+                            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                            onWheel: function (event) {
+                                const maxY = Math.max(0, messageList.contentHeight - messageList.height)
+                                if (maxY <= 0) {
+                                    event.accepted = true
+                                    return
+                                }
+                                const delta = event.pixelDelta.y !== 0 ? event.pixelDelta.y : event.angleDelta.y * 0.7
+                                const target = Math.max(0, Math.min(maxY, messageList.contentY - delta))
+                                if (Math.abs(target - messageList.contentY) > 0.5) {
+                                    root.followOutput = false
+                                    messageList.contentY = target
+                                }
+                                event.accepted = true
+                            }
+                        }
                         reuseItems: true
                         cacheBuffer: 600
                         boundsBehavior: Flickable.StopAtBounds
@@ -495,12 +512,8 @@ Item {
                                             fillMode: Image.PreserveAspectFit
                                             cache: false
                                         }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onWheel: function (wheel) { wheel.accepted = false }
-                                            onClicked: root.imagePreview = "file://" + modelData.path
-                                        }
+                                        TapHandler { onTapped: root.imagePreview = "file://" + modelData.path }
+                                        HoverHandler { cursorShape: Qt.PointingHandCursor }
                                     }
                                 }
 
@@ -591,12 +604,8 @@ Item {
                                             text: stepsBlock.expanded ? qsTr("Masquer") : qsTr("Voir")
                                             color: theme.accent
                                             font.pixelSize: design.textMicro
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onWheel: function (wheel) { wheel.accepted = false }
-                                                onClicked: root.toggleGroup(index)
-                                            }
+                                            TapHandler { onTapped: root.toggleGroup(index) }
+                                            HoverHandler { cursorShape: Qt.PointingHandCursor }
                                         }
                                     }
                                     Repeater {
@@ -614,12 +623,8 @@ Item {
                                                     text: modelData.expanded ? qsTr("Masquer") : qsTr("Détails")
                                                     color: theme.accent
                                                     font.pixelSize: design.textMicro
-                                                    MouseArea {
-                                                        anchors.fill: parent
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onWheel: function (wheel) { wheel.accepted = false }
-                                                        onClicked: ultimateAgent.toggleToolDetails(modelData.index)
-                                                    }
+                                                    TapHandler { onTapped: ultimateAgent.toggleToolDetails(modelData.index) }
+                                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
                                                 }
                                             }
                                             Text {
@@ -676,12 +681,8 @@ Item {
                                                 color: theme.dimText
                                             }
                                         }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onWheel: function (wheel) { wheel.accepted = false }
-                                            onClicked: ultimateAgent.toggleToolDetails(model.index)
-                                        }
+                                        TapHandler { onTapped: ultimateAgent.toggleToolDetails(model.index) }
+                                        HoverHandler { cursorShape: Qt.PointingHandCursor }
                                     }
 
                                     Item {
