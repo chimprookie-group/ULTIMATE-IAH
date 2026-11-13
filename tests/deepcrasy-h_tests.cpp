@@ -28,6 +28,7 @@
 #include "webservice.h"
 #include "crasyrouter.h"
 #include "learningengine.h"
+#include "knowledgebase.h"
 #include "updateservice.h"
 #include "theme.h"
 #include "translator.h"
@@ -679,6 +680,26 @@ private slots:
         QCOMPARE(router.strategy(), QString("quality"));
         QVERIFY(router.removeChannel("custom"));
         QCOMPARE(router.channels().size(), 8);
+    }
+
+    void knowledgeBaseRegistersToolsAndSearches()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        KnowledgeBase knowledge(dir.path() + "/knowledge.db");
+        const QJsonArray tools = {QJsonObject{{"type", "function"},
+            {"function", QJsonObject{{"name", "utility_probe"},
+                                     {"description", "Probe an installed capability."},
+                                     {"parameters", QJsonObject{{"type", "object"}}}}}}};
+        const QVariantList skills = {QVariantMap{{"id", "probe-skill"}, {"name", "Probe Skill"},
+                                                  {"description", "A test skill."}, {"pack", "core"}}};
+        knowledge.seed(tools, {}, skills);
+        QVERIFY(knowledge.stats().value("entries").toInt() >= 14);
+        QCOMPARE(knowledge.stats().value("tools").toInt(), 1);
+        const QVariantList found = knowledge.search("utility_probe", 5);
+        QVERIFY(!found.isEmpty());
+        QCOMPARE(found.first().toMap().value("category").toString(), QString("tool"));
+        QVERIFY(knowledge.promptContext("utility_probe", 6500).contains("utility_probe"));
     }
 
     void learningEngineExtractsLessonsAndProposesSkills()

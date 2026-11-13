@@ -45,6 +45,7 @@
 #include "crasyrouter.h"
 #include "updateservice.h"
 #include "learningengine.h"
+#include "knowledgebase.h"
 #include "autopilot.h"
 #include "botmanager.h"
 #include "ecosystem.h"
@@ -225,7 +226,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.21.2"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.22.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -247,6 +248,8 @@ int main(int argc, char *argv[]) {
         SkillManager skills;
         skills.seedDefaults();
         LearningEngine learning(QString(), &skills);
+        KnowledgeBase knowledge;
+        knowledge.seed(UltimateAgent::tools(), {}, skills.skills());
         CrasyRouter router;
         QTextStream(stdout) << "Ultimate IAH bootstrap\n"
                             << "config=" << config << "\n"
@@ -408,6 +411,7 @@ int main(int argc, char *argv[]) {
     NoteStore noteStore;
     PluginManager plugins;
     LearningEngine learning(QString(), &skills);
+    KnowledgeBase knowledge;
     UpdateService updates;
     WebService web;
     GitHubService gitHub(&backend);
@@ -446,7 +450,8 @@ int main(int argc, char *argv[]) {
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
-                                &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub, &crasy, &learning);
+                                &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub, &crasy, &learning, &knowledge);
+    knowledge.seed(UltimateAgent::tools(), plugins.plugins(), skills.skills());
     if (agentJob) {
         if (!workspace.isEmpty())
             backend.setWorkspace(workspace);
@@ -539,6 +544,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("plugins", &plugins);
     engine.rootContext()->setContextProperty("updates", &updates);
     engine.rootContext()->setContextProperty("learning", &learning);
+    engine.rootContext()->setContextProperty("knowledge", &knowledge);
     engine.rootContext()->setContextProperty("web", &web);
     engine.rootContext()->setContextProperty("gitHub", &gitHub);
     engine.rootContext()->setContextProperty("crasy", &crasy);

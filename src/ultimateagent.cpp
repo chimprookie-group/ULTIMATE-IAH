@@ -16,6 +16,7 @@
 #include "githubservice.h"
 #include "crasyrouter.h"
 #include "learningengine.h"
+#include "knowledgebase.h"
 #include "skillmanager.h"
 #include "terminalsession.h"
 
@@ -107,6 +108,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
         return action == QLatin1String("search") || action == QLatin1String("recent") || action == QLatin1String("stats");
     if (name == QLatin1String("ultimate_learning"))
         return action.isEmpty() || action == QLatin1String("status") || action == QLatin1String("lessons");
+    if (name == QLatin1String("ultimate_knowledge"))
+        return action.isEmpty() || action == QLatin1String("status") || action == QLatin1String("search");
     if (name == QLatin1String("ultimate_skills"))
         return action == QLatin1String("list") || action == QLatin1String("read")
             || action == QLatin1String("packs");
@@ -148,12 +151,12 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
                              McpManager *mcp, MemoryStore *memory, SkillManager *skills,
                              AgentManager *agents, MissionRunner *missions,
                              TerminalSession *terminal, InstallationDoctor *installation,
-                             ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes, PluginManager *plugins, WebService *web, GitHubService *gitHub, CrasyRouter *crasy, LearningEngine *learning, QObject *parent)
+                             ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes, PluginManager *plugins, WebService *web, GitHubService *gitHub, CrasyRouter *crasy, LearningEngine *learning, KnowledgeBase *knowledge, QObject *parent)
     : QObject(parent), m_backend(backend), m_connections(connections),
       m_mcp(mcp), m_memory(memory),
       m_skills(skills), m_agents(agents), m_missions(missions), m_terminal(terminal),
       m_installation(installation), m_connectionDoctor(connectionDoctor),
-      m_bots(bots), m_notes(notes), m_plugins(plugins), m_web(web), m_gitHub(gitHub), m_crasy(crasy), m_learning(learning), m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
+      m_bots(bots), m_notes(notes), m_plugins(plugins), m_web(web), m_gitHub(gitHub), m_crasy(crasy), m_learning(learning), m_knowledge(knowledge), m_network(new QNetworkAccessManager(this)), m_timeout(new QTimer(this)) {
     m_timeout->setSingleShot(true);
     m_timeout->setInterval(120000);
     QObject::connect(m_timeout, &QTimer::timeout, this, [this] {
@@ -341,6 +344,11 @@ QString UltimateAgent::systemPrompt() const {
         if (!lessons.isEmpty())
             prompt += QStringLiteral("\n\n") + lessons;
     }
+    if (m_knowledge) {
+        const QString capabilities = m_knowledge->promptContext(m_userPrompt, 6500);
+        if (!capabilities.isEmpty())
+            prompt += QStringLiteral("\n\n") + capabilities;
+    }
     prompt += QStringLiteral("\n\nTOOLS\n")
         + QString::fromUtf8(QJsonDocument(allTools()).toJson(QJsonDocument::Compact));
     return prompt;
@@ -390,6 +398,9 @@ QJsonObject UltimateAgent::snapshot() const {
     }
     if (m_learning) {
         root.insert(QStringLiteral("learning"), QJsonObject::fromVariantMap(m_learning->stats()));
+    }
+    if (m_knowledge) {
+        root.insert(QStringLiteral("knowledge"), QJsonObject::fromVariantMap(m_knowledge->stats()));
     }
     if (m_plugins) {
         root.insert(QStringLiteral("plugins"),
@@ -1277,6 +1288,13 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("project"), agentProperty(QStringLiteral("string"), QStringLiteral("Project path; defaults to the active workspace."))},
                                 {QStringLiteral("limit"), agentProperty(QStringLiteral("integer"), QStringLiteral("Maximum results (1-50)."))}}),
                     {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_knowledge"),
+                    QStringLiteral("Search the native capability map for every built-in tool, plugin tool, skill and harness component registered by default."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("status"), QStringLiteral("search")})},
+                                {QStringLiteral("query"), agentProperty(QStringLiteral("string"), QStringLiteral("Capability or tool to find."))}}),
+                    {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_learning"),
                     QStringLiteral("Inspect, approve or clear the local self-learning loop: lessons learned from previous agent trajectories and proposed skills."),
                     properties({{QStringLiteral("action"),
@@ -1656,6 +1674,16 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
                          {QStringLiteral("stats"), QJsonObject::fromVariantMap(m_memory->stats())}});
     }
 
+    if (name == QLatin1String("ultimate_knowledge")) {
+        if (!m_knowledge) return errorResult(tr("Base de connaissances indisponible."));
+        m_knowledge->refresh();
+        if (action == QLatin1String("search")) {
+            return okResult({{QStringLiteral("query"), arguments.value(QStringLiteral("query")).toString()},
+                             {QStringLiteral("results"), listJson(m_knowledge->search(arguments.value(QStringLiteral("query")).toString(), 30))}});
+        }
+        return okResult({{QStringLiteral("stats"), QJsonObject::fromVariantMap(m_knowledge->stats())},
+                         {QStringLiteral("entries"), listJson(m_knowledge->entries())}});
+    }
     if (name == QLatin1String("ultimate_learning")) {
         if (!m_learning) return errorResult(tr("Apprentissage indisponible."));
         if (action == QLatin1String("approve"))
@@ -2159,6 +2187,8 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
         return tr("MCP · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_memory"))
         return tr("Mémoire · %1").arg(arguments.value(QStringLiteral("action")).toString());
+    if (name == QLatin1String("ultimate_knowledge"))
+        return tr("Base neuronale · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_learning"))
         return tr("Apprentissage · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_skills"))

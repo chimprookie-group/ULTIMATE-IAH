@@ -7,8 +7,13 @@ Item {
 
     readonly property int contentWidth: Math.max(320, Math.min(1180, width - design.space7))
 
-    Component.onCompleted: if (visible) learning.refresh()
-    onVisibleChanged: if (visible) learning.refresh()
+    Component.onCompleted: {
+        learning.refresh()
+        knowledge.refresh()
+    }
+    onVisibleChanged: {
+        if (visible) { learning.refresh(); knowledge.refresh() }
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -95,6 +100,34 @@ Item {
                         Text { text: learning.stats.proposals !== undefined ? learning.stats.proposals : 0; color: theme.orange; font.pixelSize: design.textTitle; font.weight: Font.DemiBold }
                     }
                 }
+            }
+
+            SettingsSection {
+                title: qsTr("Base neuronale native")
+                summary: (knowledge.stats.entries !== undefined ? knowledge.stats.entries : 0) + qsTr(" entrées · ") + (knowledge.stats.tools !== undefined ? knowledge.stats.tools : 0) + qsTr(" outils")
+                collapsible: true
+                expanded: false
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Tous les outils, plugins, skills et composants du harness sont enregistrés localement. Ultimate Agent les reçoit dans son contexte et peut les rechercher avec ultimate_knowledge."); color: theme.dimText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text { text: qsTr("Outils") + " " + (knowledge.stats.tools !== undefined ? knowledge.stats.tools : 0); color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                    Text { text: qsTr("Plugins") + " " + (knowledge.stats.plugins !== undefined ? knowledge.stats.plugins : 0); color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                    Text { text: qsTr("Skills") + " " + (knowledge.stats.skills !== undefined ? knowledge.stats.skills : 0); color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                    Text { text: qsTr("Composants") + " " + (knowledge.stats.capabilities !== undefined ? knowledge.stats.capabilities : 0); color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                }
+                Repeater {
+                    model: knowledge.entries
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: design.space2
+                        Text { text: modelData.category; color: theme.accent; font.family: backend.monoFont; font.pixelSize: 8; Layout.preferredWidth: 58 }
+                        Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.family: backend.monoFont; font.pixelSize: 9; elide: Text.ElideRight }
+                        Text { Layout.fillWidth: true; text: modelData.summary; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                    }
+                }
+                Text { Layout.fillWidth: true; text: knowledge.databasePath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideMiddle }
             }
 
             SettingsSection {

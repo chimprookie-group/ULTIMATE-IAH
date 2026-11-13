@@ -20,6 +20,7 @@ HEADERS += \
     src/agentconversationstore.h \
     src/updateservice.h \
     src/learningengine.h \
+    src/knowledgebase.h \
     src/crasyrouter.h \
     src/githubservice.h \
     src/webservice.h \
@@ -58,6 +59,7 @@ SOURCES += \
     src/agentconversationstore.cpp \
     src/updateservice.cpp \
     src/learningengine.cpp \
+    src/knowledgebase.cpp \
     src/crasyrouter.cpp \
     src/githubservice.cpp \
     src/webservice.cpp \

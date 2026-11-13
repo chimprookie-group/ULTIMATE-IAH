@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.21.2-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.22.0-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -294,6 +294,13 @@ secondaires contourés.
 - états hover/focus stables, sans déplacement de géométrie ;
 - mise en page vérifiée à 1532, 832 et 621 px.
 
+## Base neuronale native
+
+Au démarrage, le harness enregistre dans `knowledge.db` tous ses outils natifs,
+plugins, skills et composants d’écosystème. Ultimate Agent reçoit une carte
+compacte de ces capacités dans son contexte et peut rechercher le détail avec
+`ultimate_knowledge`. Rien ne dépend d’une mémoire distante.
+
 ## Auto-apprentissage
 
 Ultimate IAH intègre une boucle d’apprentissage locale, active par défaut :
@@ -346,7 +353,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.21.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.22.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -365,7 +372,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.21.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.22.0-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
