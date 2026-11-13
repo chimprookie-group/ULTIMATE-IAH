@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.23.0-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.23.1-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -353,7 +353,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.23.0-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.23.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -372,7 +372,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.23.0-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.23.1-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
@@ -423,6 +423,9 @@ binaires ArtCraft sont détectés dans
 ./bin/install-user
 ```
 
+Un workflow GitHub Actions (conteneur Arch Linux) compile le projet et lance
+la suite à chaque push sur `main` et à chaque pull request.
+
 La suite couvre notamment :
 
 - stores SQLite et migrations ;
@@ -457,6 +460,9 @@ ont été vérifiées sans erreur QML.
 - Les serveurs MCP s’exécutent avec les permissions de la session : n’activez
   que des commandes contrôlées.
 - L’écosystème GitHub dépend de `gh` et de son authentification.
+- `web_fetch` vérifie la résolution DNS avant chaque requête, mais Qt ne permet
+  pas d’épingler l’IP : un rebinding DNS entre la résolution et la connexion
+  reste théoriquement possible.
 
 ## Licence
 
