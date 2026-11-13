@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.0-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.20.0-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -153,6 +153,22 @@ ultimate-iah --router-configure
 ```
 
 Voir [docs/4CRASY.md](docs/4CRASY.md).
+
+## Packs de skills intégrés
+
+Ultimate IAH embarque deux packs MIT en plus de ses 12 skills de base :
+
+- **Leanrea** — reverse engineering avec les outils CLI locaux, sans MCP ;
+- **DeepSeek Stack** — 29 skills de méthode : planification, vérification,
+  revue, ship, contexte, design, TDD, debug et discipline d’ingénierie.
+
+Les packs sont livrés dans le paquet, installés automatiquement dans
+`~/.agents/skills`, exposés par `ultimate_skills` et sélectionnables depuis
+Agents → Skills. `ultimate_skills action=install pack=leanrea|deepseek-stack`
+restaure un pack manquant.
+
+Sources : [leanrea](https://github.com/aicodeking/leanrea) et
+[deepseek-stack](https://github.com/aicodeking/deepseek-stack), licence MIT.
 
 ## Bibliothèque de skills
 
@@ -316,7 +332,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.19.0-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.20.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -335,7 +351,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.19.0-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.20.0-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,

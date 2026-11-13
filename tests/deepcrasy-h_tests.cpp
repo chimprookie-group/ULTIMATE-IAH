@@ -609,14 +609,23 @@ private slots:
         SkillManager skills(dir.path() + "/skills");
         skills.setWorkspace(dir.path());
         QVERIFY(skills.seedDefaults());
-        QCOMPARE(skills.defaultCount(), 12);
+        QCOMPARE(skills.defaultCount(), 42);
+        QCOMPARE(skills.packs().size(), 3);
+        const QVariantMap leanrea = skills.readSkill("leanrea");
+        QCOMPARE(leanrea.value("pack").toString(), QString("leanrea"));
+        QVERIFY(leanrea.value("content").toString().contains("Reverse engineer"));
         const QVariantMap research = skills.readSkill("research");
         QCOMPARE(research.value("id").toString(), QString("research"));
         QVERIFY(research.value("content").toString().contains("web_search"));
         const QVariantList suggestions = skills.suggest("recherche web sources", 2);
         QVERIFY(!suggestions.isEmpty());
         QCOMPARE(suggestions.first().toMap().value("id").toString(), QString("research"));
-        QCOMPARE(skills.skills().size(), 12);
+        QCOMPARE(skills.skills().size(), 42);
+        const QVariantMap dsWatch = skills.readSkill("ds-watch-pr");
+        QCOMPARE(dsWatch.value("pack").toString(), QString("deepseek-stack"));
+        const QString script = QFileInfo(dsWatch.value("path").toString()).absolutePath()
+            + "/scripts/watch_pr.py";
+        QVERIFY2(QFileInfo::exists(script), qPrintable(script));
     }
 
     void webFetchBlocksPrivateHosts()

@@ -1,6 +1,7 @@
 #include "skillmanager.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -59,11 +60,87 @@ QStringList SkillManager::defaultSkillIds() {
             QStringLiteral("git-workflow"), QStringLiteral("github-project"),
             QStringLiteral("notes-vault"), QStringLiteral("security"),
             QStringLiteral("release"), QStringLiteral("automation"),
-            QStringLiteral("refactor"), QStringLiteral("artcraft")};
+            QStringLiteral("refactor"), QStringLiteral("artcraft"),
+            QStringLiteral("leanrea"),
+            QStringLiteral("ds-adopt"), QStringLiteral("ds-best-of-n"),
+            QStringLiteral("ds-blast-radius"), QStringLiteral("ds-blueprint"),
+            QStringLiteral("ds-catchup"), QStringLiteral("ds-context-reset"),
+            QStringLiteral("ds-design"), QStringLiteral("ds-design-audit"),
+            QStringLiteral("ds-explain"), QStringLiteral("ds-help"),
+            QStringLiteral("ds-jury"), QStringLiteral("ds-ledger"),
+            QStringLiteral("ds-lessons"), QStringLiteral("ds-mode"),
+            QStringLiteral("ds-plan-loop"), QStringLiteral("ds-pr"),
+            QStringLiteral("ds-pr-comments"), QStringLiteral("ds-principles"),
+            QStringLiteral("ds-ready"), QStringLiteral("ds-review-loop"),
+            QStringLiteral("ds-revive"), QStringLiteral("ds-sharpen"),
+            QStringLiteral("ds-ship"), QStringLiteral("ds-swarm"),
+            QStringLiteral("ds-tdd"), QStringLiteral("ds-unslop"),
+            QStringLiteral("ds-unstick"), QStringLiteral("ds-verify-loop"),
+            QStringLiteral("ds-watch-pr")};
+}
+
+QString SkillManager::packFor(const QString &id) {
+    if (id == QLatin1String("leanrea"))
+        return QStringLiteral("leanrea");
+    if (id.startsWith(QLatin1String("ds-")))
+        return QStringLiteral("deepseek-stack");
+    return QStringLiteral("core");
+}
+
+QVariantList SkillManager::packs() const {
+    struct Pack {
+        QString id, name, description, source, commit, license;
+        QStringList ids;
+    };
+    const QStringList ids = defaultSkillIds();
+    QList<Pack> definitions = {
+        {QStringLiteral("core"), QStringLiteral("Ultimate IAH Core"),
+         QStringLiteral("Recherche, tests, Git, GitHub, notes, sécurité, release, automatisation, refactor et ArtCraft."),
+         QStringLiteral("bundled"), QStringLiteral("1"), QStringLiteral("MIT"),
+         [&ids] {
+             QStringList core;
+             for (const QString &id : ids)
+                 if (id != QLatin1String("leanrea") && !id.startsWith(QLatin1String("ds-")))
+                     core.append(id);
+             return core;
+         }()},
+        {QStringLiteral("leanrea"), QStringLiteral("Leanrea"),
+         QStringLiteral("Reverse engineering avec les outils CLI locaux, sans MCP : Electron, natif, Go, Rust, APK, firmware."),
+         QStringLiteral("https://github.com/aicodeking/leanrea"), QStringLiteral("09ba4aa"), QStringLiteral("MIT"),
+         QStringList{QStringLiteral("leanrea")}},
+        {QStringLiteral("deepseek-stack"), QStringLiteral("DeepSeek Stack"),
+         QStringLiteral("29 skills de méthode : planification, vérification, revue, ship, contexte, design et discipline d’ingénierie."),
+         QStringLiteral("https://github.com/aicodeking/deepseek-stack"), QStringLiteral("d4f1ebe"), QStringLiteral("MIT"),
+         ids.filter(QStringLiteral("ds-"))},
+    };
+    QVariantList result;
+    for (const Pack &pack : definitions) {
+        QVariantList packSkills;
+        int installed = 0;
+        for (const QVariant &value : m_skills) {
+            const QVariantMap skill = value.toMap();
+            if (skill.value(QStringLiteral("pack")).toString() == pack.id) {
+                packSkills.append(skill.value(QStringLiteral("id")));
+                ++installed;
+            }
+        }
+        result.append(QVariantMap{
+            {QStringLiteral("id"), pack.id},
+            {QStringLiteral("name"), pack.name},
+            {QStringLiteral("description"), pack.description},
+            {QStringLiteral("source"), pack.source},
+            {QStringLiteral("commit"), pack.commit},
+            {QStringLiteral("license"), pack.license},
+            {QStringLiteral("total"), pack.ids.size()},
+            {QStringLiteral("installed"), installed},
+            {QStringLiteral("skills"), packSkills},
+        });
+    }
+    return result;
 }
 
 QString SkillManager::defaultsMarker() const {
-    return m_root + QStringLiteral("/.defaults-v2");
+    return m_root + QStringLiteral("/.defaults-v3");
 }
 
 int SkillManager::defaultCount() const {
@@ -77,35 +154,80 @@ int SkillManager::defaultCount() const {
     return count;
 }
 
+bool SkillManager::seedPack(const QString &pack, bool force) {
+    Q_UNUSED(force);
+    const QStringList ids = defaultSkillIds();
+    for (const QString &id : ids) {
+        if (packFor(id) != pack)
+            continue;
+        const QString directory = m_root + QLatin1Char('/') + id;
+        QDir().mkpath(directory);
+        if (pack == QLatin1String("core")) {
+            const QString target = directory + QStringLiteral("/SKILL.md");
+            if (QFileInfo::exists(target))
+                continue;
+            QFile resource(QStringLiteral(":/skills/default/") + id + QStringLiteral(".md"));
+            if (!resource.open(QIODevice::ReadOnly))
+                continue;
+            QSaveFile file(target);
+            if (!file.open(QIODevice::WriteOnly))
+                continue;
+            file.write(resource.readAll());
+            if (file.commit())
+                QFile::setPermissions(target, QFile::ReadOwner | QFile::WriteOwner);
+            continue;
+        }
+        const QString root = pack == QLatin1String("leanrea")
+            ? QStringLiteral(":/skills/packs/leanrea")
+            : QStringLiteral(":/skills/packs/deepseek-stack/") + id;
+        QDirIterator iterator(root, QDir::Files, QDirIterator::Subdirectories);
+        while (iterator.hasNext()) {
+            const QString resourcePath = iterator.next();
+            const QString relative = resourcePath.mid(root.size() + 1);
+            if (relative.isEmpty())
+                continue;
+            const QString target = directory + QLatin1Char('/') + relative;
+            if (QFileInfo::exists(target))
+                continue;
+            QFile resource(resourcePath);
+            if (!resource.open(QIODevice::ReadOnly))
+                continue;
+            QDir().mkpath(QFileInfo(target).absolutePath());
+            QSaveFile file(target);
+            if (!file.open(QIODevice::WriteOnly))
+                continue;
+            file.write(resource.readAll());
+            if (file.commit())
+                QFile::setPermissions(target, QFile::ReadOwner | QFile::WriteOwner);
+        }
+    }
+    return true;
+}
+
 bool SkillManager::seedDefaults(bool force) {
     if (!force && QFileInfo::exists(defaultsMarker())) {
         refresh();
         return true;
     }
     QDir().mkpath(m_root);
-    const QStringList ids = defaultSkillIds();
-    for (const QString &id : ids) {
-        const QString directory = m_root + QLatin1Char('/') + id;
-        const QString target = directory + QStringLiteral("/SKILL.md");
-        if (QFileInfo::exists(target))
-            continue;
-        QFile resource(QStringLiteral(":/skills/default/") + id + QStringLiteral(".md"));
-        if (!resource.open(QIODevice::ReadOnly))
-            continue;
-        QDir().mkpath(directory);
-        QSaveFile file(target);
-        if (!file.open(QIODevice::WriteOnly))
-            continue;
-        file.write(resource.readAll());
-        if (!file.commit())
-            continue;
-        QFile::setPermissions(target, QFile::ReadOwner | QFile::WriteOwner);
-    }
+    seedPack(QStringLiteral("core"), force);
+    seedPack(QStringLiteral("leanrea"), force);
+    seedPack(QStringLiteral("deepseek-stack"), force);
     QSaveFile marker(defaultsMarker());
     if (marker.open(QIODevice::WriteOnly)) {
-        marker.write(QByteArray("Ultimate IAH default skills v2\n"));
+        marker.write(QByteArray("Ultimate IAH default skills v3\n"));
         marker.commit();
     }
+    refresh();
+    return true;
+}
+
+bool SkillManager::installPack(const QString &pack) {
+    if (pack != QLatin1String("core") && pack != QLatin1String("leanrea")
+        && pack != QLatin1String("deepseek-stack"))
+        return false;
+    QDir().mkpath(m_root);
+    seedPack(pack, true);
     refresh();
     return true;
 }
@@ -224,6 +346,7 @@ void SkillManager::refresh() {
                 {"id", entry.fileName()}, {"name", name}, {"description", description},
                 {"path", file}, {"scope", root.second}, {"tags", tags},
                 {"default", defaultSkillIds().contains(entry.fileName())},
+                {"pack", packFor(entry.fileName())},
             });
         }
     }

@@ -1,0 +1,2 @@
+leanrea source=https://github.com/aicodeking/leanrea commit=09ba4aa license=MIT
+deepseek-stack source=https://github.com/aicodeking/deepseek-stack commit=d4f1ebe license=MIT

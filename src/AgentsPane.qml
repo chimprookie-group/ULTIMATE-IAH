@@ -396,6 +396,33 @@ Item {
                 }
 
                 Repeater {
+                    model: skills.packs
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: packRow.implicitHeight + design.space2
+                        radius: design.radiusSm
+                        color: theme.background
+                        border.width: 1
+                        border.color: theme.border
+                        RowLayout {
+                            id: packRow
+                            anchors.fill: parent
+                            anchors.margins: design.space2
+                            spacing: design.space2
+                            ThemedIcon { source: "icons/skill.svg"; width: 14; height: 14; color: theme.accent }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Text { Layout.fillWidth: true; text: modelData.name + "  ·  " + modelData.installed + " / " + modelData.total; color: theme.text; font.pixelSize: design.textMicro; font.weight: Font.DemiBold }
+                                Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: 8; elide: Text.ElideRight }
+                            }
+                            Text { text: modelData.license; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
+                            GhostButton { text: qsTr("Installer"); font.pixelSize: 8; onClicked: { skills.installPack(modelData.id); Window.window.showToast(qsTr("Pack installé : %1").arg(modelData.name)) } }
+                        }
+                    }
+                }
+
+                Repeater {
                     model: skills.skills
                     RowLayout {
                         Layout.fillWidth: true

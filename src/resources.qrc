@@ -129,5 +129,39 @@
         <file>agent/BEHAVIOR.md</file>
         <file>i18n/en.json</file>
         <file>i18n/fr.json</file>
+        <file>skills/packs/SOURCES.txt</file>
+        <file>skills/packs/deepseek-stack/LICENSE</file>
+        <file>skills/packs/deepseek-stack/ds-adopt/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-best-of-n/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-blast-radius/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-blueprint/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-catchup/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-context-reset/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-design/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-design-audit/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-explain/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-help/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-jury/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-ledger/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-lessons/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-mode/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-plan-loop/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-pr/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-pr-comments/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-principles/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-ready/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-review-loop/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-revive/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-sharpen/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-ship/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-swarm/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-tdd/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-unslop/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-unstick/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-verify-loop/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-watch-pr/SKILL.md</file>
+        <file>skills/packs/deepseek-stack/ds-watch-pr/scripts/watch_pr.py</file>
+        <file>skills/packs/leanrea/LICENSE</file>
+        <file>skills/packs/leanrea/SKILL.md</file>
     </qresource>
 </RCC>

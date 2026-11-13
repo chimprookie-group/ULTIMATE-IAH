@@ -13,7 +13,7 @@ installe via `pkexec`, initialise les skills/4Crasy et exécute `doctor`.
 ## Paquet système
 
 ```bash
-sudo pacman -U ultimate-iah-1.19.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ultimate-iah-1.20.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git et
