@@ -211,9 +211,11 @@ Item {
     }
 
     function reasoningLabel(seconds) {
-        if (seconds >= 60) return qsTr("Réflexion approfondie depuis %1m %2s").arg(Math.floor(seconds / 60)).arg(seconds % 60)
-        if (seconds > 0) return qsTr("Réflexion approfondie · %1 s").arg(seconds)
-        return qsTr("Réflexion approfondie")
+        if (seconds <= 0) return qsTr("Réflexion approfondie")
+        const duration = seconds >= 60
+            ? qsTr("%1m %2s").arg(Math.floor(seconds / 60)).arg(seconds % 60)
+            : qsTr("%1 s").arg(Math.round(seconds))
+        return qsTr("Réflexion approfondie depuis %1").arg(duration)
     }
 
     function todoCount(status) {
@@ -631,53 +633,66 @@ Item {
                                 }
                             }
 
-                            Rectangle {
+                            Item {
                                 id: reasoningBlock
                                 visible: modelData.role === "reasoning"
                                 width: parent.width
-                                implicitHeight: reasoningColumn.implicitHeight + design.space3
+                                implicitHeight: reasoningColumn.implicitHeight
                                 height: implicitHeight
-                                radius: design.radiusMd
-                                color: "transparent"
-                                border.width: 1
-                                border.color: theme.border
-                                ColumnLayout {
+
+                                Column {
                                     id: reasoningColumn
-                                    anchors.fill: parent
-                                    anchors.margins: design.space2
-                                    spacing: 3
-                                    RowLayout {
-                                        Layout.fillWidth: true
-                                        spacing: design.space2
-                                        ThemedIcon { source: "icons/spark.svg"; width: 13; height: 13; color: theme.mutedText }
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: root.reasoningLabel(modelData.seconds || 0)
-                                            color: theme.mutedText
-                                            font.family: backend.monoFont
-                                            font.pixelSize: design.textMicro
-                                            elide: Text.ElideRight
-                                        }
-                                        Text {
-                                            text: modelData.expanded ? qsTr("Masquer") : qsTr("Voir")
-                                            color: theme.accent
-                                            font.pixelSize: design.textMicro
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: ultimateAgent.toggleToolDetails(model.index)
+                                    width: parent.width
+                                    spacing: design.space1
+
+                                    Item {
+                                        width: parent.width
+                                        height: reasoningHeader.implicitHeight + 4
+                                        RowLayout {
+                                            id: reasoningHeader
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: design.space2
+                                            ThemedIcon { source: "icons/spark.svg"; width: 13; height: 13; color: theme.mutedText }
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: root.reasoningLabel(modelData.seconds || 0)
+                                                      + (modelData.expanded ? "" : " \u2026")
+                                                color: theme.mutedText
+                                                font.pixelSize: design.textMicro
+                                                elide: Text.ElideRight
+                                            }
+                                            ThemedIcon {
+                                                source: "icons/chevron.svg"
+                                                rotation: modelData.expanded ? 270 : 90
+                                                width: 10
+                                                height: 10
+                                                color: theme.dimText
                                             }
                                         }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: ultimateAgent.toggleToolDetails(model.index)
+                                        }
                                     }
-                                    Text {
-                                        Layout.fillWidth: true
+
+                                    Item {
+                                        width: parent.width
+                                        height: reasoningText.implicitHeight
                                         visible: !!modelData.expanded
-                                        text: modelData.text || ""
-                                        color: theme.dimText
-                                        font.pixelSize: design.textCaption
-                                        wrapMode: Text.Wrap
-                                        maximumLineCount: 40
-                                        elide: Text.ElideRight
+                                        Text {
+                                            id: reasoningText
+                                            x: 21
+                                            width: parent.width - 21
+                                            text: modelData.text || ""
+                                            color: theme.dimText
+                                            font.pixelSize: design.textCaption
+                                            wrapMode: Text.Wrap
+                                            maximumLineCount: 60
+                                            elide: Text.ElideRight
+                                        }
                                     }
                                 }
                             }
