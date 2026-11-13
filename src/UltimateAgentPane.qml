@@ -828,41 +828,6 @@ Item {
 
                 }
 
-                Rectangle {
-                    id: scrollToEndBar
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.bottomMargin: design.space1
-                    visible: root.showScrollButton && !root.empty
-                    implicitWidth: scrollEndRow.implicitWidth + design.space4
-                    implicitHeight: 30
-                    radius: 15
-                    color: theme.raised
-                    border.width: 1
-                    border.color: theme.borderStrong
-                    RowLayout {
-                        id: scrollEndRow
-                        anchors.centerIn: parent
-                        spacing: design.space1
-                        ThemedIcon {
-                            source: "icons/chevron.svg"
-                            rotation: 90
-                            width: 11
-                            height: 11
-                            color: theme.accent
-                        }
-                        Text {
-                            text: qsTr("Aller à la fin")
-                            color: theme.accent
-                            font.pixelSize: design.textMicro
-                        }
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.scrollToBottomAnimated()
-                    }
-                }
-
                 // Todo plan
                 Rectangle {
                     id: todoPanel
@@ -1077,6 +1042,42 @@ Item {
                                 color: theme.dimText
                                 font.pixelSize: design.textBody
                                 elide: Text.ElideRight
+                            }
+                        }
+
+                        Rectangle {
+                            id: composerScrollButton
+                            visible: root.showScrollButton && !root.empty
+                            Layout.alignment: Qt.AlignVCenter
+                            implicitWidth: 56
+                            implicitHeight: 28
+                            radius: 14
+                            color: scrollMouse.containsMouse ? theme.chip : "transparent"
+                            border.width: 1
+                            border.color: scrollMouse.containsMouse ? theme.borderStrong : theme.border
+                            Accessible.name: qsTr("Aller à la fin de la conversation")
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: 3
+                                ThemedIcon {
+                                    source: "icons/chevron.svg"
+                                    rotation: 90
+                                    width: 10
+                                    height: 10
+                                    color: theme.accent
+                                }
+                                Text {
+                                    text: qsTr("Fin")
+                                    color: theme.accent
+                                    font.pixelSize: design.textMicro
+                                }
+                            }
+                            MouseArea {
+                                id: scrollMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.scrollToBottomAnimated()
                             }
                         }
 
