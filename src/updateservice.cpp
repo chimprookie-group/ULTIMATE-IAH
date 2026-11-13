@@ -41,6 +41,20 @@ QString UpdateService::releaseApi() const {
     return QStringLiteral("https://api.github.com/repos/chimprookie-group/ULTIMATE-IAH/releases/latest");
 }
 
+QString UpdateService::githubToken() const {
+    const QString gh = QStandardPaths::findExecutable(QStringLiteral("gh"));
+    if (gh.isEmpty())
+        return {};
+    QProcess process;
+    process.setProcessChannelMode(QProcess::SeparateChannels);
+    process.start(gh, {QStringLiteral("auth"), QStringLiteral("token")});
+    if (!process.waitForStarted(1000) || !process.waitForFinished(2000))
+        return {};
+    if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+        return {};
+    return QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+}
+
 QString UpdateService::statusText() const {
     if (m_installed)
         return tr("Installation terminée · redémarrez Ultimate IAH");
@@ -108,6 +122,9 @@ void UpdateService::checkNow() {
     QNetworkRequest request{QUrl(releaseApi())};
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateIAH/") + currentVersion());
     request.setRawHeader("Accept", "application/vnd.github+json");
+    const QString token = githubToken();
+    if (!token.isEmpty())
+        request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
     QNetworkReply *reply = m_network->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] {
         const QByteArray data = reply->readAll();
@@ -172,6 +189,9 @@ void UpdateService::downloadChecksum() {
     QNetworkRequest request{QUrl(m_checksumUrl)};
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateIAH/") + currentVersion());
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    const QString token = githubToken();
+    if (!token.isEmpty())
+        request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
     QNetworkReply *reply = m_network->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] {
         const QByteArray data = reply->readAll();
@@ -198,6 +218,9 @@ void UpdateService::downloadPackage() {
     QNetworkRequest request{QUrl(m_packageUrl)};
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("UltimateIAH/") + currentVersion());
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    const QString token = githubToken();
+    if (!token.isEmpty())
+        request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
     QNetworkReply *reply = m_network->get(request);
     connect(reply, &QNetworkReply::downloadProgress, this, [this](qint64 received, qint64 total) {
         if (total > 0)

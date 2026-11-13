@@ -64,6 +64,7 @@ private:
     void verifyAndInstall();
     QString cacheDirectory() const;
     QString releaseApi() const;
+    QString githubToken() const;
 
     QNetworkAccessManager *m_network = nullptr;
     QTimer *m_startupTimer = nullptr;
