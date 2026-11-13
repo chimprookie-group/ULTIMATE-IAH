@@ -8,12 +8,12 @@ ScrollBar {
 
     policy: ScrollBar.AsNeeded
     padding: 0
-    implicitWidth: 6
-    implicitHeight: 6
+    implicitWidth: 8
+    implicitHeight: 8
 
     contentItem: Rectangle {
-        implicitWidth: 4
-        implicitHeight: 4
+        implicitWidth: 6
+        implicitHeight: 6
         radius: Math.min(width, height) / 2
         color: root.pressed ? theme.accent
                             : (root.hovered ? theme.mutedText : theme.dimText)

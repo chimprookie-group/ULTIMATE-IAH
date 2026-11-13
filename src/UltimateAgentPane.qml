@@ -145,6 +145,7 @@ Item {
         const value = String(text).trim()
         if ((value === "" && ultimateAgent.pendingAttachments.length === 0) || ultimateAgent.busy)
             return
+        root.followOutput = true
         ultimateAgent.sendMessage(value)
         composerField.text = ""
     }
@@ -157,10 +158,11 @@ Item {
     property bool showScrollButton: false
     property real lastContentY: 0
 
-    function nearBottom() {
+    function nearBottom(threshold) {
         if (messageList.count === 0)
             return true
-        return messageList.contentHeight - (messageList.contentY + messageList.height) < 80
+        const limit = threshold === undefined ? 80 : threshold
+        return messageList.contentHeight - (messageList.contentY + messageList.height) < limit
     }
 
     function scrollToBottom(force) {
@@ -444,12 +446,10 @@ Item {
                                 root.showScrollButton = !root.nearBottom() && count > 0
                         }
                         onCountChanged: root.showScrollButton = !root.nearBottom() && count > 0
-                        onMovementEnded: root.followOutput = root.nearBottom()
-                        onFlickEnded: root.followOutput = root.nearBottom()
+                        onMovementEnded: root.followOutput = root.nearBottom(8)
+                        onFlickEnded: root.followOutput = root.nearBottom(8)
                         onContentYChanged: {
-                            if (root.nearBottom())
-                                root.followOutput = true
-                            else if (contentY < root.lastContentY - 2)
+                            if (contentY < root.lastContentY - 2)
                                 root.followOutput = false
                             root.showScrollButton = !root.nearBottom() && count > 0
                             root.lastContentY = contentY
