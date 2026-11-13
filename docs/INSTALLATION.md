@@ -13,7 +13,7 @@ exécute `doctor`.
 ## Paquet système
 
 ```bash
-pkexec pacman -U ultimate-iah-1.25.0-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.1-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git,
