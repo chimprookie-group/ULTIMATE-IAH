@@ -64,6 +64,8 @@ class UltimateAgent : public QObject {
     Q_PROPERTY(QString permissionMode READ permissionMode WRITE setPermissionMode NOTIFY permissionModeChanged)
     Q_PROPERTY(QStringList modelOptions READ modelOptions NOTIFY endpointChanged)
     Q_PROPERTY(QString modelId READ modelId WRITE setModelId NOTIFY endpointChanged)
+    Q_PROPERTY(QVariantList modelChoices READ modelChoices NOTIFY endpointChanged)
+    Q_PROPERTY(QString modelChoice READ modelChoice WRITE setModelChoice NOTIFY endpointChanged)
     Q_PROPERTY(QString reasoningEffort READ reasoningEffort WRITE setReasoningEffort NOTIFY endpointChanged)
 
 public:
@@ -104,6 +106,9 @@ public:
     QString permissionMode() const { return m_permissionMode; }
     QStringList modelOptions() const;
     QString modelId() const;
+    QVariantList modelChoices() const;
+    QString modelChoice() const;
+    void setModelChoice(const QString &choice);
     QString reasoningEffort() const { return m_reasoningEffort; }
     void setPermissionMode(const QString &mode);
     void setModelId(const QString &model);

@@ -190,17 +190,17 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
         id = m_conversations->create(tr("Nouvelle discussion"), {}, {});
     loadConversation(id);
     QObject::connect(m_skills, &SkillManager::changed, this, &UltimateAgent::skillsChanged);
+    if (m_connections) {
+        QObject::connect(m_connections, &HarnessConnections::changed,
+                         this, [this] { refreshEndpoint(); });
+    }
     refreshEndpoint();
 }
 
 void UltimateAgent::refreshEndpoint() {
     m_endpoint = resolveEndpoint();
-    const QString model = m_endpoint.valid() ? m_endpoint.model : tr("Non configuré");
-    const QString label = m_endpoint.valid() ? m_endpoint.label : tr("Aucun provider");
-    if (model == m_modelLabel && label == m_endpointLabel)
-        return;
-    m_modelLabel = model;
-    m_endpointLabel = label;
+    m_modelLabel = m_endpoint.valid() ? m_endpoint.model : tr("Non configuré");
+    m_endpointLabel = m_endpoint.valid() ? m_endpoint.label : tr("Aucun provider");
     emit endpointChanged();
 }
 
@@ -820,6 +820,63 @@ QStringList UltimateAgent::modelOptions() const {
 
 QString UltimateAgent::modelId() const {
     return m_endpoint.valid() ? m_endpoint.model : m_modelOverride;
+}
+
+QVariantList UltimateAgent::modelChoices() const {
+    QVariantList choices;
+    if (!m_connections)
+        return choices;
+    for (const QVariant &value : m_connections->providers()) {
+        const QVariantMap provider = value.toMap();
+        const QString providerId = provider.value(QStringLiteral("id")).toString();
+        QString providerName = provider.value(QStringLiteral("name")).toString();
+        if (providerName.isEmpty())
+            providerName = providerId;
+        for (const QString &model : provider.value(QStringLiteral("models")).toStringList()) {
+            if (model.isEmpty())
+                continue;
+            choices.append(QVariantMap{
+                {QStringLiteral("provider"), providerId},
+                {QStringLiteral("model"), model},
+                {QStringLiteral("label"), providerName + QStringLiteral(" · ") + model},
+                {QStringLiteral("value"), providerId + QLatin1Char('/') + model}});
+        }
+    }
+    return choices;
+}
+
+QString UltimateAgent::modelChoice() const {
+    if (!m_connections)
+        return {};
+    const QString provider = m_connections->defaultProvider();
+    const QString model = m_endpoint.valid() ? m_endpoint.model : m_connections->defaultModelId();
+    if (provider.isEmpty() || model.isEmpty())
+        return {};
+    return provider + QLatin1Char('/') + model;
+}
+
+void UltimateAgent::setModelChoice(const QString &choice) {
+    if (!m_connections || choice.isEmpty())
+        return;
+    const int slash = choice.indexOf(QLatin1Char('/'));
+    if (slash <= 0 || slash >= choice.size() - 1)
+        return;
+    const QString providerId = choice.left(slash);
+    const QString model = choice.mid(slash + 1);
+    bool known = false;
+    for (const QVariant &value : m_connections->providers()) {
+        const QVariantMap provider = value.toMap();
+        if (provider.value(QStringLiteral("id")).toString() == providerId
+            && provider.value(QStringLiteral("models")).toStringList().contains(model)) {
+            known = true;
+            break;
+        }
+    }
+    if (!known)
+        return;
+    m_connections->setDefault(providerId, model);
+    m_modelOverride.clear();
+    refreshEndpoint();
 }
 
 void UltimateAgent::setModelId(const QString &model) {

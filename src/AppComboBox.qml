@@ -54,8 +54,8 @@ ComboBox {
         highlighted: control.highlightedIndex === index
 
         contentItem: Text {
-            text: control.textRole
-                  ? (Array.isArray(control.model) ? model[control.textRole] : modelData[control.textRole])
+            text: control.textRole && modelData && modelData[control.textRole] !== undefined
+                  ? modelData[control.textRole]
                   : modelData
             color: item.highlighted ? theme.brightText : theme.text
             font.family: backend.uiFont
