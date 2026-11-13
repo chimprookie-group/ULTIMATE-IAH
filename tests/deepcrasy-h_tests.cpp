@@ -333,6 +333,41 @@ private slots:
         qunsetenv("DSH_HOME");
     }
 
+    void providerDetectionReadsModelsFromTheApi()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QByteArray previousHome = qgetenv("DSH_HOME");
+        qputenv("DSH_HOME", dir.path().toUtf8());
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+        auto replied = std::make_shared<bool>(false);
+        connect(&server, &QTcpServer::newConnection, &server, [&server, replied] {
+            QTcpSocket *socket = server.nextPendingConnection();
+            connect(socket, &QTcpSocket::readyRead, socket, [socket, replied] {
+                if (*replied) return;
+                *replied = true;
+                socket->readAll();
+                const QByteArray body = "{\"data\":[{\"id\":\"alpha\"},{\"id\":\"beta\",\"name\":\"Beta\"}]}";
+                socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                              + QByteArray::number(body.size()) + "\r\n\r\n" + body);
+                socket->flush();
+            });
+        });
+        HarnessConnections connections(dir.path() + "/connections.patch.yml");
+        QSignalSpy spy(&connections, &HarnessConnections::detectedModelsChanged);
+        connections.detectModelsFor(QString("http://127.0.0.1:%1/v1").arg(server.serverPort()),
+                                    "test-key", "openai-completions");
+        QVERIFY(spy.wait(8000));
+        QCOMPARE(connections.detectedModels().size(), 2);
+        QCOMPARE(connections.detectedModels().at(0).toMap().value("id").toString(), QString("alpha"));
+        QCOMPARE(connections.detectedModels().at(1).toMap().value("name").toString(), QString("Beta"));
+        if (previousHome.isEmpty())
+            qunsetenv("DSH_HOME");
+        else
+            qputenv("DSH_HOME", previousHome);
+    }
+
     void providerModelDetectionParsesCommonShapes()
     {
         const QJsonObject openai{{"data", QJsonArray{
