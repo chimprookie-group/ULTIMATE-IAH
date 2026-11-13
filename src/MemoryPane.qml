@@ -118,7 +118,7 @@ Item {
                         Layout.preferredWidth: 128
                         spacing: 3
                         Text { text: qsTr("Type"); color: theme.dimText; font.pixelSize: design.textCaption }
-                        ComboBox {
+                        AppComboBox {
                             id: kindBox
                             Layout.fillWidth: true
                             model: ["note", "fact", "decision", "preference", "task", "result"]

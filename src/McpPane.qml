@@ -143,7 +143,7 @@ Item {
                         Layout.maximumWidth: 180
                         spacing: 3
                         Text { text: qsTr("Transport"); color: theme.dimText; font.pixelSize: design.textCaption }
-                        ComboBox {
+                        AppComboBox {
                             id: transportBox
                             Layout.fillWidth: true
                             model: ["stdio", "HTTP"]

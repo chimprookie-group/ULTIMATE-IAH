@@ -177,13 +177,13 @@ Item {
                         Layout.fillWidth: true
                         spacing: 3
                         Text { text: qsTr("Planification"); color: theme.dimText; font.pixelSize: design.textCaption }
-                        ComboBox { id: plannerBox; Layout.fillWidth: true; model: agents.profiles; textRole: "name"; valueRole: "id"; font.pixelSize: 8 }
+                        AppComboBox { id: plannerBox; Layout.fillWidth: true; model: agents.profiles; textRole: "name"; valueRole: "id"; font.pixelSize: 8 }
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 3
                         Text { text: qsTr("Exécution"); color: theme.dimText; font.pixelSize: design.textCaption }
-                        ComboBox {
+                        AppComboBox {
                             id: builderBox
                             Layout.fillWidth: true
                             model: agents.profiles
@@ -197,7 +197,7 @@ Item {
                         Layout.fillWidth: true
                         spacing: 3
                         Text { text: qsTr("Revue"); color: theme.dimText; font.pixelSize: design.textCaption }
-                        ComboBox {
+                        AppComboBox {
                             id: reviewerBox
                             Layout.fillWidth: true
                             model: agents.profiles

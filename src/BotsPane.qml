@@ -571,7 +571,7 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                ComboBox {
+                AppComboBox {
                     id: permissionBox
                     Layout.fillWidth: true
                     model: [qsTr("Lecture seule"), qsTr("Écriture workspace")]

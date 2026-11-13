@@ -175,7 +175,7 @@ Item {
                     ColumnLayout {
                         Layout.fillWidth: true
                         Text { text: qsTr("Stratégie"); color: theme.dimText; font.pixelSize: design.textMicro }
-                        ComboBox {
+                        AppComboBox {
                             id: strategyBox
                             Layout.fillWidth: true
                             model: [qsTr("Free"), qsTr("Balanced"), qsTr("Quality")]

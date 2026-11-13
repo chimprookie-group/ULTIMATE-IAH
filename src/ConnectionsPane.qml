@@ -235,7 +235,7 @@ Item {
                         placeholderText: qsTr("Rechercher un provider ou un modèle…")
                         onTextChanged: root.filterText = text
                     }
-                    ComboBox {
+                    AppComboBox {
                         Layout.preferredWidth: 150
                         model: root.categories
                         onActivated: root.selectedCategory = currentText
@@ -444,7 +444,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: design.space2
                 SettingsField { id: providerBase; Layout.fillWidth: true; placeholderText: qsTr("URL de base https://…") }
-                ComboBox { id: providerApi; Layout.preferredWidth: 170; model: ["OpenAI-compatible", "Anthropic Messages"]; font.pixelSize: design.textCaption }
+                AppComboBox { id: providerApi; Layout.preferredWidth: 170; model: ["OpenAI-compatible", "Anthropic Messages"]; font.pixelSize: design.textCaption }
             }
             SettingsField { id: providerKey; Layout.fillWidth: true; placeholderText: qsTr("Clé API (optionnelle pour un endpoint local)"); echoMode: TextInput.Password }
             Text { text: qsTr("Modèles, un par ligne : id=Nom affiché"); color: theme.dimText; font.pixelSize: design.textMicro }

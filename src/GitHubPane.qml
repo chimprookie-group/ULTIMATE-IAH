@@ -243,7 +243,7 @@ Item {
                             Layout.rightMargin: design.space3
                             Layout.topMargin: design.space2
                             spacing: design.space2
-                            ComboBox {
+                            AppComboBox {
                                 visible: !root.wide
                                 Layout.preferredWidth: root.wide ? 190 : 150
                                 model: gitHub.repositories
