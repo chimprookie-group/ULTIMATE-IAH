@@ -348,6 +348,7 @@ Item {
             Layout.maximumWidth: 1200
             Layout.leftMargin: root.outerMargin
             Layout.rightMargin: root.outerMargin
+            Layout.topMargin: design.space3
             Layout.bottomMargin: design.space3
             spacing: design.space3
 
@@ -1099,14 +1100,14 @@ Item {
                 }
 
                 RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: design.space2
-                    Layout.rightMargin: design.space2
-                    Layout.topMargin: design.space1
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: design.space2
                     spacing: design.space2
 
                     AppComboBox {
-                        Layout.preferredWidth: 148
+                        implicitHeight: 30
+                        font.pixelSize: design.textMicro
+                        Layout.preferredWidth: 132
                         model: [qsTr("Accès complet"), qsTr("Lecture seule")]
                         currentIndex: ultimateAgent.permissionMode === "read-only" ? 1 : 0
                         onActivated: function (index) {
@@ -1115,7 +1116,9 @@ Item {
                     }
                     AppComboBox {
                         visible: ultimateAgent.modelChoices.length > 0
-                        Layout.preferredWidth: 250
+                        implicitHeight: 30
+                        font.pixelSize: design.textMicro
+                        Layout.preferredWidth: 230
                         model: ultimateAgent.modelChoices
                         textRole: "label"
                         currentIndex: {
@@ -1132,22 +1135,23 @@ Item {
                         }
                     }
                     AppComboBox {
-                        Layout.preferredWidth: 118
+                        implicitHeight: 30
+                        font.pixelSize: design.textMicro
+                        Layout.preferredWidth: 108
                         model: [qsTr("Auto"), qsTr("Faible"), qsTr("Moyen"), qsTr("Élevé")]
                         currentIndex: root.effortIndex()
                         onActivated: function (index) {
                             ultimateAgent.reasoningEffort = ["", "low", "medium", "high"][index]
                         }
                     }
-                    Item { Layout.fillWidth: true }
                 }
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.leftMargin: design.space2
                     Layout.rightMargin: design.space2
-                    Layout.topMargin: 2
-                    Layout.bottomMargin: design.space1
+                    Layout.topMargin: 4
+                    Layout.bottomMargin: design.space2
                     text: qsTr("%1 tours, %2 étapes").arg(ultimateAgent.turnCount).arg(ultimateAgent.stepCount)
                           + " · " + qsTr("%1 jetons/s").arg(Math.round(ultimateAgent.tokensPerSecond))
                           + " · " + qsTr("Jeton %1").arg(root.formatTokens(ultimateAgent.promptTokens + ultimateAgent.completionTokens))
