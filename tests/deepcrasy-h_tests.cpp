@@ -639,6 +639,12 @@ private slots:
         const QJsonObject loopback = web.fetch("http://localhost/private");
         QVERIFY(!loopback.value("ok").toBool());
         QCOMPARE(loopback.value("code").toString(), QString("WEB_PRIVATE_HOST"));
+        const QJsonObject dotted = web.fetch("http://localhost.:9/private");
+        QVERIFY(!dotted.value("ok").toBool());
+        QCOMPARE(dotted.value("code").toString(), QString("WEB_PRIVATE_HOST"));
+        const QJsonObject mapped = web.fetch("http://[::ffff:127.0.0.1]:9/private");
+        QVERIFY(!mapped.value("ok").toBool());
+        QCOMPARE(mapped.value("code").toString(), QString("WEB_PRIVATE_HOST"));
     }
 
     void updateVersionComparisonRejectsDowngrades()
