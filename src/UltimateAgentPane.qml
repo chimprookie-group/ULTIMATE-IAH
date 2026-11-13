@@ -43,6 +43,18 @@ Item {
         return names.join(", ")
     }
 
+    function toolRun(start) {
+        var result = []
+        var messages = ultimateAgent.messages
+        for (var i = start; i < messages.length && messages[i].role === "tool"; ++i) {
+            var item = {}
+            for (var field in messages[i]) item[field] = messages[i][field]
+            item.index = i
+            result.push(item)
+        }
+        return result
+    }
+
     function toggleGroup(key) {
         var copy = {}
         for (var name in expandedGroups) copy[name] = expandedGroups[name]
@@ -50,36 +62,7 @@ Item {
         expandedGroups = copy
     }
 
-    function buildTimeline() {
-        var rows = []
-        var pending = []
-        function flush() {
-            if (pending.length > 0) {
-                rows.push({ role: "steps", items: pending, key: pending[0].index })
-                pending = []
-            }
-        }
-        var messages = ultimateAgent.messages
-        for (var i = 0; i < messages.length; ++i) {
-            var message = messages[i]
-            if (message.role === "tool") {
-                var item = {}
-                for (var field in message) item[field] = message[field]
-                item.index = i
-                pending.push(item)
-            } else {
-                flush()
-                var row = {}
-                for (var field2 in message) row[field2] = message[field2]
-                row.index = i
-                rows.push(row)
-            }
-        }
-        flush()
-        return rows
-    }
 
-    readonly property var timeline: buildTimeline()
 
     readonly property var commands: [
         { id: "new", label: "/new", detail: qsTr("Nouvelle discussion") },
@@ -170,11 +153,34 @@ Item {
         root.send(text)
     }
 
-    function scrollToBottom() {
+    property bool followOutput: true
+    property bool showScrollButton: false
+    property real lastContentY: 0
+
+    function nearBottom() {
+        if (messageList.count === 0)
+            return true
+        return messageList.contentHeight - (messageList.contentY + messageList.height) < 80
+    }
+
+    function scrollToBottom(force) {
+        if (!force && !root.followOutput)
+            return
         Qt.callLater(function () {
             if (messageList.count > 0)
                 messageList.positionViewAtEnd()
         })
+    }
+
+    function scrollToBottomAnimated() {
+        root.followOutput = true
+        const target = Math.max(0, messageList.contentHeight - messageList.height)
+        if (target <= 0 || Math.abs(messageList.contentY - target) < 2)
+            return
+        scrollAnimation.stop()
+        scrollAnimation.from = messageList.contentY
+        scrollAnimation.to = target
+        scrollAnimation.start()
     }
 
     function openRename(id, title) {
@@ -248,6 +254,11 @@ Item {
                 Qt.callLater(function () { welcomeScroll.contentY = 0 })
         }
         function onBusyChanged() { if (!ultimateAgent.busy) root.scrollToBottom() }
+        function onConversationIdChanged() {
+            root.followOutput = true
+            root.showScrollButton = false
+            root.scrollToBottom(true)
+        }
     }
 
     ColumnLayout {
@@ -418,17 +429,32 @@ Item {
                         anchors.bottomMargin: design.space2
                         clip: true
                         spacing: design.space3
-                        model: root.timeline
+                        model: ultimateAgent.messages
+                        reuseItems: true
+                        cacheBuffer: 600
                         boundsBehavior: Flickable.StopAtBounds
+                        onContentHeightChanged: if (root.followOutput) root.scrollToBottom()
+                        onMovementEnded: root.followOutput = root.nearBottom()
+                        onFlickEnded: root.followOutput = root.nearBottom()
+                        onContentYChanged: {
+                            if (root.nearBottom())
+                                root.followOutput = true
+                            else if (contentY < root.lastContentY - 2 && !scrollAnimation.running)
+                                root.followOutput = false
+                            root.showScrollButton = !root.nearBottom() && count > 0
+                            root.lastContentY = contentY
+                        }
                         ScrollBar.vertical: AppScrollBar { policy: ultimateAgent.messages.length > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
 
                         delegate: Item {
+                            id: delegateItem
+                            readonly property bool hiddenTool: modelData.role === "tool"
+                                && index > 0 && ultimateAgent.messages[index - 1].role === "tool"
                             width: ListView.view.width - design.space3
-                            height: Math.max(userBlock.visible ? userBlock.height : 0,
+                            height: hiddenTool ? 0 : Math.max(userBlock.visible ? userBlock.height : 0,
                                              Math.max(assistantBlock.visible ? assistantBlock.height : 0,
-                                                      Math.max(toolBlock.visible ? toolBlock.height : 0,
-                                                               Math.max(reasoningBlock.visible ? reasoningBlock.height : 0,
-                                                                        stepsBlock.visible ? stepsBlock.height : 0))))
+                                                      Math.max(reasoningBlock.visible ? reasoningBlock.height : 0,
+                                                               stepsBlock.visible ? stepsBlock.height : 0)))
 
                             Column {
                                 id: userBlock
@@ -516,7 +542,8 @@ Item {
 
                             Rectangle {
                                 id: stepsBlock
-                                visible: modelData.role === "steps"
+                                readonly property var items: root.toolRun(index)
+                                visible: modelData.role === "tool" && !delegateItem.hiddenTool
                                 width: parent.width
                                 implicitHeight: stepsColumn.implicitHeight + design.space3
                                 height: implicitHeight
@@ -524,7 +551,7 @@ Item {
                                 color: theme.chip
                                 border.width: 1
                                 border.color: theme.border
-                                property bool expanded: root.expandedGroups[modelData.key] === true
+                                property bool expanded: root.expandedGroups[index] === true
                                 ColumnLayout {
                                     id: stepsColumn
                                     anchors.fill: parent
@@ -533,16 +560,16 @@ Item {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: design.space2
-                                        StatusDot { size: 5; color: root.groupOk(modelData.items) ? theme.green : theme.red }
+                                        StatusDot { size: 5; color: root.groupOk(stepsBlock.items) ? theme.green : theme.red }
                                         Text {
-                                            text: qsTr("%1 étape(s)").arg(modelData.items.length)
+                                            text: qsTr("%1 étape(s)").arg(stepsBlock.items.length)
                                             color: theme.text
                                             font.family: backend.monoFont
                                             font.pixelSize: design.textCaption
                                         }
                                         Text {
                                             Layout.fillWidth: true
-                                            text: root.groupSummary(modelData.items)
+                                            text: root.groupSummary(stepsBlock.items)
                                             color: theme.dimText
                                             font.pixelSize: design.textMicro
                                             elide: Text.ElideRight
@@ -554,12 +581,12 @@ Item {
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: root.toggleGroup(modelData.key)
+                                                onClicked: root.toggleGroup(index)
                                             }
                                         }
                                     }
                                     Repeater {
-                                        model: stepsBlock.expanded ? modelData.items : []
+                                        model: stepsBlock.expanded ? stepsBlock.items : []
                                         ColumnLayout {
                                             Layout.fillWidth: true
                                             spacing: 1
@@ -647,68 +674,6 @@ Item {
                                 }
                             }
 
-                            Rectangle {
-                                id: toolBlock
-                                visible: modelData.role === "tool"
-                                width: parent.width
-                                implicitHeight: toolColumn.implicitHeight + design.space4
-                                height: implicitHeight
-                                radius: design.radiusMd
-                                color: theme.chip
-                                border.width: 1
-                                border.color: modelData.ok ? theme.border : Qt.rgba(theme.red.r, theme.red.g, theme.red.b, 0.55)
-                                ColumnLayout {
-                                    id: toolColumn
-                                    anchors.fill: parent
-                                    anchors.margins: design.space2
-                                    spacing: 3
-                                    RowLayout {
-                                        Layout.fillWidth: true
-                                        Layout.preferredHeight: 22
-                                        spacing: design.space2
-                                        StatusDot { Layout.alignment: Qt.AlignVCenter; size: 5; color: modelData.ok ? theme.green : theme.red }
-                                        Text {
-                                            Layout.alignment: Qt.AlignVCenter
-                                            Layout.preferredHeight: 22
-                                            text: modelData.tool || ""
-                                            color: theme.text
-                                            font.family: backend.monoFont
-                                            font.pixelSize: design.textCaption
-                                            verticalAlignment: Text.AlignVCenter
-                                        }
-                                        Text {
-                                            Layout.fillWidth: true
-                                            Layout.alignment: Qt.AlignVCenter
-                                            Layout.preferredHeight: 22
-                                            text: modelData.detail || ""
-                                            color: theme.dimText
-                                            font.pixelSize: design.textCaption
-                                            verticalAlignment: Text.AlignVCenter
-                                            elide: Text.ElideRight
-                                        }
-                                        Text {
-                                            Layout.alignment: Qt.AlignVCenter
-                                            Layout.preferredHeight: 22
-                                            text: modelData.expanded ? qsTr("Masquer") : qsTr("Détails")
-                                            color: theme.accent
-                                            font.pixelSize: design.textMicro
-                                            verticalAlignment: Text.AlignVCenter
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ultimateAgent.toggleToolDetails(model.index) }
-                                        }
-                                    }
-                                    Text {
-                                        Layout.fillWidth: true
-                                        visible: !!modelData.expanded
-                                        text: modelData.payload || ""
-                                        color: theme.dimText
-                                        font.family: backend.monoFont
-                                        font.pixelSize: design.textMicro
-                                        wrapMode: Text.WrapAnywhere
-                                        maximumLineCount: 18
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
                         }
                     }
 
@@ -850,6 +815,34 @@ Item {
                                 ThemedIcon { source: "icons/shield.svg"; width: 12; height: 12; color: theme.dimText }
                                 Text { Layout.fillWidth: true; text: qsTr("Il peut agir sur votre machine. Les actions destructives demandent une confirmation explicite. Joignez des images avec le trombone."); color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap }
                             }
+                        }
+                    }
+
+                    Rectangle {
+                        id: scrollToEndButton
+                        visible: root.showScrollButton && !root.empty
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.rightMargin: design.space3
+                        anchors.bottomMargin: design.space3
+                        width: 38
+                        height: 38
+                        radius: 19
+                        color: theme.raised
+                        border.width: 1
+                        border.color: theme.borderStrong
+                        ThemedIcon {
+                            anchors.centerIn: parent
+                            source: "icons/chevron.svg"
+                            rotation: 90
+                            width: 14
+                            height: 14
+                            color: theme.accent
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.scrollToBottomAnimated()
                         }
                     }
                 }
@@ -1339,6 +1332,14 @@ Item {
                 }
             }
         }
+    }
+
+    NumberAnimation {
+        id: scrollAnimation
+        target: messageList
+        property: "contentY"
+        duration: 180
+        easing.type: Easing.OutCubic
     }
 
     FileDialog {
