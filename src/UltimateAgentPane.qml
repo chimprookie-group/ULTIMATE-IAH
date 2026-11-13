@@ -360,14 +360,35 @@ Item {
                                     spacing: 3
                                     RowLayout {
                                         Layout.fillWidth: true
+                                        Layout.preferredHeight: 22
                                         spacing: design.space2
-                                        StatusDot { size: 5; color: modelData.ok ? theme.green : theme.red }
-                                        Text { text: modelData.tool || ""; color: theme.text; font.family: backend.monoFont; font.pixelSize: design.textCaption }
-                                        Text { Layout.fillWidth: true; text: modelData.detail || ""; color: theme.dimText; font.pixelSize: design.textCaption; elide: Text.ElideRight }
+                                        StatusDot { Layout.alignment: Qt.AlignVCenter; size: 5; color: modelData.ok ? theme.green : theme.red }
                                         Text {
+                                            Layout.alignment: Qt.AlignVCenter
+                                            Layout.preferredHeight: 22
+                                            text: modelData.tool || ""
+                                            color: theme.text
+                                            font.family: backend.monoFont
+                                            font.pixelSize: design.textCaption
+                                            verticalAlignment: Text.AlignVCenter
+                                        }
+                                        Text {
+                                            Layout.fillWidth: true
+                                            Layout.alignment: Qt.AlignVCenter
+                                            Layout.preferredHeight: 22
+                                            text: modelData.detail || ""
+                                            color: theme.dimText
+                                            font.pixelSize: design.textCaption
+                                            verticalAlignment: Text.AlignVCenter
+                                            elide: Text.ElideRight
+                                        }
+                                        Text {
+                                            Layout.alignment: Qt.AlignVCenter
+                                            Layout.preferredHeight: 22
                                             text: modelData.expanded ? qsTr("Masquer") : qsTr("Détails")
                                             color: theme.accent
                                             font.pixelSize: design.textMicro
+                                            verticalAlignment: Text.AlignVCenter
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ultimateAgent.toggleToolDetails(model.index) }
                                         }
                                     }
