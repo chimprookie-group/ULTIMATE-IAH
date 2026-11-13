@@ -174,13 +174,15 @@ Item {
 
     function scrollToBottomAnimated() {
         root.followOutput = true
-        const target = Math.max(0, messageList.contentHeight - messageList.height)
-        if (target <= 0 || Math.abs(messageList.contentY - target) < 2)
-            return
-        scrollAnimation.stop()
-        scrollAnimation.from = messageList.contentY
-        scrollAnimation.to = target
-        scrollAnimation.start()
+        root.showScrollButton = false
+        Qt.callLater(function () {
+            if (messageList.count > 0)
+                messageList.positionViewAtEnd()
+            Qt.callLater(function () {
+                if (root.followOutput && messageList.count > 0)
+                    messageList.positionViewAtEnd()
+            })
+        })
     }
 
     function openRename(id, title) {
@@ -433,13 +435,19 @@ Item {
                         reuseItems: true
                         cacheBuffer: 600
                         boundsBehavior: Flickable.StopAtBounds
-                        onContentHeightChanged: if (root.followOutput) root.scrollToBottom()
+                        onContentHeightChanged: {
+                            if (root.followOutput)
+                                root.scrollToBottom()
+                            else
+                                root.showScrollButton = !root.nearBottom() && count > 0
+                        }
+                        onCountChanged: root.showScrollButton = !root.nearBottom() && count > 0
                         onMovementEnded: root.followOutput = root.nearBottom()
                         onFlickEnded: root.followOutput = root.nearBottom()
                         onContentYChanged: {
                             if (root.nearBottom())
                                 root.followOutput = true
-                            else if (contentY < root.lastContentY - 2 && !scrollAnimation.running)
+                            else if (contentY < root.lastContentY - 2)
                                 root.followOutput = false
                             root.showScrollButton = !root.nearBottom() && count > 0
                             root.lastContentY = contentY
@@ -818,32 +826,40 @@ Item {
                         }
                     }
 
-                    Rectangle {
-                        id: scrollToEndButton
-                        visible: root.showScrollButton && !root.empty
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.rightMargin: design.space3
-                        anchors.bottomMargin: design.space3
-                        width: 38
-                        height: 38
-                        radius: 19
-                        color: theme.raised
-                        border.width: 1
-                        border.color: theme.borderStrong
+                }
+
+                Rectangle {
+                    id: scrollToEndBar
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.bottomMargin: design.space1
+                    visible: root.showScrollButton && !root.empty
+                    implicitWidth: scrollEndRow.implicitWidth + design.space4
+                    implicitHeight: 30
+                    radius: 15
+                    color: theme.raised
+                    border.width: 1
+                    border.color: theme.borderStrong
+                    RowLayout {
+                        id: scrollEndRow
+                        anchors.centerIn: parent
+                        spacing: design.space1
                         ThemedIcon {
-                            anchors.centerIn: parent
                             source: "icons/chevron.svg"
                             rotation: 90
-                            width: 14
-                            height: 14
+                            width: 11
+                            height: 11
                             color: theme.accent
                         }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.scrollToBottomAnimated()
+                        Text {
+                            text: qsTr("Aller à la fin")
+                            color: theme.accent
+                            font.pixelSize: design.textMicro
                         }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.scrollToBottomAnimated()
                     }
                 }
 
@@ -1332,14 +1348,6 @@ Item {
                 }
             }
         }
-    }
-
-    NumberAnimation {
-        id: scrollAnimation
-        target: messageList
-        property: "contentY"
-        duration: 180
-        easing.type: Easing.OutCubic
     }
 
     FileDialog {
