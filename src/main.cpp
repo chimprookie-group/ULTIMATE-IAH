@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.21.1"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.21.2"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -246,6 +246,7 @@ int main(int argc, char *argv[]) {
         QFile::setPermissions(data, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
         SkillManager skills;
         skills.seedDefaults();
+        LearningEngine learning(QString(), &skills);
         CrasyRouter router;
         QTextStream(stdout) << "Ultimate IAH bootstrap\n"
                             << "config=" << config << "\n"
