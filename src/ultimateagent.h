@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QElapsedTimer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
@@ -52,6 +53,18 @@ class UltimateAgent : public QObject {
     Q_PROPERTY(QStringList activeSkills READ activeSkills NOTIFY skillsChanged)
     Q_PROPERTY(QString mode READ mode WRITE setMode NOTIFY modeChanged)
     Q_PROPERTY(int contextPercent READ contextPercent NOTIFY messagesChanged)
+    Q_PROPERTY(int turnCount READ turnCount NOTIFY statsChanged)
+    Q_PROPERTY(int stepCount READ stepCount NOTIFY statsChanged)
+    Q_PROPERTY(int promptTokens READ promptTokens NOTIFY statsChanged)
+    Q_PROPERTY(int completionTokens READ completionTokens NOTIFY statsChanged)
+    Q_PROPERTY(int cachedTokens READ cachedTokens NOTIFY statsChanged)
+    Q_PROPERTY(double tokensPerSecond READ tokensPerSecond NOTIFY statsChanged)
+    Q_PROPERTY(double cacheRate READ cacheRate NOTIFY statsChanged)
+    Q_PROPERTY(QVariantList todos READ todos NOTIFY todosChanged)
+    Q_PROPERTY(QString permissionMode READ permissionMode WRITE setPermissionMode NOTIFY permissionModeChanged)
+    Q_PROPERTY(QStringList modelOptions READ modelOptions NOTIFY endpointChanged)
+    Q_PROPERTY(QString modelId READ modelId WRITE setModelId NOTIFY endpointChanged)
+    Q_PROPERTY(QString reasoningEffort READ reasoningEffort WRITE setReasoningEffort NOTIFY endpointChanged)
 
 public:
     UltimateAgent(Backend *backend, HarnessConnections *connections,
@@ -79,8 +92,22 @@ public:
     QStringList activeSkills() const { return m_activeSkills; }
     QString mode() const { return m_mode; }
     void setMode(const QString &mode);
-    void setPermissionMode(const QString &mode) { m_permissionMode = mode == "read-only" ? "read-only" : "workspace-write"; }
     int contextPercent() const;
+    int turnCount() const;
+    int stepCount() const;
+    int promptTokens() const { return m_promptTokens; }
+    int completionTokens() const { return m_completionTokens; }
+    int cachedTokens() const { return m_cachedTokens; }
+    double tokensPerSecond() const { return m_tokensPerSecond; }
+    double cacheRate() const { return m_promptTokens > 0 ? (100.0 * m_cachedTokens) / m_promptTokens : 0.0; }
+    QVariantList todos() const { return m_todos; }
+    QString permissionMode() const { return m_permissionMode; }
+    QStringList modelOptions() const;
+    QString modelId() const;
+    QString reasoningEffort() const { return m_reasoningEffort; }
+    void setPermissionMode(const QString &mode);
+    void setModelId(const QString &model);
+    void setReasoningEffort(const QString &effort);
 
     Q_INVOKABLE void sendMessage(const QString &text);
     Q_INVOKABLE void clearConversation();
@@ -116,6 +143,9 @@ signals:
     void attachmentsChanged();
     void skillsChanged();
     void modeChanged();
+    void statsChanged();
+    void todosChanged();
+    void permissionModeChanged();
 
 private:
     struct Endpoint {
@@ -139,7 +169,10 @@ private:
     void finishWithError(const QString &message);
     void appendUser(const QString &text, const QVariantList &images);
     void appendAssistant(const QString &text);
+    void appendReasoning(const QString &text, int seconds);
     void appendTool(const QString &name, const QString &detail, bool ok, const QString &payload);
+    void resetStats();
+    void recordUsage(const QJsonObject &usage);
     void saveConversation();
     bool loadConversation(const QString &id);
     void ensureConversation();
@@ -199,6 +232,14 @@ private:
     QString m_userPrompt;
     QString m_mode = QStringLiteral("assistant");
     QString m_permissionMode = QStringLiteral("workspace-write");
+    QString m_modelOverride;
+    QString m_reasoningEffort;
+    QVariantList m_todos;
+    QElapsedTimer m_requestTimer;
+    int m_promptTokens = 0;
+    int m_completionTokens = 0;
+    int m_cachedTokens = 0;
+    double m_tokensPerSecond = 0.0;
     bool m_busy = false;
     int m_round = 0;
     int m_requestSerial = 0;

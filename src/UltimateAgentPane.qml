@@ -62,6 +62,40 @@ Item {
         historyDialog.open()
     }
 
+    function formatTokens(value) {
+        if (value >= 1000000) return (value / 1000000).toFixed(1) + " M"
+        if (value >= 1000) return (value / 1000).toFixed(1) + " k"
+        return String(value)
+    }
+
+    function reasoningLabel(seconds) {
+        if (seconds >= 60) return qsTr("Réflexion approfondie depuis %1m %2s").arg(Math.floor(seconds / 60)).arg(seconds % 60)
+        if (seconds > 0) return qsTr("Réflexion approfondie · %1 s").arg(seconds)
+        return qsTr("Réflexion approfondie")
+    }
+
+    function todoCount(status) {
+        var count = 0
+        for (var i = 0; i < ultimateAgent.todos.length; ++i) {
+            if (ultimateAgent.todos[i].status === status) ++count
+        }
+        return count
+    }
+
+    function todoSummary() {
+        const running = todoCount("in_progress")
+        const waiting = todoCount("pending")
+        if (running > 0) return qsTr("%1 en cours · %2 en attente").arg(running).arg(waiting)
+        return qsTr("%1 en attente").arg(waiting)
+    }
+
+    function effortIndex() {
+        if (ultimateAgent.reasoningEffort === "low") return 1
+        if (ultimateAgent.reasoningEffort === "medium") return 2
+        if (ultimateAgent.reasoningEffort === "high") return 3
+        return 0
+    }
+
     function modeLabel(mode) {
         if (mode === "diagnostic") return qsTr("Diagnostic")
         if (mode === "build") return qsTr("Construction")
@@ -257,7 +291,8 @@ Item {
                             width: ListView.view.width - design.space3
                             height: Math.max(userBlock.visible ? userBlock.height : 0,
                                              Math.max(assistantBlock.visible ? assistantBlock.height : 0,
-                                                      toolBlock.visible ? toolBlock.height : 0))
+                                                      Math.max(toolBlock.visible ? toolBlock.height : 0,
+                                                               reasoningBlock.visible ? reasoningBlock.height : 0)))
 
                             Column {
                                 id: userBlock
@@ -340,6 +375,57 @@ Item {
                                     wrapMode: Text.Wrap
                                     textFormat: Text.MarkdownText
                                     onLinkActivated: function (link) { Qt.openUrlExternally(link) }
+                                }
+                            }
+
+                            Rectangle {
+                                id: reasoningBlock
+                                visible: modelData.role === "reasoning"
+                                width: parent.width
+                                implicitHeight: reasoningColumn.implicitHeight + design.space3
+                                height: implicitHeight
+                                radius: design.radiusMd
+                                color: "transparent"
+                                border.width: 1
+                                border.color: theme.border
+                                ColumnLayout {
+                                    id: reasoningColumn
+                                    anchors.fill: parent
+                                    anchors.margins: design.space2
+                                    spacing: 3
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: design.space2
+                                        ThemedIcon { source: "icons/spark.svg"; width: 13; height: 13; color: theme.mutedText }
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: root.reasoningLabel(modelData.seconds || 0)
+                                            color: theme.mutedText
+                                            font.family: backend.monoFont
+                                            font.pixelSize: design.textMicro
+                                            elide: Text.ElideRight
+                                        }
+                                        Text {
+                                            text: modelData.expanded ? qsTr("Masquer") : qsTr("Voir")
+                                            color: theme.accent
+                                            font.pixelSize: design.textMicro
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: ultimateAgent.toggleToolDetails(model.index)
+                                            }
+                                        }
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        visible: !!modelData.expanded
+                                        text: modelData.text || ""
+                                        color: theme.dimText
+                                        font.pixelSize: design.textCaption
+                                        wrapMode: Text.Wrap
+                                        maximumLineCount: 40
+                                        elide: Text.ElideRight
+                                    }
                                 }
                             }
 
@@ -550,6 +636,62 @@ Item {
                     }
                 }
 
+                // Todo plan
+                Rectangle {
+                    id: todoPanel
+                    Layout.fillWidth: true
+                    Layout.leftMargin: design.space2
+                    Layout.rightMargin: design.space2
+                    Layout.bottomMargin: design.space1
+                    visible: ultimateAgent.todos.length > 0
+                    implicitHeight: todoColumn.implicitHeight + design.space2
+                    radius: design.radiusMd
+                    color: theme.raised
+                    border.width: 1
+                    border.color: theme.border
+                    property bool expanded: true
+
+                    ColumnLayout {
+                        id: todoColumn
+                        anchors.fill: parent
+                        anchors.margins: design.space2
+                        spacing: 2
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: design.space2
+                            ThemedIcon { source: "icons/check.svg"; width: 13; height: 13; color: theme.accent }
+                            Text { text: qsTr("À faire"); color: theme.brightText; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
+                            Text { Layout.fillWidth: true; text: root.todoSummary(); color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                            Text {
+                                text: todoPanel.expanded ? qsTr("Masquer") : qsTr("Afficher")
+                                color: theme.accent
+                                font.pixelSize: design.textMicro
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: todoPanel.expanded = !todoPanel.expanded }
+                            }
+                        }
+                        Repeater {
+                            model: todoPanel.expanded ? ultimateAgent.todos : []
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: design.space2
+                                Rectangle {
+                                    width: 6; height: 6; radius: 3
+                                    color: modelData.status === "completed" ? theme.green
+                                         : (modelData.status === "in_progress" ? theme.yellow : theme.dimText)
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.title
+                                    color: modelData.status === "completed" ? theme.dimText : theme.text
+                                    font.pixelSize: design.textMicro
+                                    elide: Text.ElideRight
+                                    font.strikeout: modelData.status === "completed"
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Pending image strip
                 Flow {
                     Layout.fillWidth: true
@@ -657,7 +799,7 @@ Item {
                                 anchors.rightMargin: 6
                                 anchors.topMargin: 9
                                 visible: composerField.text === ""
-                                text: qsTr("Demandez, diagnostiquez ou joignez une image…")
+                                text: qsTr("Envoyez un message ou exécutez une tâche, des commandes /, des fichiers @ ou des sessions")
                                 color: theme.dimText
                                 font.pixelSize: design.textBody
                                 elide: Text.ElideRight
@@ -690,6 +832,59 @@ Item {
                             }
                         }
                     }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: design.space2
+                    Layout.rightMargin: design.space2
+                    Layout.topMargin: design.space1
+                    spacing: design.space2
+
+                    AppComboBox {
+                        Layout.preferredWidth: 148
+                        model: [qsTr("Accès complet"), qsTr("Lecture seule")]
+                        currentIndex: ultimateAgent.permissionMode === "read-only" ? 1 : 0
+                        onActivated: function (index) {
+                            ultimateAgent.permissionMode = index === 1 ? "read-only" : "workspace-write"
+                        }
+                    }
+                    AppComboBox {
+                        visible: ultimateAgent.modelOptions.length > 0
+                        Layout.preferredWidth: 210
+                        model: ultimateAgent.modelOptions
+                        currentIndex: Math.max(0, ultimateAgent.modelOptions.indexOf(ultimateAgent.modelId))
+                        onActivated: function (index) {
+                            ultimateAgent.modelId = model[index]
+                        }
+                    }
+                    AppComboBox {
+                        Layout.preferredWidth: 118
+                        model: [qsTr("Auto"), qsTr("Faible"), qsTr("Moyen"), qsTr("Élevé")]
+                        currentIndex: root.effortIndex()
+                        onActivated: function (index) {
+                            ultimateAgent.reasoningEffort = ["", "low", "medium", "high"][index]
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.leftMargin: design.space2
+                    Layout.rightMargin: design.space2
+                    Layout.topMargin: 2
+                    Layout.bottomMargin: design.space1
+                    text: qsTr("%1 tours, %2 étapes").arg(ultimateAgent.turnCount).arg(ultimateAgent.stepCount)
+                          + " · " + qsTr("%1 jetons/s").arg(Math.round(ultimateAgent.tokensPerSecond))
+                          + " · " + qsTr("Jeton %1").arg(root.formatTokens(ultimateAgent.promptTokens + ultimateAgent.completionTokens))
+                          + " · " + qsTr("Taux de réussite du cache : %1 %").arg(Math.round(ultimateAgent.cacheRate))
+                          + " · " + ultimateAgent.contextPercent + "%"
+                    color: theme.dimText
+                    font.family: backend.monoFont
+                    font.pixelSize: 9
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
                 }
             }
         }

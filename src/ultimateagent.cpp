@@ -108,6 +108,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
         return action == QLatin1String("search") || action == QLatin1String("recent") || action == QLatin1String("stats");
     if (name == QLatin1String("ultimate_learning"))
         return action.isEmpty() || action == QLatin1String("status") || action == QLatin1String("lessons");
+    if (name == QLatin1String("ultimate_todos"))
+        return true;
     if (name == QLatin1String("ultimate_knowledge"))
         return action.isEmpty() || action == QLatin1String("status") || action == QLatin1String("search");
     if (name == QLatin1String("ultimate_skills"))
@@ -239,7 +241,9 @@ UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
                 base.chop(1);
             if (base == QLatin1String("https://api.deepseek.com"))
                 base += QStringLiteral("/v1");
-            QString model = m_connections->defaultModelId();
+            QString model = m_modelOverride;
+            if (model.isEmpty() || !models.contains(model))
+                model = m_connections->defaultModelId();
             if (!models.contains(model))
                 model = models.first();
             QString label = provider.value(QStringLiteral("name")).toString();
@@ -297,6 +301,9 @@ QString UltimateAgent::systemPrompt() const {
         prompt += QStringLiteral("Mode assistant. Réponds, explique et agis avec les outils quand "
                                  "cela apporte une preuve ou une correction concrète.");
     }
+    prompt += QStringLiteral("\n\nTÂCHES\nMaintiens la liste visible avec ultimate_todos pour toute "
+                             "tâche en plusieurs étapes. Marque une tâche in_progress avant de la "
+                             "travailler, completed dès qu'elle est vérifiée, et garde au plus six entrées.");
     if (!m_activeSkills.isEmpty() && m_skills) {
         prompt += QStringLiteral("\n\nSKILLS ACTIFS\n");
         for (const QVariant &value : m_skills->skills()) {
@@ -530,6 +537,8 @@ void UltimateAgent::runRequest() {
         {QStringLiteral("temperature"), 0.2},
         {QStringLiteral("max_tokens"), 4096},
         {QStringLiteral("stream"), false}};
+    if (!m_reasoningEffort.isEmpty())
+        body.insert(QStringLiteral("reasoning_effort"), m_reasoningEffort);
 
     QString base = m_endpoint.baseUrl;
     while (base.endsWith(QLatin1Char('/')))
@@ -540,6 +549,7 @@ void UltimateAgent::runRequest() {
     request.setRawHeader("Accept", "application/json");
     request.setTransferTimeout(120000);
 
+    m_requestTimer.start();
     m_reply = m_network->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
     QObject::connect(m_reply, &QNetworkReply::finished, this, &UltimateAgent::handleReply);
     m_timeout->start();
@@ -575,7 +585,15 @@ void UltimateAgent::handleReply() {
         finishWithError(tr("Réponse du modèle vide."));
         return;
     }
+    recordUsage(root.value(QStringLiteral("usage")).toObject());
     const QJsonObject message = choices.first().toObject().value(QStringLiteral("message")).toObject();
+    QString reasoning = message.value(QStringLiteral("reasoning_content")).toString();
+    if (reasoning.trimmed().isEmpty())
+        reasoning = message.value(QStringLiteral("reasoning")).toString();
+    if (!reasoning.trimmed().isEmpty()) {
+        const int seconds = m_requestTimer.isValid() ? int(m_requestTimer.elapsed() / 1000) : 0;
+        appendReasoning(reasoning.trimmed(), qMax(0, seconds));
+    }
     const QJsonArray calls = message.value(QStringLiteral("tool_calls")).toArray();
     if (!calls.isEmpty()) {
         QJsonObject assistant{
@@ -689,7 +707,8 @@ void UltimateAgent::toggleToolDetails(int index) {
     if (index < 0 || index >= m_ui.size())
         return;
     QVariantMap message = m_ui.at(index).toMap();
-    if (message.value(QStringLiteral("role")).toString() != QLatin1String("tool"))
+    const QString role = message.value(QStringLiteral("role")).toString();
+    if (role != QLatin1String("tool") && role != QLatin1String("reasoning"))
         return;
     message.insert(QStringLiteral("expanded"), !message.value(QStringLiteral("expanded")).toBool());
     m_ui[index] = message;
@@ -703,10 +722,13 @@ void UltimateAgent::clearConversation() {
     clearPendingAttachments(true);
     m_api = QJsonArray();
     m_ui.clear();
+    m_todos.clear();
+    resetStats();
     m_title = tr("Nouvelle discussion");
     m_error.clear();
     setStatus(tr("Prêt"));
     emit messagesChanged();
+    emit todosChanged();
     emit errorChanged();
     save();
 }
@@ -728,6 +750,101 @@ void UltimateAgent::appendAssistant(const QString &text) {
                             {QStringLiteral("text"), text},
                             {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
     emit messagesChanged();
+}
+
+void UltimateAgent::appendReasoning(const QString &text, int seconds) {
+    m_ui.append(QVariantMap{{QStringLiteral("role"), QStringLiteral("reasoning")},
+                            {QStringLiteral("text"), text},
+                            {QStringLiteral("seconds"), seconds},
+                            {QStringLiteral("expanded"), false},
+                            {QStringLiteral("time"), QDateTime::currentDateTime().toString(QStringLiteral("HH:mm"))}});
+    emit messagesChanged();
+}
+
+void UltimateAgent::recordUsage(const QJsonObject &usage) {
+    if (usage.isEmpty())
+        return;
+    const int prompt = usage.value(QStringLiteral("prompt_tokens")).toInt();
+    const int completion = usage.value(QStringLiteral("completion_tokens")).toInt();
+    const QJsonObject details = usage.value(QStringLiteral("prompt_tokens_details")).toObject();
+    const int cached = details.value(QStringLiteral("cached_tokens")).toInt();
+    m_promptTokens += qMax(0, prompt);
+    m_completionTokens += qMax(0, completion);
+    m_cachedTokens += qMax(0, cached);
+    if (m_requestTimer.isValid()) {
+        const qint64 elapsed = m_requestTimer.elapsed();
+        if (elapsed > 0 && completion > 0)
+            m_tokensPerSecond = (completion * 1000.0) / elapsed;
+    }
+    emit statsChanged();
+}
+
+void UltimateAgent::resetStats() {
+    m_promptTokens = 0;
+    m_completionTokens = 0;
+    m_cachedTokens = 0;
+    m_tokensPerSecond = 0.0;
+    m_requestTimer.invalidate();
+    emit statsChanged();
+}
+
+int UltimateAgent::turnCount() const {
+    int count = 0;
+    for (const QVariant &value : m_ui) {
+        if (value.toMap().value(QStringLiteral("role")).toString() == QLatin1String("user"))
+            ++count;
+    }
+    return count;
+}
+
+int UltimateAgent::stepCount() const {
+    int count = 0;
+    for (const QVariant &value : m_ui) {
+        if (value.toMap().value(QStringLiteral("role")).toString() == QLatin1String("tool"))
+            ++count;
+    }
+    return count;
+}
+
+QStringList UltimateAgent::modelOptions() const {
+    if (!m_connections)
+        return {};
+    const QString wanted = m_connections->defaultProvider();
+    for (const QVariant &value : m_connections->providers()) {
+        const QVariantMap provider = value.toMap();
+        if (wanted.isEmpty() || provider.value(QStringLiteral("id")).toString() == wanted)
+            return provider.value(QStringLiteral("models")).toStringList();
+    }
+    return {};
+}
+
+QString UltimateAgent::modelId() const {
+    return m_endpoint.valid() ? m_endpoint.model : m_modelOverride;
+}
+
+void UltimateAgent::setModelId(const QString &model) {
+    if (m_modelOverride == model)
+        return;
+    m_modelOverride = model;
+    refreshEndpoint();
+}
+
+void UltimateAgent::setReasoningEffort(const QString &effort) {
+    const QString bounded = (effort == QLatin1String("low") || effort == QLatin1String("medium")
+                             || effort == QLatin1String("high")) ? effort : QString();
+    if (m_reasoningEffort == bounded)
+        return;
+    m_reasoningEffort = bounded;
+    emit endpointChanged();
+}
+
+void UltimateAgent::setPermissionMode(const QString &mode) {
+    const QString bounded = mode == QLatin1String("read-only")
+        ? QStringLiteral("read-only") : QStringLiteral("workspace-write");
+    if (m_permissionMode == bounded)
+        return;
+    m_permissionMode = bounded;
+    emit permissionModeChanged();
 }
 
 void UltimateAgent::appendTool(const QString &name, const QString &detail, bool ok,
@@ -786,6 +903,9 @@ bool UltimateAgent::loadConversation(const QString &id) {
     m_title = data.value(QStringLiteral("title")).toString();
     m_api = data.value(QStringLiteral("api")).toArray();
     m_ui = data.value(QStringLiteral("ui")).toArray().toVariantList();
+    m_todos.clear();
+    resetStats();
+    emit todosChanged();
     if (m_ui.isEmpty() && (m_title.isEmpty()
                            || m_title == QLatin1String("New discussion")
                            || m_title == QLatin1String("Nouvelle discussion"))) {
@@ -847,6 +967,9 @@ void UltimateAgent::newConversation() {
     m_title = tr("Nouvelle discussion");
     m_api = QJsonArray();
     m_ui.clear();
+    m_todos.clear();
+    resetStats();
+    emit todosChanged();
     m_error.clear();
     clearPendingAttachments(true);
     setStatus(tr("Prêt"));
@@ -1304,6 +1427,16 @@ QJsonArray UltimateAgent::tools() {
                                                QStringLiteral("clear")})},
                                 {QStringLiteral("id"), agentProperty(QStringLiteral("integer"), QStringLiteral("Proposal id for approve/reject."))}}),
                     {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_todos"),
+                    QStringLiteral("Maintain the visible task list for this conversation. Use it for any multi-step task and keep statuses current."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("set"), QStringLiteral("list"),
+                                               QStringLiteral("clear")})},
+                                {QStringLiteral("items"),
+                                 agentProperty(QStringLiteral("array"),
+                                               QStringLiteral("Items for set: [{title, status}] with status pending, in_progress or completed."))}}),
+                    {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_skills"),
                     QStringLiteral("List, read, create, restore or remove harness skills. The default library is seeded automatically."),
                     properties({{QStringLiteral("action"),
@@ -1707,6 +1840,32 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         return okResult({{QStringLiteral("stats"), QJsonObject::fromVariantMap(m_learning->stats())},
                          {QStringLiteral("lessons"), QJsonArray::fromVariantList(m_learning->lessons())},
                          {QStringLiteral("proposals"), QJsonArray::fromVariantList(m_learning->proposals())}});
+    }
+    if (name == QLatin1String("ultimate_todos")) {
+        if (action == QLatin1String("clear")) {
+            m_todos.clear();
+        } else if (action == QLatin1String("set")) {
+            QVariantList items;
+            for (const QJsonValue &value : arguments.value(QStringLiteral("items")).toArray()) {
+                const QJsonObject item = value.toObject();
+                const QString title = item.value(QStringLiteral("title")).toString().trimmed();
+                if (title.isEmpty())
+                    continue;
+                QString status = item.value(QStringLiteral("status")).toString();
+                if (status != QLatin1String("pending") && status != QLatin1String("in_progress")
+                    && status != QLatin1String("completed"))
+                    status = QStringLiteral("pending");
+                items.append(QVariantMap{{QStringLiteral("title"), title.left(200)},
+                                         {QStringLiteral("status"), status}});
+                if (items.size() >= 12)
+                    break;
+            }
+            if (items.isEmpty())
+                return errorResult(tr("Liste de tâches vide."));
+            m_todos = items;
+        }
+        emit todosChanged();
+        return okResult({{QStringLiteral("todos"), QJsonArray::fromVariantList(m_todos)}});
     }
     if (name == QLatin1String("ultimate_skills")) {
         if (!m_skills) return errorResult(tr("Skills indisponibles."));
