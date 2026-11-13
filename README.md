@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.20.2-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.21.0-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -294,6 +294,20 @@ secondaires contourés.
 - états hover/focus stables, sans déplacement de géométrie ;
 - mise en page vérifiée à 1532, 832 et 621 px.
 
+## Auto-apprentissage
+
+Ultimate IAH intègre une boucle d’apprentissage locale, active par défaut :
+
+- chaque tour agent enregistre une trajectoire ;
+- les échecs répétés et les séquences d’outils réussies deviennent des leçons ;
+- les leçons pertinentes sont réinjectées dans les prompts suivants ;
+- les skills proposés restent en attente de validation avant création de fichier ;
+- les secrets sont expurgés et les données restent dans `learning.db`.
+
+Le panneau **Apprentissage** (`Ctrl+Alt+L`) expose les événements, réussites,
+leçons, propositions, l’état du moteur et la politique de sécurité. L’outil
+`ultimate_learning` permet à l’agent de consulter et gérer cette boucle.
+
 ## Architecture
 
 ```mermaid
@@ -332,7 +346,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.20.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.21.0-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -351,7 +365,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.20.2-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.21.0-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,

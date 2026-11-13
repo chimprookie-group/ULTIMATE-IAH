@@ -27,6 +27,7 @@
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "crasyrouter.h"
+#include "learningengine.h"
 #include "updateservice.h"
 #include "theme.h"
 #include "translator.h"
@@ -678,6 +679,39 @@ private slots:
         QCOMPARE(router.strategy(), QString("quality"));
         QVERIFY(router.removeChannel("custom"));
         QCOMPARE(router.channels().size(), 8);
+    }
+
+    void learningEngineExtractsLessonsAndProposesSkills()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        SkillManager skills(dir.path() + "/skills");
+        skills.setWorkspace(dir.path());
+        LearningEngine learning(dir.path() + "/learning.db", &skills);
+        QCOMPARE(learning.stats().value("events").toInt(), 0);
+        QJsonObject trajectory{
+            {"prompt", "Corrige le bug web et vérifie le résultat"},
+            {"project", dir.path()},
+            {"ok", false},
+            {"error", "Redirection refusée"},
+            {"model", "test-model"},
+            {"tools", QJsonArray{QJsonObject{{"name", "web_fetch"}, {"ok", false},
+                                            {"detail", "Redirection refusée"}}}},
+        };
+        QVERIFY(learning.observe(trajectory).value("learned").toBool());
+        QCOMPARE(learning.stats().value("events").toInt(), 1);
+        QCOMPARE(learning.stats().value("lessons").toInt(), 1);
+        QVERIFY(learning.observe(trajectory).value("learned").toBool());
+        QCOMPARE(learning.stats().value("proposals").toInt(), 1);
+        const QString context = learning.contextFor("corrige le bug web", dir.path(), 4);
+        QVERIFY(context.contains("LEÇONS APPRISES"));
+        const QVariantList proposals = learning.proposals();
+        QVERIFY(!proposals.isEmpty());
+        const int proposalId = proposals.first().toMap().value("id").toInt();
+        QVERIFY(learning.approveProposal(proposalId));
+        QVERIFY(skills.skills().size() >= 1);
+        QVERIFY(learning.clear());
+        QCOMPARE(learning.stats().value("events").toInt(), 0);
     }
 
     void crasyRouterStartsLoopbackApiAndParsesModels()

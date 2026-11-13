@@ -30,6 +30,7 @@
         <file>skills/default/refactor.md</file>
         <file>skills/default/artcraft.md</file>
         <file>UpdateBanner.qml</file>
+        <file>LearningPane.qml</file>
         <file>CrasyPane.qml</file>
         <file>GitHubPane.qml</file>
         <file>PluginsPane.qml</file>

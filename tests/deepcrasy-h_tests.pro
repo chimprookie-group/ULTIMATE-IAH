@@ -21,6 +21,7 @@ HEADERS += \
     ../src/notestore.h \
     ../src/webservice.h \
     ../src/updateservice.h \
+    ../src/learningengine.h \
     ../src/crasyrouter.h \
     ../src/pluginmanager.h \
     ../src/terminalsession.h \
@@ -49,6 +50,7 @@ SOURCES += \
     ../src/notestore.cpp \
     ../src/webservice.cpp \
     ../src/updateservice.cpp \
+    ../src/learningengine.cpp \
     ../src/crasyrouter.cpp \
     ../src/pluginmanager.cpp \
     ../src/theme.cpp \

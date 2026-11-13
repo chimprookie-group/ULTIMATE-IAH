@@ -27,6 +27,7 @@ class WebService;
 class GitHubService;
 class CrasyRouter;
 class SkillManager;
+class LearningEngine;
 class TerminalSession;
 
 // The built-in Ultimate IAH operator. It is a small tool-calling agent loop over
@@ -58,7 +59,7 @@ public:
                   TerminalSession *terminal, InstallationDoctor *installation,
                   ConnectionDoctor *connectionDoctor, BotManager *bots, NoteStore *notes,
                   PluginManager *plugins, WebService *web, GitHubService *gitHub,
-                  CrasyRouter *crasy, QObject *parent = nullptr);
+                  CrasyRouter *crasy, LearningEngine *learning, QObject *parent = nullptr);
 
     QVariantList messages() const { return m_ui; }
     bool busy() const { return m_busy; }
@@ -150,6 +151,7 @@ private:
     void setStatus(const QString &status);
     void setError(const QString &error);
     void save();
+    void recordLearning(bool success, const QString &answer, const QString &error = {});
     void load();
     void abortReply();
     QString credentialsPath() const;
@@ -172,6 +174,7 @@ private:
     WebService *m_web = nullptr;
     GitHubService *m_gitHub = nullptr;
     CrasyRouter *m_crasy = nullptr;
+    LearningEngine *m_learning = nullptr;
     AgentConversationStore *m_conversations = nullptr;
 
     QNetworkAccessManager *m_network = nullptr;
@@ -196,4 +199,5 @@ private:
     bool m_busy = false;
     int m_round = 0;
     int m_requestSerial = 0;
+    bool m_learningRecorded = false;
 };

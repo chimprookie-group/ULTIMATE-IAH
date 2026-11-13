@@ -115,7 +115,8 @@ Item {
                             { label: qsTr("Plugins"), state: plugins.installedCount > 0 ? "running" : "stopped" },
                             { label: qsTr("Web"), state: web.searchReady ? "running" : "stopped" },
                             { label: qsTr("GitHub"), state: gitHub.authenticated ? "running" : "stopped" },
-                            { label: "4Crasy", state: crasy.running ? "running" : "stopped" }
+                            { label: "4Crasy", state: crasy.running ? "running" : "stopped" },
+                            { label: qsTr("Apprentissage"), state: learning.enabled ? "running" : "stopped" }
                         ]
                         Row {
                             spacing: design.space2
@@ -510,6 +511,15 @@ Item {
                                 stateColor: gitHub.authenticated ? theme.green : theme.dimText
                                 actionLabel: qsTr("Ouvrir")
                                 onAction: backend.setView("github")
+                            }
+
+                            ServiceRow {
+                                Layout.fillWidth: true
+                                name: qsTr("Apprentissage")
+                                detail: qsTr("%1 leçon(s) · %2 événement(s)").arg(learning.stats.lessons !== undefined ? learning.stats.lessons : 0).arg(learning.stats.events !== undefined ? learning.stats.events : 0)
+                                stateColor: learning.enabled ? theme.green : theme.dimText
+                                actionLabel: qsTr("Ouvrir")
+                                onAction: backend.setView("learning")
                             }
 
                             ServiceRow {

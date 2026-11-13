@@ -88,6 +88,7 @@ const QList<DshCapability> &dshCapabilities() {
         {"providers", "Providers", "Noyau", "Catalogue, clé DeepSeek et modèle par défaut.", true, true, "ultimate_connections", "connections"},
         {"github", "GitHub", "Noyau", "Connexion gh, dépôts, clonage, issues et pull requests.", true, true, "github_repos", "github"},
         {"4crasy", "4Crasy", "Noyau", "Routeur libre, fallback et API OpenAI-compatible.", true, true, "ultimate_router", "crasy"},
+        {"learning", "Apprentissage", "Noyau", "Boucle locale d’auto-apprentissage et de leçons.", true, true, "ultimate_learning", "learning"},
         {"plugins", "Plugins", "Noyau", "Registre natif et manifestes externes.", true, true, "ultimate_plugins", "plugins"},
         {"artcraft", "ArtCraft", "Noyau", "14 CLI créatives exposées comme outils.", true, true, "artcraft_gridcraft", "plugins"},
         {"agent-team", "Agent team", "Expérimental", "Équipe d’agents avec rôles parallèles.", false, false, "", "agents"},

@@ -155,6 +155,7 @@ Item {
 
                 SidebarGroup { title: qsTr("AUTOMATISATION"); compact: root.compact }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/agents.svg"; label: qsTr("Agents"); hint: qsTr("Missions plan → exécution → revue (Ctrl+Alt+G)"); active: backend.view === "agents"; onClicked: backend.setView("agents") }
+                SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/spark.svg"; label: qsTr("Apprentissage"); hint: qsTr("Auto-apprentissage (Ctrl+Alt+L)"); active: backend.view === "learning"; onClicked: backend.setView("learning") }
                 SidebarItem { Layout.fillWidth: true; compact: root.compact; icon: "icons/autopilot.svg"; label: qsTr("Autopilote"); hint: qsTr("Tâches autonomes (Ctrl+Alt+A)"); active: backend.view === "autopilot"; onClicked: backend.setView("autopilot") }
 
                 SidebarGroup { title: qsTr("EXÉCUTION"); compact: root.compact }
