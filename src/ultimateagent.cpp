@@ -21,6 +21,7 @@
 #include "terminalsession.h"
 
 #include <QDateTime>
+#include <QDirIterator>
 #include <QClipboard>
 #include <QDir>
 #include <QGuiApplication>
@@ -193,6 +194,13 @@ UltimateAgent::UltimateAgent(Backend *backend, HarnessConnections *connections,
     if (m_connections) {
         QObject::connect(m_connections, &HarnessConnections::changed,
                          this, [this] { refreshEndpoint(); });
+    }
+    if (m_backend) {
+        QObject::connect(m_backend, &Backend::workspaceChanged, this, [this] {
+            m_fileCache.clear();
+            m_fileCacheRoot.clear();
+            m_fileCacheAt.invalidate();
+        });
     }
     refreshEndpoint();
 }
@@ -1159,6 +1167,40 @@ int UltimateAgent::contextPercent() const {
         characters += message.value(QStringLiteral("tool_calls")).toArray().size() * 400;
     }
     return qBound(0, (characters / 4) * 100 / 128000, 100);
+}
+
+QStringList UltimateAgent::workspaceFiles(int limit) const {
+    if (!m_backend)
+        return {};
+    const QString root = m_backend->workspace();
+    if (root.isEmpty())
+        return {};
+    if (m_fileCacheRoot == root && m_fileCacheAt.isValid() && m_fileCacheAt.elapsed() < 15000)
+        return m_fileCache.mid(0, qMax(0, limit));
+    static const QStringList skipped{QStringLiteral(".git"), QStringLiteral("node_modules"),
+                                     QStringLiteral("build"), QStringLiteral("dist"),
+                                     QStringLiteral(".cache"), QStringLiteral("venv"),
+                                     QStringLiteral(".venv"), QStringLiteral("__pycache__")};
+    QStringList files;
+    QDirIterator iterator(root, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (iterator.hasNext() && files.size() < 2000) {
+        iterator.next();
+        const QString relative = QDir(root).relativeFilePath(iterator.filePath());
+        bool skip = false;
+        for (const QString &part : relative.split(QLatin1Char('/'))) {
+            if (skipped.contains(part) || part.startsWith(QLatin1Char('.'))) {
+                skip = true;
+                break;
+            }
+        }
+        if (!skip)
+            files.append(relative);
+    }
+    files.sort(Qt::CaseInsensitive);
+    m_fileCache = files;
+    m_fileCacheAt.start();
+    m_fileCacheRoot = root;
+    return files.mid(0, qMax(0, limit));
 }
 
 void UltimateAgent::compactConversation() {
