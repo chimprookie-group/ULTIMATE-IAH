@@ -24,6 +24,8 @@ Item {
     property string deleteId: ""
     property string deleteValue: ""
     property int commandIndex: 0
+    property int mentionIndex: 0
+    property var workspaceFiles: []
 
     readonly property var commands: [
         { id: "new", label: "/new", detail: qsTr("Nouvelle discussion") },
@@ -40,6 +42,31 @@ Item {
     ]
     readonly property bool commandMode: composerField.text.startsWith("/")
                                           && composerField.text.indexOf(" ") < 0
+    readonly property var mentionMatch: composerField.text.match(/(?:^|\s)@([^\s@]*)$/)
+    readonly property bool mentionMode: mentionMatch !== null && !root.commandMode
+    readonly property string mentionQuery: mentionMatch ? mentionMatch[1].toLowerCase() : ""
+    readonly property var filteredMentions: {
+        if (!root.mentionMode)
+            return []
+        var result = []
+        for (var i = 0; i < root.workspaceFiles.length && result.length < 20; ++i) {
+            const path = root.workspaceFiles[i]
+            if (root.mentionQuery === "" || path.toLowerCase().indexOf(root.mentionQuery) >= 0)
+                result.push(path)
+        }
+        return result
+    }
+
+    function refreshWorkspaceFiles() {
+        workspaceFiles = ultimateAgent.workspaceFiles(500)
+    }
+
+    function selectMention(path) {
+        composerField.text = composerField.text.replace(/@([^\s@]*)$/, "@" + path + " ")
+        composerField.forceActiveFocus()
+    }
+
+    onMentionModeChanged: if (mentionMode && workspaceFiles.length === 0) refreshWorkspaceFiles()
     readonly property var filteredCommands: {
         if (!root.commandMode)
             return []
@@ -156,8 +183,8 @@ Item {
         return qsTr("Assistant")
     }
 
-    Component.onCompleted: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh() }
-    onVisibleChanged: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh() }
+    Component.onCompleted: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh(); root.refreshWorkspaceFiles() }
+    onVisibleChanged: if (visible) { ultimateAgent.refreshEndpoint(); skills.refresh(); root.refreshWorkspaceFiles() }
 
     Connections {
         target: ultimateAgent
@@ -861,12 +888,35 @@ Item {
                                             return
                                         }
                                     }
+                                    if (root.mentionMode) {
+                                        if (event.key === Qt.Key_Down) {
+                                            root.mentionIndex = Math.min(root.filteredMentions.length - 1, root.mentionIndex + 1)
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if (event.key === Qt.Key_Up) {
+                                            root.mentionIndex = Math.max(0, root.mentionIndex - 1)
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if (event.key === Qt.Key_Escape) {
+                                            composerField.text = composerField.text.replace(/@([^\s@]*)$/, "")
+                                            event.accepted = true
+                                            return
+                                        }
+                                        if ((event.key === Qt.Key_Return || event.key === Qt.Key_Tab)
+                                            && root.filteredMentions.length > 0) {
+                                            root.selectMention(root.filteredMentions[root.mentionIndex])
+                                            event.accepted = true
+                                            return
+                                        }
+                                    }
                                     if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
                                         root.send(composerField.text)
                                         event.accepted = true
                                     }
                                 }
-                                onTextChanged: root.commandIndex = 0
+                                onTextChanged: { root.commandIndex = 0; root.mentionIndex = 0 }
                             }
                             Text {
                                 anchors.left: parent.left
@@ -1051,6 +1101,54 @@ Item {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
                 GhostButton { text: qsTr("Fermer"); flat: true; onClicked: helpDialog.close() }
+            }
+        }
+    }
+
+    Popup {
+        id: mentionPopup
+        parent: composerBox
+        width: composerBox.width
+        height: Math.min(root.filteredMentions.length * 30 + 12, 260)
+        padding: 6
+        closePolicy: Popup.NoAutoClose
+        focus: false
+        visible: root.mentionMode && root.filteredMentions.length > 0
+        x: 0
+        y: -height - 6
+        background: Rectangle {
+            radius: design.radiusMd
+            color: theme.raised
+            border.width: 1
+            border.color: theme.borderStrong
+        }
+        contentItem: ListView {
+            id: mentionList
+            clip: true
+            model: root.filteredMentions
+            spacing: 1
+            currentIndex: root.mentionIndex
+            onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: AppScrollBar { policy: ScrollBar.AsNeeded }
+            delegate: Rectangle {
+                width: ListView.view.width
+                height: 28
+                radius: design.radiusSm
+                color: index === root.mentionIndex ? theme.menuSelected : "transparent"
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: design.space2
+                    anchors.rightMargin: design.space2
+                    spacing: design.space2
+                    ThemedIcon { source: "icons/file.svg"; width: 12; height: 12; color: theme.dimText }
+                    Text { Layout.fillWidth: true; text: modelData; color: theme.text; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideRight }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.selectMention(modelData)
+                }
             }
         }
     }

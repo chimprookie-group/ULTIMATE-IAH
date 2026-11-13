@@ -133,6 +133,7 @@ public:
     Q_INVOKABLE void clearAttachments();
     Q_INVOKABLE void toggleSkill(const QString &id);
     Q_INVOKABLE void compactConversation();
+    Q_INVOKABLE QStringList workspaceFiles(int limit = 300) const;
 
     static QJsonArray tools();
     static QString staticKnowledge();
@@ -251,4 +252,7 @@ private:
     int m_round = 0;
     int m_requestSerial = 0;
     bool m_learningRecorded = false;
+    mutable QStringList m_fileCache;
+    mutable QElapsedTimer m_fileCacheAt;
+    mutable QString m_fileCacheRoot;
 };
