@@ -185,7 +185,7 @@ Item {
                     }
                     ColumnLayout {
                         Text { text: qsTr("Fallbacks"); color: theme.dimText; font.pixelSize: design.textMicro }
-                        SpinBox { id: fallbackSpin; from: 0; to: 5; value: crasy.maxFallbacks; editable: true; Layout.preferredWidth: 82 }
+                        AppSpinBox { id: fallbackSpin; from: 0; to: 5; value: crasy.maxFallbacks; editable: true; Layout.preferredWidth: 82 }
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -195,10 +195,10 @@ Item {
                 }
                 RowLayout {
                     Layout.fillWidth: true
-                    CheckBox { id: freeOnly; text: qsTr("Uniquement les modèles gratuits"); checked: crasy.freeOnly }
-                    CheckBox { id: autoStart; text: qsTr("Démarrer avec l'application"); checked: crasy.autoStart }
+                    AppCheckBox { id: freeOnly; text: qsTr("Uniquement les modèles gratuits"); checked: crasy.freeOnly }
+                    AppCheckBox { id: autoStart; text: qsTr("Démarrer avec l'application"); checked: crasy.autoStart }
                     Item { Layout.fillWidth: true }
-                    Button { text: qsTr("Enregistrer"); onClicked: root.saveRouting() }
+                    ActionButton { text: qsTr("Enregistrer"); onClicked: root.saveRouting() }
                 }
                 Text { Layout.fillWidth: true; text: crasy.configPath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideMiddle }
             }
@@ -238,7 +238,7 @@ Item {
                             }
                             Text { text: modelData.hasKey ? "" : qsTr("clé absente"); color: theme.orange; font.pixelSize: 8 }
                             Text { text: modelData.free ? qsTr("free") : qsTr("payant"); color: modelData.free ? theme.green : theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
-                            CheckBox { checked: modelData.enabled; onToggled: crasy.setChannelEnabled(modelData.id, checked) }
+                            AppCheckBox { checked: modelData.enabled; onToggled: crasy.setChannelEnabled(modelData.id, checked) }
                             GhostButton { text: qsTr("Configurer"); flat: true; font.pixelSize: 8; onClicked: root.openEditChannel(modelData) }
                         }
                     }
@@ -333,9 +333,9 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Text { text: qsTr("Priorité"); color: theme.dimText; font.pixelSize: design.textMicro }
-                SpinBox { id: channelPriority; from: 0; to: 100; value: 10; editable: true }
-                CheckBox { id: channelFree; text: qsTr("Gratuit") }
-                CheckBox { id: channelEnabled; text: qsTr("Actif") }
+                AppSpinBox { id: channelPriority; from: 0; to: 100; value: 10; editable: true }
+                AppCheckBox { id: channelFree; text: qsTr("Gratuit") }
+                AppCheckBox { id: channelEnabled; text: qsTr("Actif") }
                 Item { Layout.fillWidth: true }
                 GhostButton { text: qsTr("Tester"); flat: true; onClicked: root.testResult = crasy.testChannel(channelId.text) }
             }

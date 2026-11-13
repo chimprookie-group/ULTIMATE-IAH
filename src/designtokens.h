@@ -53,9 +53,9 @@ public:
     int space7() const { return 32; }
     int space8() const { return 40; }
     int space9() const { return 48; }
-    int radiusSm() const { return 6; }
-    int radiusMd() const { return 10; }
-    int radiusLg() const { return 16; }
+    int radiusSm() const { return 8; }
+    int radiusMd() const { return 12; }
+    int radiusLg() const { return 18; }
     int radiusPill() const { return 999; }
     qreal textMicro() const { return 9.5; }
     qreal textCaption() const { return 10.5; }
@@ -70,8 +70,8 @@ public:
     int headerHeight() const { return 60; }
     int statusHeight() const { return 30; }
     int contentMax() const { return 1180; }
-    int controlHeight() const { return 36; }
-    int controlHeightSm() const { return 28; }
+    int controlHeight() const { return 38; }
+    int controlHeightSm() const { return 30; }
     int iconSm() const { return 14; }
     int iconMd() const { return 18; }
     int iconLg() const { return 22; }

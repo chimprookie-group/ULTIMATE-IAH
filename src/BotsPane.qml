@@ -576,7 +576,7 @@ Item {
                     Layout.fillWidth: true
                     model: [qsTr("Lecture seule"), qsTr("Écriture workspace")]
                 }
-                CheckBox { id: enabledBox; text: qsTr("Actif"); checked: true; font.pixelSize: design.textCaption }
+                AppCheckBox { id: enabledBox; text: qsTr("Actif"); checked: true; font.pixelSize: design.textCaption }
             }
             RowLayout {
                 Layout.fillWidth: true
@@ -634,7 +634,7 @@ Item {
             SettingsField { id: schedulePrompt; Layout.fillWidth: true; placeholderText: qsTr("Tâche à exécuter") }
             RowLayout {
                 Text { text: qsTr("Toutes les"); color: theme.dimText; font.pixelSize: design.textCaption }
-                SpinBox { id: scheduleInterval; from: 1; to: 10080; value: 60; editable: true }
+                AppSpinBox { id: scheduleInterval; from: 1; to: 10080; value: 60; editable: true }
                 Text { text: qsTr("minutes"); color: theme.dimText; font.pixelSize: design.textCaption }
                 Item { Layout.fillWidth: true }
             }

@@ -763,7 +763,7 @@ Item {
                             { id: "build", label: qsTr("Construction") },
                             { id: "review", label: qsTr("Revue") }
                         ]
-                        Button {
+                        GhostButton {
                             Layout.fillWidth: true
                             text: modelData.label
                             flat: ultimateAgent.mode !== modelData.id

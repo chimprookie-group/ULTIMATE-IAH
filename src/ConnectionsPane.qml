@@ -470,7 +470,7 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                CheckBox { id: makeDefault; text: qsTr("Définir comme modèle par défaut"); checked: true; font.pixelSize: design.textCaption }
+                AppCheckBox { id: makeDefault; text: qsTr("Définir comme modèle par défaut"); checked: true; font.pixelSize: design.textCaption }
                 Item { Layout.fillWidth: true }
                 Text { visible: connections.error !== ""; Layout.maximumWidth: 240; text: connections.error; color: theme.red; font.pixelSize: design.textMicro; elide: Text.ElideRight }
             }

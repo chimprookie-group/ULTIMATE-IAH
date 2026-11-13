@@ -324,7 +324,7 @@ Item {
                                 font.pixelSize: 10
                                 font.weight: Font.DemiBold
                             }
-                            Switch {
+                            AppSwitch {
                                 checked: modelData.enabled
                                 onToggled: {
                                     mcpManager.setEnabled(modelData.id, checked)

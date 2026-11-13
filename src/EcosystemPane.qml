@@ -313,7 +313,7 @@ Item {
                                 { label: qsTr("Sécurité"), prompt: qsTr("Audite la sécurité du projet : entrées non validées, secrets, permissions, dépendances et chemins d'exécution. Classe les risques.") },
                                 { label: qsTr("Performance"), prompt: qsTr("Trouve les goulots d'étranglement de performance. Mesure quand c'est possible, puis propose des optimisations classées par impact.") }
                             ]
-                            Button {
+                            GhostButton {
                                 id: recipeButton
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 30

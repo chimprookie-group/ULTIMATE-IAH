@@ -171,7 +171,7 @@ Item {
                             placeholderText: qsTr("Tags, séparés par des virgules")
                         }
                     }
-                    CheckBox {
+                    AppCheckBox {
                         id: pinnedBox
                         text: qsTr("Épingler")
                         font.pixelSize: design.textCaption

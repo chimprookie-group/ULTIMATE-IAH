@@ -357,7 +357,7 @@ Item {
                                     { label: qsTr("Autopilote"), view: "autopilot" },
                                     { label: "MCP", view: "mcp" }
                                 ]
-                                Button {
+                                GhostButton {
                                     id: agentTile
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 30

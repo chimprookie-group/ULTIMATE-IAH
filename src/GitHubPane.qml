@@ -109,7 +109,7 @@ Item {
                             font.weight: Font.DemiBold
                         }
                         Text { text: gitHub.scopes; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideRight; Layout.maximumWidth: root.contentWidth * 0.35 }
-                        Button {
+                        GhostButton {
                             visible: !gitHub.authenticated
                             text: qsTr("Se connecter")
                             font.pixelSize: design.textMicro
@@ -255,8 +255,8 @@ Item {
                             GhostButton { text: qsTr("Cloner"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: root.cloneSelected() }
                             GhostButton { text: root.wide ? qsTr("Nouvelle issue") : qsTr("Issue"); flat: true; font.pixelSize: design.textMicro; enabled: selected.fullName !== undefined; onClicked: issueDialog.open() }
                             Item { Layout.fillWidth: true }
-                            Button { text: qsTr("Issues"); flat: !root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = false }
-                            Button { text: root.wide ? qsTr("Pull requests") : "PR"; flat: root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = true }
+                            GhostButton { text: qsTr("Issues"); flat: !root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = false }
+                            GhostButton { text: root.wide ? qsTr("Pull requests") : "PR"; flat: root.showPulls; font.pixelSize: design.textMicro; onClicked: root.showPulls = true }
                         }
                         ScrollView {
                             Layout.fillWidth: true
@@ -325,8 +325,8 @@ Item {
             SettingsField { id: repoDescription; Layout.fillWidth: true; placeholderText: qsTr("Description") }
             RowLayout {
                 Layout.fillWidth: true
-                CheckBox { id: privateSwitch; text: qsTr("Privé"); checked: true }
-                CheckBox { id: cloneSwitch; text: qsTr("Cloner dans le workspace"); checked: true }
+                AppCheckBox { id: privateSwitch; text: qsTr("Privé"); checked: true }
+                AppCheckBox { id: cloneSwitch; text: qsTr("Cloner dans le workspace"); checked: true }
             }
             RowLayout {
                 Layout.fillWidth: true

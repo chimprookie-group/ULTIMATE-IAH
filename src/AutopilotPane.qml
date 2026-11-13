@@ -55,7 +55,7 @@ Item {
                 description: qsTr("Des tâches planifiées, exécutées une à une par Ultimate Agent, avec mémoire et reprise.")
                 icon: "icons/autopilot.svg"
                 accent: theme.orange
-                Switch {
+                AppSwitch {
                     checked: autopilot.enabled
                     onToggled: autopilot.setEnabled(checked)
                 }

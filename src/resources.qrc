@@ -4,6 +4,9 @@
         <file alias="mcp/memory_mcp.py">mcp/memory_mcp.py</file>
         <file>Main.qml</file>
         <file>ThemedIcon.qml</file>
+        <file>AppSpinBox.qml</file>
+        <file>AppCheckBox.qml</file>
+        <file>AppSwitch.qml</file>
         <file>AppComboBox.qml</file>
         <file>GhostButton.qml</file>
         <file>ActionButton.qml</file>
