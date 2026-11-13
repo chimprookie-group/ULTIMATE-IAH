@@ -436,6 +436,8 @@ Item {
                         clip: true
                         spacing: design.space3
                         model: ultimateAgent.messages
+                        interactive: true
+                        flickableDirection: Flickable.VerticalFlick
                         reuseItems: true
                         cacheBuffer: 600
                         boundsBehavior: Flickable.StopAtBounds
@@ -496,6 +498,7 @@ Item {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
+                                            onWheel: function (wheel) { wheel.accepted = false }
                                             onClicked: root.imagePreview = "file://" + modelData.path
                                         }
                                     }
@@ -591,6 +594,7 @@ Item {
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
+                                                onWheel: function (wheel) { wheel.accepted = false }
                                                 onClicked: root.toggleGroup(index)
                                             }
                                         }
@@ -613,6 +617,7 @@ Item {
                                                     MouseArea {
                                                         anchors.fill: parent
                                                         cursorShape: Qt.PointingHandCursor
+                                                        onWheel: function (wheel) { wheel.accepted = false }
                                                         onClicked: ultimateAgent.toggleToolDetails(modelData.index)
                                                     }
                                                 }
@@ -674,6 +679,7 @@ Item {
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
+                                            onWheel: function (wheel) { wheel.accepted = false }
                                             onClicked: ultimateAgent.toggleToolDetails(model.index)
                                         }
                                     }
