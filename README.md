@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.25.4-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.25.5-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -363,7 +363,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.25.4-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.5-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet fournit :
@@ -382,7 +382,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.25.4-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.5-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
