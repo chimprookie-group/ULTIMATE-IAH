@@ -14,6 +14,7 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QTimer>
 
 namespace {
 QString firstLine(const QString &text) {
@@ -44,6 +45,10 @@ NotePluginManager::NotePluginManager(NoteStore *notes, const QString &workspace,
     QDir().mkpath(m_configDir);
     loadSettings();
     refresh();
+    m_timer = new QTimer(this);
+    m_timer->setInterval(60000);
+    connect(m_timer, &QTimer::timeout, this, &NotePluginManager::tickSchedules);
+    m_timer->start();
 }
 
 QString NotePluginManager::defaultConfigDir() {
@@ -62,19 +67,48 @@ void NotePluginManager::loadSettings() {
     if (!file.open(QIODevice::ReadOnly))
         return;
     const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-    for (auto it = root.constBegin(); it != root.constEnd(); ++it)
-        m_enabled.insert(it.key(), it.value().toBool());
+    const QJsonObject enabled = root.value(QStringLiteral("enabled")).toObject();
+    if (!enabled.isEmpty()) {
+        for (auto it = enabled.constBegin(); it != enabled.constEnd(); ++it)
+            m_enabled.insert(it.key(), it.value().toBool());
+    } else {
+        for (auto it = root.constBegin(); it != root.constEnd(); ++it) {
+            if (it.key() == QLatin1String("enabled") || it.key() == QLatin1String("schedules"))
+                continue;
+            if (it.value().isBool())
+                m_enabled.insert(it.key(), it.value().toBool());
+        }
+    }
+    const QJsonObject schedules = root.value(QStringLiteral("schedules")).toObject();
+    for (auto it = schedules.constBegin(); it != schedules.constEnd(); ++it) {
+        const QJsonObject value = it.value().toObject();
+        Schedule schedule;
+        schedule.minutes = qBound(0, value.value(QStringLiteral("minutes")).toInt(), 1440);
+        const QString last = value.value(QStringLiteral("lastRun")).toString();
+        if (!last.isEmpty())
+            schedule.lastRun = QDateTime::fromString(last, Qt::ISODate);
+        m_schedules.insert(it.key(), schedule);
+    }
 }
 
 bool NotePluginManager::saveSettings() const {
     QDir().mkpath(m_configDir);
-    QJsonObject root;
+    QJsonObject enabled;
     for (auto it = m_enabled.constBegin(); it != m_enabled.constEnd(); ++it)
-        root.insert(it.key(), it.value());
+        enabled.insert(it.key(), it.value());
+    QJsonObject schedules;
+    for (auto it = m_schedules.constBegin(); it != m_schedules.constEnd(); ++it) {
+        schedules.insert(it.key(), QJsonObject{
+            {QStringLiteral("minutes"), it.value().minutes},
+            {QStringLiteral("lastRun"), it.value().lastRun.toString(Qt::ISODate)},
+        });
+    }
     QSaveFile file(settingsPath());
     if (!file.open(QIODevice::WriteOnly))
         return false;
-    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    file.write(QJsonDocument(QJsonObject{{QStringLiteral("enabled"), enabled},
+                                         {QStringLiteral("schedules"), schedules}})
+                   .toJson(QJsonDocument::Indented));
     return file.commit();
 }
 
@@ -96,6 +130,7 @@ void NotePluginManager::loadManifests() {
         plugin.command = root.value(QStringLiteral("command")).toString();
         plugin.mode = root.value(QStringLiteral("mode")).toString(QStringLiteral("append"));
         plugin.readOnly = root.value(QStringLiteral("readOnly")).toBool(false);
+        plugin.sandbox = root.value(QStringLiteral("sandbox")).toBool(true);
         if (plugin.id.isEmpty() || plugin.command.isEmpty())
             continue;
         if (!m_enabled.contains(plugin.id))
@@ -111,6 +146,8 @@ void NotePluginManager::loadManifests() {
             {QStringLiteral("category"), tr("Externe")},
             {QStringLiteral("enabled"), plugin.enabled},
             {QStringLiteral("command"), plugin.command},
+            {QStringLiteral("sandbox"), plugin.sandbox},
+            {QStringLiteral("scheduleMinutes"), m_schedules.value(plugin.id).minutes},
         });
     }
 }
@@ -163,6 +200,8 @@ void NotePluginManager::refresh() {
             {QStringLiteral("category"), categoryFor(plugin.id)},
             {QStringLiteral("enabled"), plugin.enabled},
             {QStringLiteral("command"), QString()},
+            {QStringLiteral("sandbox"), false},
+            {QStringLiteral("scheduleMinutes"), m_schedules.value(plugin.id).minutes},
         });
     }
     loadManifests();
@@ -210,6 +249,8 @@ QVariantMap NotePluginManager::run(const QString &id, const QString &path,
                                      : mode;
         plugin.readOnly = item.value(QStringLiteral("readOnly")).toBool();
         plugin.builtin = item.value(QStringLiteral("builtin")).toBool();
+        const QVariant sandboxValue = item.value(QStringLiteral("sandbox"));
+        plugin.sandbox = sandboxValue.isValid() ? sandboxValue.toBool() : true;
         plugin.command = item.value(QStringLiteral("command")).toString();
         QVariantMap result = plugin.builtin ? runBuiltin(plugin, path)
                                             : runCommand(plugin, path);
@@ -486,9 +527,34 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
     const QString absolute = m_notes->vaultPath() + QLatin1Char('/') + path;
     const QString title = m_notes->selectedNote().value(QStringLiteral("title")).toString();
     const QString content = m_notes->contentOf(path);
+    QString program = plugin.command;
+    QStringList arguments{absolute, title};
+    bool sandboxed = false;
+    QString home = m_notes->vaultPath() + QStringLiteral("/.sandbox-home");
+    QDir().mkpath(home);
+    const QString bwrap = QStandardPaths::findExecutable(QStringLiteral("bwrap"));
+    if (plugin.sandbox && !bwrap.isEmpty()) {
+        program = bwrap;
+        arguments = {QStringLiteral("--ro-bind"), QStringLiteral("/"), QStringLiteral("/"),
+                     QStringLiteral("--dev"), QStringLiteral("/dev"),
+                     QStringLiteral("--proc"), QStringLiteral("/proc"),
+                     QStringLiteral("--tmpfs"), QStringLiteral("/tmp"),
+                     QStringLiteral("--bind"), m_notes->vaultPath(), m_notes->vaultPath(),
+                     QStringLiteral("--chdir"), m_notes->vaultPath(),
+                     QStringLiteral("--unshare-net"), QStringLiteral("--die-with-parent"),
+                     QStringLiteral("--setenv"), QStringLiteral("HOME"), home,
+                     QStringLiteral("--"), plugin.command, absolute, title};
+        sandboxed = true;
+    }
+    QProcessEnvironment environment;
+    environment.insert(QStringLiteral("PATH"), qEnvironmentVariable("PATH",
+        QStringLiteral("/usr/local/bin:/usr/bin:/bin")));
+    environment.insert(QStringLiteral("LANG"), qEnvironmentVariable("LANG", QStringLiteral("C.UTF-8")));
+    environment.insert(QStringLiteral("HOME"), home);
     QProcess process;
+    process.setProcessEnvironment(environment);
     process.setWorkingDirectory(m_notes->vaultPath());
-    process.start(plugin.command, {absolute, title});
+    process.start(program, arguments);
     if (!process.waitForStarted(3000))
         return {{QStringLiteral("ok"), false},
                 {QStringLiteral("error"), tr("Impossible de lancer le plugin.")}};
@@ -512,7 +578,8 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
         return {{QStringLiteral("ok"), true},
                 {QStringLiteral("output"), output},
                 {QStringLiteral("path"), path},
-                {QStringLiteral("mode"), QStringLiteral("preview")}};
+                {QStringLiteral("mode"), QStringLiteral("preview")},
+                {QStringLiteral("sandboxed"), sandboxed}};
     }
     const QString next = plugin.mode == QLatin1String("replace")
         ? output
@@ -536,7 +603,8 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
     return {{QStringLiteral("ok"), true},
             {QStringLiteral("output"), output},
             {QStringLiteral("path"), target},
-            {QStringLiteral("mode"), plugin.mode}};
+            {QStringLiteral("mode"), plugin.mode},
+            {QStringLiteral("sandboxed"), sandboxed}};
 }
 
 void NotePluginManager::setError(const QString &error) {
@@ -549,21 +617,82 @@ void NotePluginManager::setError(const QString &error) {
 void NotePluginManager::rememberUndo(const QString &path) {
     if (!m_notes)
         return;
-    m_undoPath = path;
-    m_undoContent = m_notes->contentOf(path);
+    m_undo.append({path, m_notes->contentOf(path), QString()});
+    while (m_undo.size() > 40)
+        m_undo.removeFirst();
+    m_redo.clear();
     emit changed();
 }
 
 bool NotePluginManager::undoLast() {
-    if (!m_notes || m_undoPath.isEmpty())
+    if (!m_notes || m_undo.isEmpty())
         return false;
-    const bool ok = m_notes->saveNote(m_undoPath, m_undoContent);
-    if (ok) {
-        m_undoPath.clear();
-        m_undoContent.clear();
+    const Snapshot snapshot = m_undo.takeLast();
+    const QString current = m_notes->contentOf(snapshot.path);
+    if (!m_notes->saveNote(snapshot.path, snapshot.content)) {
+        m_undo.append(snapshot);
+        return false;
+    }
+    m_redo.append({snapshot.path, current, snapshot.plugin});
+    emit changed();
+    return true;
+}
+
+bool NotePluginManager::redoLast() {
+    if (!m_notes || m_redo.isEmpty())
+        return false;
+    const Snapshot snapshot = m_redo.takeLast();
+    const QString current = m_notes->contentOf(snapshot.path);
+    if (!m_notes->saveNote(snapshot.path, snapshot.content)) {
+        m_redo.append(snapshot);
+        return false;
+    }
+    m_undo.append({snapshot.path, current, snapshot.plugin});
+    emit changed();
+    return true;
+}
+
+void NotePluginManager::setSchedule(const QString &id, int minutes) {
+    if (id.isEmpty())
+        return;
+    if (!m_enabled.contains(id))
+        m_enabled.insert(id, true);
+    Schedule schedule = m_schedules.value(id);
+    schedule.minutes = qBound(0, minutes, 1440);
+    schedule.lastRun = QDateTime::currentDateTimeUtc();
+    m_schedules.insert(id, schedule);
+    saveSettings();
+    refresh();
+}
+
+void NotePluginManager::runDueSchedules() {
+    if (!m_notes)
+        return;
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+    QVariantList paths;
+    for (const QVariant &value : m_notes->notes())
+        paths.append(value.toMap().value(QStringLiteral("path")));
+    bool dirty = false;
+    for (auto it = m_schedules.begin(); it != m_schedules.end(); ++it) {
+        if (it.value().minutes <= 0)
+            continue;
+        if (it.value().lastRun.isValid()
+            && it.value().lastRun.secsTo(now) < it.value().minutes * 60)
+            continue;
+        it.value().lastRun = now;
+        dirty = true;
+        if (!paths.isEmpty())
+            runBatch(it.key(), paths);
+    }
+    if (dirty) {
+        saveSettings();
+        refresh();
         emit changed();
     }
-    return ok;
+}
+
+void NotePluginManager::tickSchedules() {
+    runDueSchedules();
 }
 
 QVariantMap NotePluginManager::runBatch(const QString &id, const QVariantList &paths,

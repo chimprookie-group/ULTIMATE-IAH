@@ -719,7 +719,7 @@ private slots:
         QVERIFY(manifest.open(QIODevice::WriteOnly));
         manifest.write(R"({"id":"upper","name":"Upper","command":")"
                        + script.fileName().toUtf8()
-                       + R"(","mode":"replace"})");
+                       + R"(","mode":"replace","sandbox":false})");
         manifest.close();
         manager.refresh();
         QCOMPARE(manager.plugins().size(), 11);
@@ -758,6 +758,27 @@ private slots:
         QVERIFY(manager.canUndo());
         QVERIFY(manager.undoLast());
         QVERIFY(!store.contentOf(batchB).contains("## Sommaire"));
+        QVERIFY(manager.undoLast());
+        QVERIFY(!store.contentOf(batchA).contains("## Sommaire"));
+        QVERIFY(manager.canRedo());
+        QVERIFY(manager.redoLast());
+        QVERIFY(store.contentOf(batchA).contains("## Sommaire"));
+        QVERIFY(manager.redoLast());
+        QVERIFY(store.contentOf(batchB).contains("## Sommaire"));
+
+        manager.setSchedule("toc", 60);
+        bool scheduled = false;
+        for (const QVariant &value : manager.plugins())
+            if (value.toMap().value("id").toString() == "toc")
+                scheduled = value.toMap().value("scheduleMinutes").toInt() == 60;
+        QVERIFY(scheduled);
+        NotePluginManager reloaded(&store, "/tmp/workspace", config);
+        bool persisted = false;
+        for (const QVariant &value : reloaded.plugins())
+            if (value.toMap().value("id").toString() == "toc")
+                persisted = value.toMap().value("scheduleMinutes").toInt() == 60;
+        QVERIFY(persisted);
+        manager.setSchedule("toc", 0);
     }
 
     void noteStoreSupportsFoldersOutlineAndSearchFilters()

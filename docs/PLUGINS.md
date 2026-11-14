@@ -89,5 +89,11 @@ max 8 s. La liste et l'exécution sont aussi exposées à l'agent via
 `ultimate_note_plugins`.
 
 Dans Notes, chaque plugin peut s'exécuter sur la note courante ou sur
-**toutes les notes filtrées** (`Appliquer à N`). Une action d'écriture est
-annulable une fois via **Annuler la dernière action**.
+**toutes les notes filtrées** (`Appliquer à N`). Les écritures sont
+annulables et rétablissables (40 niveaux), et un plugin peut être planifié
+(15 min, 1 h, 6 h, 24 h) sur toutes les notes.
+
+Les plugins externes sont exécutés par défaut dans **bubblewrap** :
+système de fichiers en lecture seule, vault monté en écriture, réseau coupé,
+HOME temporaire. Un manifeste peut demander `"sandbox": false`, et les
+tests le font pour rester portables.
