@@ -108,7 +108,7 @@ Item {
                 }
                 Rectangle { Layout.fillWidth: true; implicitHeight: 74; radius: design.radiusMd; color: theme.surface; border.width: 1; border.color: theme.border
                     ColumnLayout { anchors.fill: parent; anchors.margins: design.space3; spacing: 1
-                        Text { text: qsTr("Capacités DSH"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        Text { text: qsTr("Capacités IAH"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                         Text { text: plugins.activeCapabilities + " / " + plugins.capabilities.length; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold }
                     }
                 }
@@ -240,13 +240,13 @@ Item {
             }
 
             SettingsSection {
-                title: qsTr("Noyau DSH")
+                title: qsTr("Noyau IAH")
                 collapsible: true
                 expanded: false
                 Layout.fillWidth: true
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { Layout.fillWidth: true; text: qsTr("Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                    Text { Layout.fillWidth: true; text: qsTr("Les capacités structurantes du harness, actives par défaut comme dans le profil IAH web."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
                     Text { text: plugins.activeCapabilities + " / " + plugins.capabilities.length; color: theme.green; font.family: backend.monoFont; font.pixelSize: design.textMicro }
                 }
                 GridLayout {
@@ -287,7 +287,7 @@ Item {
                 collapsible: true
                 expanded: false
                 Layout.fillWidth: true
-                Text { Layout.fillWidth: true; text: qsTr("Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
+                Text { Layout.fillWidth: true; text: qsTr("Désactivées par défaut, comme dans le noyau IAH. Elles sont visibles pour garder la carte complète de l’écosystème."); color: theme.mutedText; font.pixelSize: design.textCaption; wrapMode: Text.Wrap }
                 GridLayout {
                     Layout.fillWidth: true
                     columns: root.contentWidth > 1000 ? 3 : 2

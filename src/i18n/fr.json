@@ -1197,11 +1197,7 @@
   "secours DuckDuckGo": "secours DuckDuckGo",
   "web_search et web_fetch sont enregistrés dans Ultimate Agent. DeepSeek Search est prioritaire ; DuckDuckGo sert de secours sans clé.": "web_search et web_fetch sont enregistrés dans Ultimate Agent. DeepSeek Search est prioritaire ; DuckDuckGo sert de secours sans clé.",
   "Outils plugins": "Outils plugins",
-  "Capacités DSH": "Capacités DSH",
-  "Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème.": "Désactivées par défaut, comme dans DSH. Elles sont visibles pour garder la carte complète de l’écosystème.",
   "Extensions expérimentales": "Extensions expérimentales",
-  "Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web.": "Les capacités structurantes du harness, actives par défaut comme dans le profil DSH web.",
-  "Noyau DSH": "Noyau DSH",
   "désactivé": "désactivé",
   "natif": "natif",
   "partiel": "partiel",
@@ -1368,5 +1364,9 @@
   "Variable de clé, ex. OPENROUTER_API_KEY": "Variable de clé, ex. OPENROUTER_API_KEY",
   "id-du-canal": "id-du-canal",
   "timeout": "timeout",
-  "Échec HTTP %1.": "Échec HTTP %1."
+  "Échec HTTP %1.": "Échec HTTP %1.",
+  "Capacités IAH": "Capacités IAH",
+  "Noyau IAH": "Noyau IAH",
+  "Les capacités structurantes du harness, actives par défaut comme dans le profil IAH web.": "Les capacités structurantes du harness, actives par défaut comme dans le profil IAH web.",
+  "Désactivées par défaut, comme dans le noyau IAH. Elles sont visibles pour garder la carte complète de l’écosystème.": "Désactivées par défaut, comme dans le noyau IAH. Elles sont visibles pour garder la carte complète de l’écosystème."
 }
