@@ -667,7 +667,11 @@ Item {
                         ScrollBar.vertical: AppScrollBar {}
 
                         Column {
-                            width: Math.min(root.compact ? parent.width - design.space6 : 760, parent.width - (root.compact ? design.space6 : design.space7))
+                            // The dock is narrow: the column must shrink with the
+                            // viewport instead of overflowing it, and never go
+                            // negative when the pane is smaller than the margins.
+                            readonly property real available: Math.max(0, parent.width - (root.compact ? design.space4 : design.space7))
+                            width: Math.min(root.compact ? available : 760, available)
                             x: Math.max(0, (parent.width - width) / 2)
                             topPadding: root.compact ? design.space4 : design.space6
                             bottomPadding: design.space5
@@ -676,7 +680,15 @@ Item {
                             RowLayout {
                                 width: parent.width
                                 spacing: design.space4
-                                BrandMark { Layout.alignment: Qt.AlignTop; width: root.compact ? 46 : 64; height: width; size: width; accent: false }
+                                BrandMark {
+                                    Layout.alignment: Qt.AlignTop
+                                    Layout.preferredWidth: root.compact ? 34 : 64
+                                    Layout.preferredHeight: root.compact ? 34 : 64
+                                    width: root.compact ? 34 : 64
+                                    height: width
+                                    size: width
+                                    accent: false
+                                }
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     spacing: design.space2
@@ -685,7 +697,7 @@ Item {
                                         text: qsTr("Que veux-tu faire ?")
                                         color: theme.brightText
                                         font.family: "iA Writer Duospace"
-                                        font.pixelSize: root.compact ? 22 : 28
+                                        font.pixelSize: root.compact ? 19 : 28
                                         font.weight: Font.Bold
                                         wrapMode: Text.Wrap
                                     }
@@ -717,11 +729,19 @@ Item {
                                 }
                             }
 
-                            RowLayout {
+                            Flow {
                                 width: parent.width
-                                Text { Layout.fillWidth: true; text: qsTr("Actions rapides"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.9 }
+                                spacing: design.space2
+                                Text {
+                                    width: parent.width
+                                    text: qsTr("Actions rapides")
+                                    color: theme.dimText
+                                    font.family: backend.monoFont
+                                    font.pixelSize: design.textMicro
+                                    font.letterSpacing: 0.9
+                                }
                                 GhostButton { text: qsTr("Graphe Notes"); flat: true; font.pixelSize: design.textMicro; onClicked: { backend.setView("notes"); noteStore.graphOpen = true } }
-                                Text { text: qsTr("Compétences →"); color: theme.accent; font.pixelSize: design.textMicro; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: optionsDialog.open() } }
+                                GhostButton { text: qsTr("Compétences →"); flat: true; font.pixelSize: design.textMicro; onClicked: optionsDialog.open() }
                             }
 
                             GridLayout {
@@ -1138,14 +1158,23 @@ Item {
                 }
 
                 RowLayout {
+                    // The selectors used to keep their fixed widths inside a
+                    // row wider than a narrow dock, so the last one was pushed
+                    // past the pane edge and clipped. Flexible widths keep all
+                    // of them visible at any pane width.
                     Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    Layout.leftMargin: design.space2
+                    Layout.rightMargin: design.space2
                     Layout.topMargin: design.space2
                     spacing: design.space2
 
                     AppComboBox {
                         implicitHeight: 30
                         font.pixelSize: design.textMicro
+                        Layout.fillWidth: true
                         Layout.preferredWidth: 132
+                        Layout.minimumWidth: 96
                         model: [qsTr("Accès complet"), qsTr("Lecture seule")]
                         currentIndex: ultimateAgent.permissionMode === "read-only" ? 1 : 0
                         onActivated: function (index) {
@@ -1156,7 +1185,9 @@ Item {
                         visible: ultimateAgent.modelChoices.length > 0
                         implicitHeight: 30
                         font.pixelSize: design.textMicro
+                        Layout.fillWidth: true
                         Layout.preferredWidth: 230
+                        Layout.minimumWidth: 120
                         model: ultimateAgent.modelChoices
                         textRole: "label"
                         currentIndex: {
@@ -1175,7 +1206,9 @@ Item {
                     AppComboBox {
                         implicitHeight: 30
                         font.pixelSize: design.textMicro
+                        Layout.fillWidth: true
                         Layout.preferredWidth: 108
+                        Layout.minimumWidth: 76
                         model: [qsTr("Auto"), qsTr("Faible"), qsTr("Moyen"), qsTr("Élevé")]
                         currentIndex: root.effortIndex()
                         onActivated: function (index) {
@@ -1185,6 +1218,9 @@ Item {
                 }
 
                 Text {
+                    // Without fillWidth the implicit one-line width overflows a
+                    // narrow dock and the counters get clipped at the pane edge.
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter
                     Layout.leftMargin: design.space2
                     Layout.rightMargin: design.space2
