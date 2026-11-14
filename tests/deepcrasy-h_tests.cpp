@@ -719,6 +719,40 @@ private slots:
         QVERIFY(store.contentOf(note).contains("Contenu"));
     }
 
+    void noteStoreDetectsAndResolvesGitConflicts()
+    {
+        if (QStandardPaths::findExecutable("git").isEmpty())
+            QSKIP("git is not installed");
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString bare = dir.path() + "/remote.git";
+        QProcess init;
+        init.start("git", {"init", "--bare", bare});
+        QVERIFY(init.waitForFinished(10000));
+
+        NoteStore first(dir.path() + "/vault-a");
+        const QString note = first.createNote("Conflit");
+        QVERIFY(first.saveNote(note, "# Conflit\n\nVersion A.\n"));
+        QVERIFY(first.gitInit());
+        QVERIFY(first.gitSetRemote("file://" + bare));
+        QVERIFY2(first.gitSync("initial"), qPrintable(first.error()));
+
+        QProcess clone;
+        clone.start("git", {"clone", "file://" + bare, dir.path() + "/vault-b"});
+        QVERIFY(clone.waitForFinished(20000));
+        NoteStore second(dir.path() + "/vault-b");
+        QVERIFY(first.saveNote(note, "# Conflit\n\nVersion A2.\n"));
+        QVERIFY2(first.gitSync("a2"), qPrintable(first.error()));
+
+        QVERIFY(second.saveNote(note, "# Conflit\n\nVersion B.\n"));
+        QVERIFY2(!second.gitSync("b"), "the pull must conflict");
+        QVERIFY(!second.gitConflicts().isEmpty());
+        QVERIFY2(second.gitConflicts().first().toString().contains("conflit"), qPrintable(second.gitConflicts().first().toString()));
+        QVERIFY(second.gitResolve(note, "ours"));
+        QVERIFY2(second.gitContinue(), qPrintable(second.error()));
+        QVERIFY(second.gitPush());
+    }
+
     void noteStoreBacksUpExportsAndSyncsGit()
     {
         QTemporaryDir dir;

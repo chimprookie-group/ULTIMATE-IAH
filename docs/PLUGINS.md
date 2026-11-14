@@ -109,8 +109,9 @@ ses droits, sans exécution croisée.
 
 Les sauvegardes sont purgées aux 10 dernières archives ; le dialogue Git
 accepte un jeton HTTPS (stocké en 600 dans `note-git.token`) et permet de
-résoudre les conflits fichier par fichier (local/distant) ou d'abandonner
-la fusion.
+résoudre les conflits fichier par fichier (local/distant), continuer le
+rebase ou abandonner la fusion. Le vault ignore `.ultimate-iai/`,
+`.backups/` et `.sandbox-home/` via `.gitignore`.
 
 Les plugins externes sont exécutés par défaut dans **bubblewrap**
 (dépendance du paquet) :
