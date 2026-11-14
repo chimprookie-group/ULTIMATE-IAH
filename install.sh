@@ -10,7 +10,7 @@ set -Eeuo pipefail
 REPO="chimprookie-group/ULTIMATE-IAH"
 BASE="https://github.com/${REPO}"
 RAW="https://raw.githubusercontent.com/${REPO}/main"
-VERSION="1.25.30"
+VERSION="1.25.31"
 PKG="ultimate-iah-${VERSION}-1-x86_64.pkg.tar.zst"
 ASSET="${BASE}/releases/latest/download/${PKG}"
 CHECKSUM="${ASSET}.sha256"
@@ -43,7 +43,7 @@ have pacman || die "Ce paquet cible Arch Linux / Omarchy (pacman absent)."
 have curl || die "curl est requis."
 have pkexec || die "polkit/pkexec est requis pour installer le paquet."
 
-DEPS=(qt6-base qt6-declarative qt6-webengine qt6-webchannel qt6-wayland qt6-svg hicolor-icon-theme xdg-desktop-portal xdg-utils polkit nodejs npm python python-yaml git github-cli)
+DEPS=(qt6-base qt6-declarative qt6-webengine qt6-webchannel qt6-wayland qt6-svg hicolor-icon-theme xdg-desktop-portal xdg-utils polkit nodejs npm python python-yaml git github-cli bubblewrap)
 BUILD_DEPS=(gcc make)
 
 missing=()

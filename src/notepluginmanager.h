@@ -36,6 +36,7 @@ public:
         bool builtin = false;
         bool enabled = true;
         bool sandbox = true;
+        bool allowUnsandboxed = false;
     };
 
     explicit NotePluginManager(NoteStore *notes, const QString &workspace = {},

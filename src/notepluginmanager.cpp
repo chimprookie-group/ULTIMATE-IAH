@@ -131,6 +131,7 @@ void NotePluginManager::loadManifests() {
         plugin.mode = root.value(QStringLiteral("mode")).toString(QStringLiteral("append"));
         plugin.readOnly = root.value(QStringLiteral("readOnly")).toBool(false);
         plugin.sandbox = root.value(QStringLiteral("sandbox")).toBool(true);
+        plugin.allowUnsandboxed = root.value(QStringLiteral("allowUnsandboxed")).toBool(false);
         if (plugin.id.isEmpty() || plugin.command.isEmpty())
             continue;
         if (!m_enabled.contains(plugin.id))
@@ -147,6 +148,7 @@ void NotePluginManager::loadManifests() {
             {QStringLiteral("enabled"), plugin.enabled},
             {QStringLiteral("command"), plugin.command},
             {QStringLiteral("sandbox"), plugin.sandbox},
+            {QStringLiteral("allowUnsandboxed"), plugin.allowUnsandboxed},
             {QStringLiteral("scheduleMinutes"), m_schedules.value(plugin.id).minutes},
         });
     }
@@ -251,6 +253,7 @@ QVariantMap NotePluginManager::run(const QString &id, const QString &path,
         plugin.builtin = item.value(QStringLiteral("builtin")).toBool();
         const QVariant sandboxValue = item.value(QStringLiteral("sandbox"));
         plugin.sandbox = sandboxValue.isValid() ? sandboxValue.toBool() : true;
+        plugin.allowUnsandboxed = item.value(QStringLiteral("allowUnsandboxed")).toBool();
         plugin.command = item.value(QStringLiteral("command")).toString();
         QVariantMap result = plugin.builtin ? runBuiltin(plugin, path)
                                             : runCommand(plugin, path);
@@ -533,6 +536,10 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
     QString home = m_notes->vaultPath() + QStringLiteral("/.sandbox-home");
     QDir().mkpath(home);
     const QString bwrap = QStandardPaths::findExecutable(QStringLiteral("bwrap"));
+    if (plugin.sandbox && bwrap.isEmpty() && !plugin.allowUnsandboxed) {
+        return {{QStringLiteral("ok"), false},
+                {QStringLiteral("error"), tr("bubblewrap est requis pour ce plugin. Installez bubblewrap ou autorisez explicitement allowUnsandboxed.")}};
+    }
     if (plugin.sandbox && !bwrap.isEmpty()) {
         program = bwrap;
         arguments = {QStringLiteral("--ro-bind"), QStringLiteral("/"), QStringLiteral("/"),
