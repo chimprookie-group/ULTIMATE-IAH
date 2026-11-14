@@ -56,6 +56,7 @@ Backend::Backend(QObject *parent)
       m_harness(new HarnessServer(this)),
       m_portal(new PortalFolderPicker(this)),
       m_view(m_config->view() == "harness" ? "agent" : m_config->view()) {
+    m_gitAvailable = QFileInfo(m_config->workspace() + QStringLiteral("/.git")).exists();
     connect(m_harness, &HarnessServer::stateChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::urlChanged, this, &Backend::harnessChanged);
     connect(m_harness, &HarnessServer::detailChanged, this, &Backend::harnessChanged);
@@ -318,6 +319,8 @@ void Backend::refreshGitNow() {
         emit gitChanged();
         return;
     }
+    // Keep snapshots truthful while the asynchronous status runs.
+    m_gitAvailable = QFileInfo(workspace() + QStringLiteral("/.git")).exists();
     if (!m_gitProcess) {
         m_gitProcess = new QProcess(this);
         connect(m_gitProcess, &QProcess::finished, this, [this](int code, QProcess::ExitStatus status) {

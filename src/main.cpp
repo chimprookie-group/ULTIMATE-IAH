@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.36"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.37"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -683,6 +683,7 @@ int main(int argc, char *argv[]) {
         if (!workspace.isEmpty())
             backend.setWorkspace(workspace);
         ultimateAgent.setPermissionMode(agentPermission);
+        backend.boot();
         if (!agentProvider.isEmpty() || !agentModel.isEmpty())
             ultimateAgent.setRuntimeModel(agentProvider, agentModel);
         if (agentPrompt.trimmed().isEmpty()) {
