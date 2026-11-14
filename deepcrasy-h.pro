@@ -28,6 +28,7 @@ HEADERS += \
     src/webservice.h \
     src/pluginmanager.h \
     src/notestore.h \
+    src/notepluginmanager.h \
     src/ultimateagent.h \
     src/hoverservice.h \
     src/botmanager.h \
@@ -69,6 +70,7 @@ SOURCES += \
     src/webservice.cpp \
     src/pluginmanager.cpp \
     src/notestore.cpp \
+    src/notepluginmanager.cpp \
     src/ultimateagent.cpp \
     src/hoverservice.cpp \
     src/botmanager.cpp \

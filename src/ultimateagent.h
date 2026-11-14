@@ -13,6 +13,7 @@ class QNetworkReply;
 class QTimer;
 class AgentConversationStore;
 class DecisionEngine;
+class NotePluginManager;
 class AgentMessageModel;
 
 class AgentManager;
@@ -118,6 +119,7 @@ public:
     void setModelId(const QString &model);
     void setRuntimeModel(const QString &provider, const QString &model);
     void setDecisionEngine(DecisionEngine *engine) { m_decisions = engine; refreshEndpoint(); }
+    void setNotePlugins(NotePluginManager *plugins) { m_notePlugins = plugins; }
     void setReasoningEffort(const QString &effort);
 
     Q_INVOKABLE void sendMessage(const QString &text);
@@ -210,6 +212,7 @@ private:
     Backend *m_backend = nullptr;
     HarnessConnections *m_connections = nullptr;
     DecisionEngine *m_decisions = nullptr;
+    NotePluginManager *m_notePlugins = nullptr;
     McpManager *m_mcp = nullptr;
     MemoryStore *m_memory = nullptr;
     SkillManager *m_skills = nullptr;

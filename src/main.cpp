@@ -39,6 +39,7 @@
 #include "skillmanager.h"
 #include "missionrunner.h"
 #include "notestore.h"
+#include "notepluginmanager.h"
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "githubservice.h"
@@ -250,7 +251,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.25"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.26"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -485,6 +486,9 @@ int main(int argc, char *argv[]) {
     SkillManager skills;
     skills.setWorkspace(backend.workspace());
     NoteStore noteStore;
+    NotePluginManager notePlugins(&noteStore, backend.workspace());
+    QObject::connect(&backend, &Backend::workspaceChanged, &notePlugins,
+                     [&backend, &notePlugins] { notePlugins.setWorkspace(backend.workspace()); });
     PluginManager plugins;
     LearningEngine learning(QString(), &skills);
     KnowledgeBase knowledge;
@@ -534,6 +538,7 @@ int main(int argc, char *argv[]) {
                                 &skills, &agents, &missions, &terminal,
                                 &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub, &crasy, &learning, &knowledge);
     ultimateAgent.setDecisionEngine(&decisions);
+    ultimateAgent.setNotePlugins(&notePlugins);
     knowledge.seed(UltimateAgent::tools(), plugins.plugins(), skills.skills());
     if (agentJob) {
         if (!workspace.isEmpty())
@@ -628,6 +633,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("bots", &bots);
     engine.rootContext()->setContextProperty("noteStore", &noteStore);
     engine.rootContext()->setContextProperty("plugins", &plugins);
+    engine.rootContext()->setContextProperty("notePlugins", &notePlugins);
     engine.rootContext()->setContextProperty("updates", &updates);
     engine.rootContext()->setContextProperty("learning", &learning);
     engine.rootContext()->setContextProperty("knowledge", &knowledge);

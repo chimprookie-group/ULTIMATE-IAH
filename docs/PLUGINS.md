@@ -47,3 +47,36 @@ L’outil devient `plugin_my-tool`. L’activation est persistée dans
 Ultimate Agent construit `tools()` à partir de ses outils intégrés et de ceux du
 registre. Les outils de plugins sont donc réellement appelables dans la boucle
 agent, pas seulement listés dans l’interface.
+
+
+## Plugins de notes
+
+Deux familles, configurables dans
+`~/.config/Crasy/deepcrasy-h/note-plugins/` :
+
+### Intégrés au harness
+
+- `task-extract` : transforme les cases `- [ ]` en notes-tâches `todo`.
+- `taskify` : crée une note-tâche à partir de la note courante.
+- `brief` : ajoute workspace, modèle, nombre de notes et tâches ouvertes.
+
+### Commandes externes
+
+Déposez un manifeste JSON :
+
+```json
+{
+  "id": "upper",
+  "name": "Majuscules",
+  "description": "Met le contenu en majuscules.",
+  "command": "/home/moi/bin/upper.sh",
+  "mode": "replace",
+  "readOnly": false
+}
+```
+
+Le script reçoit le chemin absolu de la note en `argv[1]`, le titre en
+`argv[2]` et le Markdown sur `stdin`. Sa sortie standard est appliquée selon
+`mode` : `append`, `replace` ou `create`. Aucun shell n'est utilisé, délai
+max 8 s. La liste et l'exécution sont aussi exposées à l'agent via
+`ultimate_note_plugins`.
