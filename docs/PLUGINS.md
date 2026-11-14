@@ -95,10 +95,13 @@ annulables et rétablissables (40 niveaux), et un plugin peut être planifié
 
 La planification survit à la fermeture de l'application : `bootstrap`
 installe `ultimate-iah-note-plugins.timer` (systemd utilisateur, toutes les
-15 min) qui appelle `ultimate-iah note-plugins-run`. Les échéances sont
-stockées dans `settings.json`.
+minutes) qui appelle `ultimate-iah note-plugins-run`. Sans systemd
+utilisateur, il installe à la place un autostart
+`ultimate-iah note-plugins-daemon`. Les échéances sont stockées dans
+`settings.json`.
 
-Les plugins externes sont exécutés par défaut dans **bubblewrap** :
+Les plugins externes sont exécutés par défaut dans **bubblewrap**
+(dépendance du paquet) :
 système de fichiers en lecture seule, vault monté en écriture, réseau coupé,
-HOME temporaire. Un manifeste peut demander `"sandbox": false`, et les
-tests le font pour rester portables.
+HOME temporaire. Si `bubblewrap` manque, le plugin est refusé sauf si le
+manifeste déclare explicitement `"allowUnsandboxed": true`.
