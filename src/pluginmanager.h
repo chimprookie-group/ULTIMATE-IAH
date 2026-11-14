@@ -6,6 +6,8 @@
 #include <QVariantList>
 #include <QSet>
 
+class QProcess;
+
 // Native plugin registry and ArtCraft bridge. Plugins are either the built-in
 // ArtCraft CLI suite or user manifests in the app data plugins/ directory.
 // Every installed and enabled plugin contributes a real tool to Ultimate Agent.
@@ -19,6 +21,10 @@ class PluginManager : public QObject {
     Q_PROPERTY(int enabledCount READ enabledCount NOTIFY changed)
     Q_PROPERTY(int toolCount READ toolCount NOTIFY changed)
     Q_PROPERTY(QString artcraftPath READ artcraftPath CONSTANT)
+    Q_PROPERTY(QString artcraftSuitePath READ artcraftSuitePath CONSTANT)
+    Q_PROPERTY(QString artcraftVersion READ artcraftVersion NOTIFY artcraftChanged)
+    Q_PROPERTY(bool artcraftBusy READ artcraftBusy NOTIFY artcraftChanged)
+    Q_PROPERTY(QString artcraftStatus READ artcraftStatus NOTIFY artcraftChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 
 public:
@@ -40,12 +46,17 @@ public:
     int enabledCount() const;
     int toolCount() const { return toolDefinitions().size(); }
     QString artcraftPath() const;
+    QString artcraftSuitePath() const;
+    QString artcraftVersion() const;
+    bool artcraftBusy() const { return m_artcraftBusy; }
+    QString artcraftStatus() const { return m_artcraftStatus; }
     QString error() const { return m_error; }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE bool setEnabled(const QString &id, bool enabled);
     Q_INVOKABLE void openPluginFolder();
     Q_INVOKABLE void openArtcraftInstallGuide();
+    Q_INVOKABLE void installOrUpdateArtcraft(bool update);
 
     QJsonArray toolDefinitions() const;
     bool isPluginTool(const QString &name) const;
@@ -59,6 +70,7 @@ public:
 signals:
     void changed();
     void errorChanged();
+    void artcraftChanged();
 
 private:
     void loadSettings();
@@ -73,9 +85,18 @@ private:
     QJsonObject processResult(const QString &program, const QStringList &arguments,
                               const QString &workspace, int timeoutMs) const;
 
+    void startArtcraftNode();
+    void runArtcraftProcess(const QString &program, const QStringList &arguments, int stage);
+    void finishArtcraft(const QString &status, bool ok);
+
     QString m_configDir;
     QVariantList m_plugins;
     QVariantList m_capabilities;
     QSet<QString> m_disabled;
     QString m_error;
+    bool m_artcraftBusy = false;
+    bool m_artcraftUpdate = false;
+    int m_artcraftStage = 0;
+    QString m_artcraftStatus;
+    QProcess *m_artcraftProcess = nullptr;
 };

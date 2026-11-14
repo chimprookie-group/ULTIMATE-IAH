@@ -1724,7 +1724,10 @@ QJsonArray UltimateAgent::tools() {
                     QStringLiteral("List native plugins and ArtCraft tools registered with the harness."),
                     properties({{QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
-                                              {QStringLiteral("list"), QStringLiteral("refresh")})}}),
+                                              {QStringLiteral("list"), QStringLiteral("status"),
+                                               QStringLiteral("refresh"),
+                                               QStringLiteral("artcraft_install"),
+                                               QStringLiteral("artcraft_update")})}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_settings"),
                     QStringLiteral("Read or change app theme, language, startup view and harness autostart."),
@@ -2306,6 +2309,11 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
     if (name == QLatin1String("ultimate_plugins")) {
         if (!m_plugins)
             return errorResult(tr("Le registre de plugins est indisponible."));
+        if (action == QLatin1String("artcraft_install") || action == QLatin1String("artcraft_update")) {
+            m_plugins->installOrUpdateArtcraft(action == QLatin1String("artcraft_update"));
+            return okResult({{QStringLiteral("started"), true},
+                             {QStringLiteral("status"), m_plugins->artcraftStatus()}});
+        }
         m_plugins->refresh();
         return okResult({{QStringLiteral("installed"), m_plugins->installedCount()},
                          {QStringLiteral("enabled"), m_plugins->enabledCount()},

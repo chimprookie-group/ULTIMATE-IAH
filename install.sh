@@ -10,7 +10,7 @@ set -Eeuo pipefail
 REPO="chimprookie-group/ULTIMATE-IAH"
 BASE="https://github.com/${REPO}"
 RAW="https://raw.githubusercontent.com/${REPO}/main"
-VERSION="1.25.17"
+VERSION="1.25.18"
 PKG="ultimate-iah-${VERSION}-1-x86_64.pkg.tar.zst"
 ASSET="${BASE}/releases/latest/download/${PKG}"
 CHECKSUM="${ASSET}.sha256"
@@ -149,10 +149,18 @@ fi
 # ArtCraft optionnel
 # ---------------------------------------------------------------------------
 if [[ "$WITH_ARTCRAFT" == "true" ]]; then
-  info "Installation optionnelle de la suite ArtCraft…"
+  info "Installation de la suite ArtCraft…"
   have node || die "Node.js requis pour ArtCraft."
-  git clone --depth 1 https://github.com/lznnnnn1998/dsh-artcraft "$TMP/artcraft"
-  node "$TMP/artcraft/scripts/install-craft.mjs" --dir "$DATA/artcraft/bin"
+  have git || die "git requis pour ArtCraft."
+  SUITE="$DATA/artcraft/suite"
+  if [[ -d "$SUITE/.git" ]]; then
+    info "Mise à jour de la suite existante…"
+    git -C "$SUITE" pull --ff-only || warn "Mise à jour git impossible; installation locale conservée."
+  else
+    mkdir -p "$DATA/artcraft"
+    git clone --depth 1 https://github.com/lznnnnn1998/dsh-artcraft "$SUITE"
+  fi
+  node "$SUITE/scripts/install-craft.mjs" --dir "$DATA/artcraft/bin" --force
 fi
 
 # ---------------------------------------------------------------------------
