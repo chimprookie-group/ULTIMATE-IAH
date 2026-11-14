@@ -89,6 +89,37 @@ QString probe(const QString &binary, const QStringList &arguments) {
     return output.split('\n').value(0).trimmed();
 }
 
+void ensureNotePluginTimer() {
+    const QString unitDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+        + QStringLiteral("/systemd/user");
+    if (!QDir().mkpath(unitDir))
+        return;
+    const QString binary = QStandardPaths::findExecutable(QStringLiteral("ultimate-iah"),
+                                                          {QCoreApplication::applicationDirPath()});
+    const QString service = unitDir + QStringLiteral("/ultimate-iah-note-plugins.service");
+    QSaveFile serviceFile(service);
+    if (serviceFile.open(QIODevice::WriteOnly)) {
+        serviceFile.write(QStringLiteral(
+            "[Unit]\nDescription=Ultimate IAH note plugin scheduler\n\n"
+            "[Service]\nType=oneshot\nExecStart=%1 note-plugins-run\n")
+            .arg(binary.isEmpty() ? QStringLiteral("/usr/bin/ultimate-iah") : binary).toUtf8());
+        serviceFile.commit();
+    }
+    const QString timer = unitDir + QStringLiteral("/ultimate-iah-note-plugins.timer");
+    QSaveFile timerFile(timer);
+    if (timerFile.open(QIODevice::WriteOnly)) {
+        timerFile.write(QStringLiteral(
+            "[Unit]\nDescription=Run Ultimate IAH note plugins\n\n"
+            "[Timer]\nOnBootSec=2min\nOnUnitActiveSec=15min\nPersistent=true\n\n"
+            "[Install]\nWantedBy=timers.target\n").toUtf8());
+        timerFile.commit();
+    }
+    QProcess::execute(QStringLiteral("systemctl"), {QStringLiteral("--user"), QStringLiteral("daemon-reload")});
+    QProcess::execute(QStringLiteral("systemctl"), {QStringLiteral("--user"), QStringLiteral("enable"),
+                                                    QStringLiteral("--now"),
+                                                    QStringLiteral("ultimate-iah-note-plugins.timer")});
+}
+
 int runDoctor(bool json) {
     QJsonArray checks;
     auto add = [&checks](const QString &name, bool ok, const QString &detail) {
@@ -251,7 +282,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.29"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.30"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -301,6 +332,7 @@ int main(int argc, char *argv[]) {
         // Keep the built-in router available for the default local provider.
         router.saveSettings(router.port(), router.freeOnly(), router.maxFallbacks(), true,
                             router.strategy());
+        ensureNotePluginTimer();
         const int entries = knowledge.stats().value(QStringLiteral("entries")).toInt();
         const QString provider = connections.defaultProvider();
         QTextStream(stdout) << "Ultimate IAH bootstrap\n"
@@ -329,6 +361,16 @@ int main(int argc, char *argv[]) {
         const QVariantMap status = decisions.status();
         QTextStream(stdout) << QJsonDocument(QJsonObject::fromVariantMap(status)).toJson(QJsonDocument::Compact) << '\n';
         return status.value(QStringLiteral("provider")).toString().isEmpty() ? 1 : 0;
+    }
+    if (arguments.value(0) == "note-plugins-run") {
+        QCoreApplication app(argc, argv);
+        NoteStore notes;
+        NotePluginManager plugins(&notes, {});
+        plugins.runDueSchedules();
+        QTextStream(stdout) << (plugins.lastOutput().isEmpty()
+                                    ? QStringLiteral("note-plugins: nothing due\n")
+                                    : plugins.lastOutput() + QLatin1Char('\n'));
+        return 0;
     }
     if (arguments.value(0) == "doctor") {
         QCoreApplication app(argc, argv);
