@@ -592,8 +592,9 @@ void CrasyRouter::copyToken() const {
 }
 
 bool CrasyRouter::healthy() const {
-    return m_server.isListening() && m_lastServedAt > 0
-        && QDateTime::currentMSecsSinceEpoch() - m_lastServedAt < 120000;
+    // Listening is the health fact. Idle time is reported separately through
+    // lastActivityAt; a quiet but listening router is healthy.
+    return m_server.isListening();
 }
 
 QJsonObject CrasyRouter::status() const {
@@ -601,10 +602,13 @@ QJsonObject CrasyRouter::status() const {
     for (const QVariant &value : m_channels)
         channelArray.append(QJsonObject::fromVariantMap(value.toMap()));
     return QJsonObject{
-        {QStringLiteral("ok"), running() && healthy()},
+        {QStringLiteral("ok"), running()},
         {QStringLiteral("running"), running()},
         {QStringLiteral("listening"), listening()},
         {QStringLiteral("healthy"), healthy()},
+        {QStringLiteral("lastActivityAt"), m_lastServedAt > 0
+             ? QDateTime::fromMSecsSinceEpoch(m_lastServedAt).toString(Qt::ISODate)
+             : QString()},
         {QStringLiteral("endpoint"), endpoint()},
         {QStringLiteral("channels"), channelArray},
         {QStringLiteral("models"), m_models.size()},

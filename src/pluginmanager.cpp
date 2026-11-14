@@ -76,7 +76,7 @@ struct DshCapability {
 const QList<DshCapability> &dshCapabilities() {
     static const QList<DshCapability> list = {
         {"agent-loop", "Boucle agent", "Noyau", "Boucle tool-calling native, rounds et arrêt propre.", true, true, "ultimate_status", "agent"},
-        {"sessions", "Sessions", "Noyau", "Conversations persistantes, reprise, historique et recherche.", true, true, "ultimate_agent", "agent"},
+        {"sessions", "Sessions", "Noyau", "Conversations persistantes, reprise, historique et recherche.", true, true, "ultimate_status", "agent"},
         {"tools", "Outils", "Noyau", "Registre d’outils intégrés et dynamiques avec permissions.", true, true, "ultimate_plugins", "plugins"},
         {"fs", "Fichiers", "Noyau", "Lecture, écriture, listage et recherche dans le workspace.", true, true, "ultimate_files", "workspace"},
         {"bash", "Shell", "Noyau", "Terminal PTY réel et exécution contrôlée.", true, true, "ultimate_terminal", "terminal"},

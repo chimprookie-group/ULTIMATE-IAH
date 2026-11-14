@@ -25,7 +25,8 @@ public:
     QString error() const { return m_error; }
     QString databasePath() const { return m_path; }
 
-    void seed(const QJsonArray &tools, const QVariantList &plugins, const QVariantList &skills);
+    void seed(const QJsonArray &tools, const QVariantList &plugins, const QVariantList &skills,
+              const QVariantList &capabilities = {});
     Q_INVOKABLE void refresh();
     Q_INVOKABLE QVariantList search(const QString &query, int limit = 20) const;
     Q_INVOKABLE void clearError();
