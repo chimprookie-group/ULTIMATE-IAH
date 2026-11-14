@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.38"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.39"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -416,6 +416,21 @@ int main(int argc, char *argv[]) {
         QObject::connect(&timer, &QTimer::timeout, &app, [] { runScheduledVaults(); });
         timer.start();
         return app.exec();
+    }
+    if (arguments.value(0) == "memory-search") {
+        QCoreApplication app(argc, argv);
+        MemoryStore memory;
+        memory.search(arguments.value(1), arguments.value(2));
+        QJsonArray results;
+        for (const QVariant &value : memory.results())
+            results.append(QJsonObject::fromVariantMap(value.toMap()));
+        QTextStream(stdout) << QJsonDocument(QJsonObject{{QStringLiteral("count"), results.size()},
+                                                         {QStringLiteral("path"), memory.databasePath()},
+                                                         {QStringLiteral("error"), memory.error()},
+                                                         {QStringLiteral("stats"), QJsonObject::fromVariantMap(memory.stats())},
+                                                         {QStringLiteral("results"), results}})
+                                   .toJson(QJsonDocument::Compact) << '\n';
+        return results.isEmpty() ? 1 : 0;
     }
     if (arguments.value(0) == "note-plugins-all-users") {
         QCoreApplication app(argc, argv);
