@@ -108,6 +108,29 @@ int runDoctor(bool json) {
     add("webengine", webengine, webengine ? QStringLiteral("QtWebEngine QML module is installed")
                                           : QStringLiteral("qt6-webengine is missing"));
 
+    const QString config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    const QString data = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QDir skillsDir(home + QStringLiteral("/.agents/skills"));
+    const int skillsCount = skillsDir.exists()
+        ? skillsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot).size() : 0;
+    add("skills", skillsCount >= 12,
+        QStringLiteral("%1 skills installed in ~/.agents/skills").arg(skillsCount));
+    const QFileInfo knowledge(data + QStringLiteral("/knowledge.db"));
+    add("knowledge", knowledge.exists() && knowledge.size() > 0,
+        knowledge.exists() ? QStringLiteral("knowledge.db is ready")
+                           : QStringLiteral("knowledge.db is missing"));
+    const QFileInfo routerToken(config + QStringLiteral("/4crasy/token"));
+    add("4crasy", routerToken.exists(), routerToken.exists()
+        ? QStringLiteral("4Crasy token is present")
+        : QStringLiteral("4Crasy token is missing"));
+    QFile overlay(config + QStringLiteral("/connections.patch.yml"));
+    bool hasProvider = false;
+    if (overlay.open(QIODevice::ReadOnly))
+        hasProvider = QString::fromUtf8(overlay.readAll()).contains(QStringLiteral("agent-default-model"));
+    add("provider", hasProvider, hasProvider
+        ? QStringLiteral("a default agent provider is configured")
+        : QStringLiteral("no default agent provider; run bootstrap"));
+
     bool ok = true;
     for (const auto &value : checks)
         ok = ok && value.toObject().value("ok").toBool();
@@ -226,7 +249,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.16"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.17"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -246,17 +269,51 @@ int main(int argc, char *argv[]) {
         QFile::setPermissions(config, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
         QFile::setPermissions(data, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
         SkillManager skills;
-        skills.seedDefaults();
+        const bool seeded = skills.seedDefaults();
         LearningEngine learning(QString(), &skills);
         KnowledgeBase knowledge;
-        knowledge.seed(UltimateAgent::tools(), {}, skills.skills());
+        const QJsonArray tools = UltimateAgent::tools();
+        knowledge.seed(tools, {}, skills.skills());
         CrasyRouter router;
+        HarnessConnections connections;
+        if (connections.defaultProvider().isEmpty()) {
+            QVariantMap chosen;
+            for (const QVariant &value : connections.providers()) {
+                const QVariantMap provider = value.toMap();
+                if (provider.value(QStringLiteral("hasKey")).toBool()
+                    && !provider.value(QStringLiteral("models")).toStringList().isEmpty()) {
+                    chosen = provider;
+                    break;
+                }
+            }
+            if (chosen.isEmpty()) {
+                connections.saveProvider(QStringLiteral("4crasy"), QStringLiteral("4Crasy"),
+                                         router.endpoint(), router.token(),
+                                         QStringLiteral("auto=Auto"), true,
+                                         QStringLiteral("openai-completions"));
+            } else {
+                connections.setDefault(chosen.value(QStringLiteral("id")).toString(),
+                                       chosen.value(QStringLiteral("models")).toStringList().first());
+            }
+        }
+        // Keep the built-in router available for the default local provider.
+        router.saveSettings(router.port(), router.freeOnly(), router.maxFallbacks(), true,
+                            router.strategy());
+        const int entries = knowledge.stats().value(QStringLiteral("entries")).toInt();
+        const QString provider = connections.defaultProvider();
         QTextStream(stdout) << "Ultimate IAH bootstrap\n"
                             << "config=" << config << "\n"
                             << "data=" << data << "\n"
                             << "skills=" << skills.defaultCount() << "\n"
+                            << "tools=" << tools.size() << "\n"
+                            << "knowledge=" << entries << "\n"
+                            << "provider=" << (provider.isEmpty() ? QStringLiteral("none") : provider) << "\n"
                             << "4crasy-token=" << QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
                                    + QStringLiteral("/4crasy/token") << "\n";
+        if (!seeded || skills.defaultCount() < 42 || tools.isEmpty() || entries < tools.size()) {
+            QTextStream(stderr) << "ultimate-iah bootstrap: default wiring incomplete\n";
+            return 1;
+        }
         return 0;
     }
     if (arguments.value(0) == "doctor") {
