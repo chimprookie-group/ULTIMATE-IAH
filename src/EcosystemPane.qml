@@ -230,56 +230,73 @@ Item {
                     icon: "icons/spark.svg"
                     cardWidth: root.cardWidth
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignTop
 
-                    Text {
+                    ScrollView {
+                        id: skillsScroll
                         Layout.fillWidth: true
-                        visible: ecosystem.skills.length === 0
-                        text: qsTr("Aucun skill dans ~/.agents/skills.")
-                        color: theme.dimText
-                        font.pixelSize: design.textCaption
-                        wrapMode: Text.Wrap
-                    }
+                        Layout.preferredHeight: Math.min(420, skillsColumn.implicitHeight + design.space2)
+                        clip: true
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical: AppScrollBar {}
+                        background: null
+                        padding: 0
 
-                    Repeater {
-                        model: ecosystem.skills
                         ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 5
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 7
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.name !== undefined ? modelData.name : modelData.id
-                                    color: theme.text
-                                    font.pixelSize: 10
-                                    font.weight: Font.DemiBold
-                                    elide: Text.ElideRight
-                                }
-                                GhostButton {
-                                    text: qsTr("Confier")
-                                    flat: true
-                                    font.pixelSize: design.textCaption
-                                    Layout.alignment: Qt.AlignTop
-                                    onClicked: root.sendTask(qsTr("Utilise le skill « %1 » depuis %2 pour m'aider sur ce projet. Dis-moi d'abord ce qu'il apporte et ce dont tu as besoin.").arg(modelData.name).arg(modelData.path))
-                                }
-                            }
+                            id: skillsColumn
+                            width: skillsScroll.availableWidth
+                            spacing: design.space2
+
                             Text {
                                 Layout.fillWidth: true
-                                text: modelData.description
+                                visible: ecosystem.skills.length === 0
+                                text: qsTr("Aucun skill dans ~/.agents/skills.")
                                 color: theme.dimText
-                                font.pixelSize: design.textMicro
-                                lineHeight: 1.25
+                                font.pixelSize: design.textCaption
                                 wrapMode: Text.Wrap
-                                maximumLineCount: 2
-                                elide: Text.ElideRight
                             }
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 1
-                                color: theme.border
-                                opacity: 0.6
+
+                            Repeater {
+                                model: ecosystem.skills
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 5
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 7
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: modelData.name !== undefined ? modelData.name : modelData.id
+                                            color: theme.text
+                                            font.pixelSize: 10
+                                            font.weight: Font.DemiBold
+                                            elide: Text.ElideRight
+                                        }
+                                        GhostButton {
+                                            text: qsTr("Confier")
+                                            flat: true
+                                            font.pixelSize: design.textCaption
+                                            Layout.alignment: Qt.AlignTop
+                                            onClicked: root.sendTask(qsTr("Utilise le skill « %1 » depuis %2 pour m'aider sur ce projet. Dis-moi d'abord ce qu'il apporte et ce dont tu as besoin.").arg(modelData.name).arg(modelData.path))
+                                        }
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: modelData.description
+                                        color: theme.dimText
+                                        font.pixelSize: design.textMicro
+                                        lineHeight: 1.25
+                                        wrapMode: Text.Wrap
+                                        maximumLineCount: 2
+                                        elide: Text.ElideRight
+                                    }
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 1
+                                        color: theme.border
+                                        opacity: 0.6
+                                    }
+                                }
                             }
                         }
                     }
@@ -291,7 +308,7 @@ Item {
                     accent: theme.green
                     cardWidth: root.cardWidth
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignTop
 
                     Text {
                         Layout.fillWidth: true
@@ -299,6 +316,16 @@ Item {
                         color: theme.dimText
                         font.pixelSize: design.textCaption
                         wrapMode: Text.Wrap
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: backend.workspaceName + " · "
+                              + (backend.gitAvailable ? backend.gitBranch : qsTr("hors git")) + " · "
+                              + qsTr("%n skill(s)", "", ecosystem.skills.length)
+                        color: theme.mutedText
+                        font.family: backend.monoFont
+                        font.pixelSize: design.textMicro
+                        elide: Text.ElideRight
                     }
                     GridLayout {
                         Layout.fillWidth: true
