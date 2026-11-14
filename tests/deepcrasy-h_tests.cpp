@@ -730,6 +730,18 @@ private slots:
         const QString archive = store.backupVault();
         QVERIFY(!archive.isEmpty());
         QVERIFY(QFileInfo(archive).size() > 0);
+        for (int i = 0; i < 2; ++i) {
+            QFile extra(dir.path() + "/vault/.backups/extra-" + QString::number(i) + ".tar.gz");
+            QVERIFY(extra.open(QIODevice::WriteOnly));
+            extra.write("x");
+            extra.close();
+        }
+        QCOMPARE(store.pruneBackups(1), 2);
+        QCOMPARE(QDir(dir.path() + "/vault/.backups").entryList({"*.tar.gz"}, QDir::Files).size(), 1);
+        QVERIFY(store.gitSetToken("test-token"));
+        QVERIFY(store.gitTokenConfigured());
+        store.gitClearToken();
+        QVERIFY(!store.gitTokenConfigured());
 
         const QString exportDir = dir.path() + "/export";
         QCOMPARE(store.exportVault(exportDir), QFileInfo(exportDir).absoluteFilePath());

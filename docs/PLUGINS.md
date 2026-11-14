@@ -101,6 +101,17 @@ utilisateur, il installe à la place un autostart
 dans `settings.json` ; plusieurs vaults peuvent être enregistrés et
 planifiés indépendamment.
 
+Le paquet installe aussi un timer **système** (`ultimate-iah-note-plugins.timer`)
+qui, chaque minute, déclenche `ultimate-iah note-plugins-all-users` : le
+service parcourt les sessions `loginctl` et démarre le service utilisateur
+de chaque personne connectée. Chaque utilisateur garde ainsi son vault et
+ses droits, sans exécution croisée.
+
+Les sauvegardes sont purgées aux 10 dernières archives ; le dialogue Git
+accepte un jeton HTTPS (stocké en 600 dans `note-git.token`) et permet de
+résoudre les conflits fichier par fichier (local/distant) ou d'abandonner
+la fusion.
+
 Les plugins externes sont exécutés par défaut dans **bubblewrap**
 (dépendance du paquet) :
 système de fichiers en lecture seule, vault monté en écriture, réseau coupé,

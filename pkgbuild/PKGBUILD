@@ -1,6 +1,6 @@
 # Maintainer: Ultimate IAH
 pkgname=ultimate-iah
-pkgver=1.25.32
+pkgver=1.25.33
 pkgrel=1
 pkgdesc='Ultimate IAH — native agentic cockpit, notes and bots'
 arch=('x86_64' 'aarch64')
@@ -11,6 +11,7 @@ makedepends=('gcc' 'make' 'qt6-base' 'qt6-svg')
 provides=('ultimate-iah' 'ultimate-hai' 'deepcrasy-h')
 conflicts=('ultimate-hai' 'deepcrasy-h')
 replaces=('ultimate-hai' 'deepcrasy-h')
+install=ultimate-iah.install
 source=()
 sha256sums=()
 
@@ -26,6 +27,8 @@ package() {
   install -Dm644 src/terminal/LICENSE-xterm "$pkgdir/usr/share/licenses/$pkgname/LICENSE-xterm"
   install -Dm644 src/agent/BEHAVIOR.md "$pkgdir/usr/share/ultimate-iah/BEHAVIOR.md"
   install -Dm644 pkgbuild/ultimate-iah.desktop "$pkgdir/usr/share/applications/ultimate-iah.desktop"
+  install -Dm644 pkgbuild/ultimate-iah-note-plugins.service "$pkgdir/usr/lib/systemd/system/ultimate-iah-note-plugins.service"
+  install -Dm644 pkgbuild/ultimate-iah-note-plugins.timer "$pkgdir/usr/lib/systemd/system/ultimate-iah-note-plugins.timer"
   install -Dm644 assets/icon-128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/ultimate-iah.png"
   install -Dm644 assets/icon-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ultimate-iah.png"
   install -Dm644 assets/icon-512.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ultimate-iah.png"

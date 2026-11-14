@@ -1010,6 +1010,7 @@ QString NoteStore::backupVault() {
                      .arg(QString::fromUtf8(process.readAllStandardError()).trimmed()));
         return {};
     }
+    pruneBackups(10);
     return path;
 }
 
@@ -1069,10 +1070,26 @@ struct GitResult {
     QString output;
 };
 
+QString gitToken() {
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+               + QStringLiteral("/note-git.token"));
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    return QString::fromUtf8(file.readAll()).trimmed();
+}
+
 GitResult runGit(const QString &vault, const QStringList &arguments, int timeout = 30000) {
     QProcess process;
     process.setWorkingDirectory(vault);
-    process.start(QStringLiteral("git"), arguments);
+    QStringList full = arguments;
+    const QString token = gitToken();
+    if (!token.isEmpty()) {
+        const QString header = QStringLiteral("http.extraHeader=Authorization: Basic ")
+            + QString::fromUtf8(QByteArrayLiteral("x-access-token:") + token.toUtf8().toBase64());
+        full.prepend(header);
+        full.prepend(QStringLiteral("-c"));
+    }
+    process.start(QStringLiteral("git"), full);
     if (!process.waitForStarted(3000))
         return {false, QObject::tr("git introuvable.")};
     if (!process.waitForFinished(timeout)) {
@@ -1086,6 +1103,78 @@ GitResult runGit(const QString &vault, const QStringList &arguments, int timeout
             error.isEmpty() ? output : error};
 }
 } // namespace
+
+bool NoteStore::gitTokenConfigured() const {
+    const QFileInfo info(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+                         + QStringLiteral("/note-git.token"));
+    return info.isFile() && info.size() > 0;
+}
+
+bool NoteStore::gitSetToken(const QString &token) {
+    const QString path = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+        + QStringLiteral("/note-git.token");
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    if (token.trimmed().isEmpty())
+        return false;
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    file.write(token.trimmed().toUtf8());
+    if (!file.commit())
+        return false;
+    QFile::setPermissions(path, QFile::ReadOwner | QFile::WriteOwner);
+    emit gitChanged();
+    return true;
+}
+
+void NoteStore::gitClearToken() {
+    QFile::remove(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+                  + QStringLiteral("/note-git.token"));
+    emit gitChanged();
+}
+
+bool NoteStore::gitResolve(const QString &path, const QString &side) {
+    if (path.isEmpty() || path.contains(QStringLiteral(".."))
+        || (side != QLatin1String("ours") && side != QLatin1String("theirs")))
+        return false;
+    const QString flag = side == QLatin1String("ours") ? QStringLiteral("--ours")
+                                                       : QStringLiteral("--theirs");
+    const GitResult checkout = runGit(m_vaultPath, {QStringLiteral("checkout"), flag,
+                                                    QStringLiteral("--"), path});
+    if (!checkout.ok) {
+        setError(checkout.output);
+        return false;
+    }
+    const GitResult add = runGit(m_vaultPath, {QStringLiteral("add"), QStringLiteral("--"), path});
+    if (!add.ok) {
+        setError(add.output);
+        return false;
+    }
+    gitRefresh();
+    return true;
+}
+
+bool NoteStore::gitAbort() {
+    runGit(m_vaultPath, {QStringLiteral("rebase"), QStringLiteral("--abort")});
+    runGit(m_vaultPath, {QStringLiteral("merge"), QStringLiteral("--abort")});
+    runGit(m_vaultPath, {QStringLiteral("cherry-pick"), QStringLiteral("--abort")});
+    gitRefresh();
+    return true;
+}
+
+int NoteStore::pruneBackups(int keep) {
+    QDir directory(m_vaultPath + QStringLiteral("/.backups"));
+    if (!directory.exists())
+        return 0;
+    QFileInfoList files = directory.entryInfoList({QStringLiteral("*.tar.gz")},
+                                                  QDir::Files, QDir::Time);
+    int removed = 0;
+    for (int i = qMax(0, keep); i < files.size(); ++i) {
+        if (QFile::remove(files[i].absoluteFilePath()))
+            ++removed;
+    }
+    return removed;
+}
 
 void NoteStore::gitRefresh() {
     m_gitBranch.clear();
@@ -1104,6 +1193,17 @@ void NoteStore::gitRefresh() {
     const GitResult status = runGit(m_vaultPath, {QStringLiteral("status"),
                                                    QStringLiteral("--porcelain")});
     m_gitDirty = status.ok && !status.output.isEmpty();
+    m_gitConflicts.clear();
+    if (status.ok) {
+        for (const QString &line : status.output.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+            const QString state = line.left(2);
+            if (state == QLatin1String("UU") || state == QLatin1String("AA")
+                || state == QLatin1String("DU") || state == QLatin1String("UD")
+                || state == QLatin1String("AU") || state == QLatin1String("UA")
+                || state == QLatin1String("DD"))
+                m_gitConflicts.append(line.mid(3).trimmed());
+        }
+    }
     const GitResult remote = runGit(m_vaultPath, {QStringLiteral("remote"),
                                                    QStringLiteral("get-url"),
                                                    QStringLiteral("origin")});
