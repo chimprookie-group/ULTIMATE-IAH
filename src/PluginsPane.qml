@@ -14,6 +14,14 @@ Item {
         }
         return result
     }
+    readonly property int artcraftInstalled: {
+        var count = 0
+        for (var i = 0; i < plugins.plugins.length; ++i) {
+            if (plugins.plugins[i].kind === "artcraft" && plugins.plugins[i].installed)
+                ++count
+        }
+        return count
+    }
     readonly property var coreCapabilities: {
         var result = []
         for (var i = 0; i < plugins.capabilities.length; ++i) {
@@ -118,6 +126,39 @@ Item {
                     GhostButton { text: qsTr("Guide d'installation"); flat: true; font.pixelSize: design.textMicro; onClicked: plugins.openArtcraftInstallGuide() }
                 }
                 Text { Layout.fillWidth: true; text: plugins.artcraftPath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text {
+                        text: (plugins.artcraftVersion !== "" ? "v" + plugins.artcraftVersion : qsTr("suite absente"))
+                              + " · " + root.artcraftInstalled + "/" + plugins.artcraft.length
+                        color: theme.mutedText
+                        font.family: backend.monoFont
+                        font.pixelSize: design.textMicro
+                    }
+                    Item { Layout.fillWidth: true }
+                    GhostButton {
+                        text: qsTr("Compléter")
+                        flat: true
+                        font.pixelSize: design.textMicro
+                        enabled: !plugins.artcraftBusy
+                        onClicked: plugins.installOrUpdateArtcraft(false)
+                    }
+                    ActionButton {
+                        text: plugins.artcraftBusy ? qsTr("En cours…") : qsTr("Mettre à jour")
+                        enabled: !plugins.artcraftBusy
+                        onClicked: plugins.installOrUpdateArtcraft(true)
+                    }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    visible: plugins.artcraftStatus !== ""
+                    text: plugins.artcraftStatus
+                    color: plugins.error !== "" ? theme.red : theme.dimText
+                    font.pixelSize: design.textMicro
+                    wrapMode: Text.Wrap
+                }
 
                 GridLayout {
                     Layout.fillWidth: true

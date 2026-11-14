@@ -901,6 +901,38 @@ private slots:
         QVERIFY(!parsed.at(1).toMap().value("free").toBool());
     }
 
+    void pluginManagerDiscoversNewArtcraftCrafts()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QByteArray previous = qgetenv("ULTIMATE_IAH_ARTCRAFT_DIR");
+        const QString bin = dir.path() + "/artcraft";
+        QVERIFY(QDir().mkpath(bin));
+        QFile fake(bin + "/newcraft-cli");
+        QVERIFY(fake.open(QIODevice::WriteOnly));
+        fake.write("#!/bin/sh\nexit 0\n");
+        fake.write(QByteArray(1100 * 1024, '\0'));
+        fake.close();
+        QFile::setPermissions(fake.fileName(),
+                              QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        qputenv("ULTIMATE_IAH_ARTCRAFT_DIR", bin.toUtf8());
+        PluginManager plugins(dir.path() + "/config");
+        bool found = false;
+        for (const QVariant &value : plugins.plugins()) {
+            const QVariantMap plugin = value.toMap();
+            if (plugin.value("id").toString() == "newcraft") {
+                found = true;
+                QCOMPARE(plugin.value("toolName").toString(), QString("artcraft_newcraft"));
+                QVERIFY(plugin.value("installed").toBool());
+            }
+        }
+        QVERIFY(found);
+        if (previous.isEmpty())
+            qunsetenv("ULTIMATE_IAH_ARTCRAFT_DIR");
+        else
+            qputenv("ULTIMATE_IAH_ARTCRAFT_DIR", previous);
+    }
+
     void pluginManagerDiscoversAndRunsExternalCommands()
     {
         QTemporaryDir dir;

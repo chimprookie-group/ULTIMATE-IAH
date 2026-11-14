@@ -12,7 +12,15 @@ la projection native du profil DSH `web` et du bundle `base`.
 
 - Binaires détectés dans `~/.local/share/Crasy/deepcrasy-h/artcraft/bin`,
   `~/.dsh/crafts/bin`, `~/.local/bin` ou le `PATH`.
-- 14 craft exposés comme `artcraft_<craft>`.
+- 14 craft exposés comme `artcraft_<craft>`, plus tout binaire `*-cli`
+  inconnu détecté dans le dossier ArtCraft (adaptation automatique aux
+  nouveaux crafts de la suite).
+- La suite est gérée dans
+  `~/.local/share/Crasy/deepcrasy-h/artcraft/suite` : « Compléter » installe
+  les crafts manquants, « Mettre à jour » fait un `git pull` puis réinstalle
+  avec `--force`.
+- Les actions agent `ultimate_plugins action=artcraft_install|artcraft_update`
+  déclenchent la même gestion.
 - `commands`, `version` et `run` passent par `QProcess`, sans shell.
 - Le mode `read-only` n’autorise que `commands` et `version`.
 
