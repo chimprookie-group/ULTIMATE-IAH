@@ -26,6 +26,7 @@ class NoteStore : public QObject {
     Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY changed)
     Q_PROPERTY(QString activeTag READ activeTag WRITE setActiveTag NOTIFY changed)
     Q_PROPERTY(QString activeFolder READ activeFolder WRITE setActiveFolder NOTIFY changed)
+    Q_PROPERTY(QString activeStatus READ activeStatus WRITE setActiveStatus NOTIFY changed)
     Q_PROPERTY(QVariantMap graph READ graph NOTIFY changed)
     Q_PROPERTY(int count READ count NOTIFY changed)
     Q_PROPERTY(bool graphOpen READ graphOpen WRITE setGraphOpen NOTIFY graphOpenChanged)
@@ -48,6 +49,7 @@ public:
     QString query() const { return m_query; }
     QString activeTag() const { return m_activeTag; }
     QString activeFolder() const { return m_activeFolder; }
+    QString activeStatus() const { return m_activeStatus; }
     QVariantMap graph() const;
     int count() const;
     QString error() const { return m_error; }
@@ -62,6 +64,7 @@ public:
     void setQuery(const QString &query);
     void setActiveTag(const QString &tag);
     void setActiveFolder(const QString &folder);
+    void setActiveStatus(const QString &status);
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void selectNote(const QString &path);
@@ -72,6 +75,9 @@ public:
     Q_INVOKABLE QString duplicateNote(const QString &path);
     Q_INVOKABLE QVariantList templates() const;
     Q_INVOKABLE QString createFromTemplate(const QString &templatePath, const QString &title);
+    Q_INVOKABLE QString createTaskNote(const QString &title, const QString &prompt,
+                                       const QString &workspace = {});
+    Q_INVOKABLE bool setNoteStatus(const QString &path, const QString &status);
     Q_INVOKABLE bool moveNote(const QString &path, const QString &folder);
     Q_INVOKABLE bool togglePin(const QString &path);
     Q_INVOKABLE QString dailyNote();
@@ -111,6 +117,7 @@ private:
     QString m_query;
     QString m_activeTag;
     QString m_activeFolder;
+    QString m_activeStatus;
     QString m_error;
     bool m_graphOpen = false;
 };

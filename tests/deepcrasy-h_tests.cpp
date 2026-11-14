@@ -729,6 +729,16 @@ private slots:
         const QString fromTemplate = store.createFromTemplate("Templates/Base.md", "Depuis modèle");
         QVERIFY(!fromTemplate.isEmpty());
         QVERIFY(store.contentOf(fromTemplate).contains("Depuis modèle"));
+
+        const QString task = store.createTaskNote("Tâche harness", "Corrige le bug", "/tmp/projet");
+        QVERIFY(!task.isEmpty());
+        QCOMPARE(store.selectedNote().value("status").toString(), QString("todo"));
+        QVERIFY(store.contentOf(task).contains("workspace: /tmp/projet"));
+        QVERIFY(store.setNoteStatus(task, "done"));
+        QCOMPARE(store.selectedNote().value("status").toString(), QString("done"));
+        store.setActiveStatus("done");
+        QVERIFY(store.filteredNotes().size() >= 1);
+        store.setActiveStatus({});
     }
 
     void defaultSkillLibraryIsSeededAndSearchable()

@@ -54,6 +54,28 @@ Item {
         Qt.callLater(function () { editor.forceActiveFocus(); editor.cursorPosition = editor.text.length })
     }
 
+    function newTask() {
+        noteStore.createTaskNote(qsTr("Nouvelle tâche"), "", backend.workspace)
+        Qt.callLater(function () { editor.forceActiveFocus(); editor.cursorPosition = editor.text.length })
+    }
+
+    function delegateNote() {
+        if (!root.hasNote)
+            return
+        root.saveNow()
+        const prompt = qsTr("Traite cette note comme une tâche du harness. Statut : %1. Titre : %2.\n\n%3")
+            .arg(root.note.status !== undefined && root.note.status !== "" ? root.note.status : "todo")
+            .arg(root.note.title)
+            .arg(editor.text)
+        ultimateAgent.sendMessage(prompt)
+        backend.setView("agent")
+    }
+
+    function setTaskStatus(status) {
+        if (root.hasNote)
+            noteStore.setNoteStatus(noteStore.selectedPath, status)
+    }
+
     function dailyNote() {
         noteStore.dailyNote()
         Qt.callLater(function () { editor.forceActiveFocus(); editor.cursorPosition = editor.text.length })
@@ -148,6 +170,7 @@ Item {
             icon: "icons/notes.svg"
             accent: theme.yellow
             ActionButton { text: qsTr("Nouvelle note"); onClicked: root.newNote() }
+            ActionButton { text: qsTr("Nouvelle tâche"); onClicked: root.newTask() }
             ActionButton { text: qsTr("Modèles"); onClicked: templatesDialog.open() }
             ActionButton { text: qsTr("Quotidienne"); onClicked: root.dailyNote() }
             ActionButton { text: qsTr("Graphe"); onClicked: graphDialog.open() }
@@ -234,6 +257,29 @@ Item {
                         }
                     }
 
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        Repeater {
+                            model: [
+                                { label: qsTr("Toutes"), value: "" },
+                                { label: qsTr("À faire"), value: "todo" },
+                                { label: qsTr("En cours"), value: "doing" },
+                                { label: qsTr("Terminé"), value: "done" }
+                            ]
+                            Rectangle {
+                                width: statusLabel.implicitWidth + 12
+                                height: 20
+                                radius: 10
+                                color: noteStore.activeStatus === modelData.value ? Qt.rgba(theme.yellow.r, theme.yellow.g, theme.yellow.b, 0.16) : theme.chip
+                                border.width: 1
+                                border.color: noteStore.activeStatus === modelData.value ? theme.yellow : theme.border
+                                Text { id: statusLabel; anchors.centerIn: parent; text: modelData.label; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: noteStore.activeStatus = modelData.value }
+                            }
+                        }
+                    }
+
                     ListView {
                         id: noteList
                         Layout.fillWidth: true
@@ -271,6 +317,12 @@ Item {
                                     spacing: 4
                                     ThemedIcon { visible: modelData.pinned; source: "icons/pin.svg"; width: 9; height: 9; color: theme.yellow }
                                     Text { Layout.fillWidth: true; text: modelData.title; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                    Rectangle {
+                                        visible: modelData.status !== undefined && modelData.status !== ""
+                                        width: 6; height: 6; radius: 3
+                                        color: modelData.status === "done" ? theme.green
+                                               : (modelData.status === "doing" ? theme.orange : theme.yellow)
+                                    }
                                     Text { text: new Date(modelData.updatedAt).toLocaleDateString(Qt.locale(), "dd/MM"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
                                 }
                                 Text { Layout.fillWidth: true; text: modelData.excerpt !== "" ? modelData.excerpt : qsTr("Note vide"); color: theme.dimText; font.pixelSize: design.textMicro; elide: Text.ElideRight }
@@ -551,7 +603,19 @@ Item {
                         }
                     }
                     Text { Layout.fillWidth: true; visible: noteStore.backlinks.length === 0; text: qsTr("Aucun backlink. Reliez vos notes avec [[Titre]]."); color: theme.dimText; font.pixelSize: 9; wrapMode: Text.Wrap }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                    Text { text: qsTr("Harness"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    Text { Layout.fillWidth: true; text: backend.workspaceName; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
+                    Text { Layout.fillWidth: true; text: ultimateAgent.modelLabel; color: theme.dimText; font.pixelSize: 9 }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        GhostButton { text: qsTr("À faire"); flat: true; font.pixelSize: 8; enabled: root.hasNote; onClicked: root.setTaskStatus("todo") }
+                        GhostButton { text: qsTr("En cours"); flat: true; font.pixelSize: 8; enabled: root.hasNote; onClicked: root.setTaskStatus("doing") }
+                        GhostButton { text: qsTr("Terminé"); flat: true; font.pixelSize: 8; enabled: root.hasNote; onClicked: root.setTaskStatus("done") }
+                    }
                     Item { Layout.fillHeight: true }
+                    ActionButton { Layout.fillWidth: true; text: qsTr("Confier à l'agent"); enabled: root.hasNote; onClicked: root.delegateNote() }
                     ActionButton { Layout.fillWidth: true; text: qsTr("Ouvrir le graphe"); onClicked: graphDialog.open() }
                 }
             }

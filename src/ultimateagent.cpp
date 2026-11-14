@@ -1716,6 +1716,9 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("folder"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional folder."))},
                                 {QStringLiteral("content"), agentProperty(QStringLiteral("string"), QStringLiteral("Markdown content."))},
                                 {QStringLiteral("query"), agentProperty(QStringLiteral("string"), QStringLiteral("Search query."))},
+                                {QStringLiteral("status"), agentProperty(QStringLiteral("string"), QStringLiteral("Task status: todo, doing or done."))},
+                                {QStringLiteral("prompt"), agentProperty(QStringLiteral("string"), QStringLiteral("Task request stored in the note."))},
+                                {QStringLiteral("workspace"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional workspace attached to the task note."))},
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to delete a note."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("github_status"),
@@ -2428,6 +2431,24 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         if (action == QLatin1String("outline"))
             return okResult({{QStringLiteral("headings"),
                               QJsonArray::fromVariantList(m_notes->headings())}});
+        if (action == QLatin1String("task")) {
+            const QString path = m_notes->createTaskNote(
+                arguments.value(QStringLiteral("title")).toString(),
+                arguments.value(QStringLiteral("prompt")).toString(),
+                arguments.value(QStringLiteral("workspace")).toString());
+            return path.isEmpty() ? errorResult(m_notes->error())
+                                  : okResult({{QStringLiteral("path"), path},
+                                              {QStringLiteral("status"), QStringLiteral("todo")}});
+        }
+        if (action == QLatin1String("status")) {
+            const bool ok = m_notes->setNoteStatus(
+                arguments.value(QStringLiteral("path")).toString(),
+                arguments.value(QStringLiteral("status")).toString());
+            return ok ? okResult({{QStringLiteral("status"),
+                                   arguments.value(QStringLiteral("status")).toString()}})
+                      : errorResult(m_notes->error().isEmpty()
+                                        ? tr("Statut de note invalide.") : m_notes->error());
+        }
         if (action == QLatin1String("daily")) {
             const QString path = m_notes->dailyNote();
             return path.isEmpty() ? errorResult(m_notes->error())
