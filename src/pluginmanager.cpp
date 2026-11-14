@@ -14,6 +14,21 @@
 #include <QUrl>
 
 namespace {
+bool isNativeExecutable(const QString &path) {
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+    const QByteArray magic = file.read(4);
+    if (magic.size() < 4)
+        return false;
+    if (magic.startsWith(QByteArray("\x7f" "ELF")))
+        return true;
+    if (magic == QByteArray::fromHex("feedface") || magic == QByteArray::fromHex("feedfacf")
+        || magic == QByteArray::fromHex("cefaedfe") || magic == QByteArray::fromHex("cffaedfe"))
+        return true;
+    return magic.startsWith("MZ");
+}
+
 const QList<PluginManager::ArtCraft> &profiles() {
     static const QList<PluginManager::ArtCraft> list = {
         {QStringLiteral("cadcraft"), QStringLiteral("CADCraft"), QStringLiteral("cadcraft-cli"),
@@ -79,7 +94,7 @@ const QList<DshCapability> &dshCapabilities() {
         {"time-context", "Contexte temporel", "Noyau", "Date, heure et espace de travail dans le prompt.", true, true, "ultimate_status", "agent"},
         {"persona", "Persona", "Noyau", "Instructions et profils de comportement.", true, true, "ultimate_agents", "agents"},
         {"ask-user", "Ask user", "Noyau", "Confirmation explicite des actions destructrices.", true, true, "ultimate_status", "agent"},
-        {"present", "Présentation", "Noyau", "Artefacts et rendus de résultats.", true, false, "", "workspace"},
+        {"present", "Présentation", "Noyau", "Artefacts et rendus de résultats.", false, false, "", "workspace"},
         {"todo", "Todo", "Noyau", "Suivi de tâches dans une mission.", true, true, "ultimate_mission", "agents"},
         {"workflow", "Workflow", "Noyau", "Orchestration multi-étapes native.", true, true, "ultimate_mission", "agents"},
         {"workspace", "Workspace", "Noyau", "Projet, Git et fichiers partagés.", true, true, "ultimate_git", "workspace"},
@@ -93,7 +108,7 @@ const QList<DshCapability> &dshCapabilities() {
         {"artcraft", "ArtCraft", "Noyau", "14 CLI créatives exposées comme outils.", true, true, "artcraft_gridcraft", "plugins"},
         {"agent-team", "Agent team", "Expérimental", "Équipe d’agents avec rôles parallèles.", false, false, "", "agents"},
         {"voice-input", "Voice input", "Expérimental", "Entrée vocale et dictée.", false, false, "", "agent"},
-        {"auto-review", "Auto review", "Expérimental", "Revue automatique des changements.", false, false, "", "agents"},
+        {"auto-review", "Auto review", "Expérimental", "Revue automatique des changements.", false, true, "", "agents"},
         {"cot-translation", "CoT translation", "Expérimental", "Traduction du raisonnement.", false, false, "", "agent"},
         {"ralph", "Ralph", "Expérimental", "Boucle autonome de construction.", false, false, "", "autopilot"},
         {"liveshare", "Live share", "Expérimental", "Partage de session en direct.", false, false, "", "agent"},
@@ -210,8 +225,9 @@ QVariantMap PluginManager::buildArtcraft(const ArtCraft &craft) const {
         {QStringLiteral("description"), craft.description},
         {QStringLiteral("version"), version},
         {QStringLiteral("binary"), binary},
-        {QStringLiteral("installed"), !binary.isEmpty()},
-        {QStringLiteral("enabled"), !binary.isEmpty() && !m_disabled.contains(QStringLiteral("artcraft:") + craft.id)},
+        {QStringLiteral("installed"), !binary.isEmpty() && isNativeExecutable(binary)},
+        {QStringLiteral("enabled"), !binary.isEmpty() && isNativeExecutable(binary)
+             && !m_disabled.contains(QStringLiteral("artcraft:") + craft.id)},
         {QStringLiteral("toolName"), QStringLiteral("artcraft_") + craft.id},
         {QStringLiteral("extensions"), craft.extensions},
         {QStringLiteral("capabilities"), QStringList{QStringLiteral("cli"), QStringLiteral("mcp"), QStringLiteral("headless")}},
@@ -426,6 +442,12 @@ QJsonObject PluginManager::runArtcraft(const QString &craft, const QString &argu
         && !(args.first() == QLatin1String("commands") || args.first() == QLatin1String("--version")))
         return QJsonObject{{QStringLiteral("ok"), false}, {QStringLiteral("error"), tr("Action ArtCraft refusée en lecture seule.")}};
     QJsonObject result = processResult(binary, args, workspace, 180000);
+    if (result.value(QStringLiteral("ok")).toBool()
+        && result.value(QStringLiteral("output")).toString().trimmed().isEmpty()
+        && (args.first() == QLatin1String("commands") || args.first() == QLatin1String("--version")))
+        result = QJsonObject{{QStringLiteral("ok"), false},
+                             {QStringLiteral("error"),
+                              tr("Le craft n'a produit aucune sortie (binaire incomplet ou stub).")}};
     result.insert(QStringLiteral("craft"), craft);
     result.insert(QStringLiteral("arguments"), args.join(QLatin1Char(' ')));
     return result;

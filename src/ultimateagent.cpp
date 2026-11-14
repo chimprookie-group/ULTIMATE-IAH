@@ -1473,7 +1473,7 @@ void UltimateAgent::removeAttachmentsIn(const QJsonArray &ui) {
 QStringList UltimateAgent::views() {
     return {QStringLiteral("agent"), QStringLiteral("home"), QStringLiteral("ecosystem"),
             QStringLiteral("workspace"), QStringLiteral("harness"), QStringLiteral("terminal"),
-            QStringLiteral("connects"), QStringLiteral("connections"), QStringLiteral("memory"),
+            QStringLiteral("connections"), QStringLiteral("memory"),
             QStringLiteral("autopilot"), QStringLiteral("mcp"), QStringLiteral("agents"),
             QStringLiteral("installation"), QStringLiteral("bots"), QStringLiteral("settings")};
 }
@@ -2380,6 +2380,7 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         return okResult({{QStringLiteral("url"), result.value(QStringLiteral("url"))},
                          {QStringLiteral("status"), result.value(QStringLiteral("status"))},
                          {QStringLiteral("contentType"), result.value(QStringLiteral("contentType"))},
+                         {QStringLiteral("redirects"), result.value(QStringLiteral("redirects"))},
                          {QStringLiteral("truncated"), result.value(QStringLiteral("truncated"))},
                          {QStringLiteral("text"), result.value(QStringLiteral("body"))},
                          {QStringLiteral("untrusted"), true}});

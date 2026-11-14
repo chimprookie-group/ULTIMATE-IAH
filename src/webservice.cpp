@@ -449,6 +449,42 @@ QJsonObject WebService::httpGet(const QString &url, int maxBytes, int timeoutMs)
                        {QStringLiteral("error"), networkError}};
 }
 
+QString WebService::siteOf(const QUrl &url) {
+    QString host = url.host().toLower();
+    if (host.startsWith(QStringLiteral("www.")))
+        host = host.mid(4);
+    const QStringList parts = host.split(QLatin1Char('.'));
+    if (parts.size() <= 2)
+        return host;
+    static const QStringList twoPartSuffixes{
+        QStringLiteral("co.uk"), QStringLiteral("com.au"), QStringLiteral("co.jp"),
+        QStringLiteral("co.nz"), QStringLiteral("com.br"), QStringLiteral("github.io")};
+    const QString lastTwo = parts.mid(parts.size() - 2).join(QLatin1Char('.'));
+    if (twoPartSuffixes.contains(lastTwo) && parts.size() >= 3)
+        return parts.mid(parts.size() - 3).join(QLatin1Char('.'));
+    return lastTwo;
+}
+
+bool WebService::redirectAllowed(const QUrl &from, const QUrl &to,
+                                 const QStringList &allowedHosts) {
+    if (!to.isValid()
+        || (to.scheme() != QLatin1String("http") && to.scheme() != QLatin1String("https")))
+        return false;
+    const QString targetHost = to.host().toLower();
+    if (targetHost.isEmpty())
+        return false;
+    if (targetHost == from.host().toLower())
+        return true;
+    for (const QString &allowed : allowedHosts) {
+        const QString host = allowed.trimmed().toLower();
+        if (host.isEmpty())
+            continue;
+        if (targetHost == host || targetHost.endsWith(QStringLiteral(".") + host))
+            return true;
+    }
+    return siteOf(from) == siteOf(to);
+}
+
 QJsonObject WebService::fetch(const QString &url) {
     const QString clean = cleanUrl(url);
     if (clean.isEmpty())
@@ -462,22 +498,32 @@ QJsonObject WebService::fetch(const QString &url) {
         return cached->value;
 
     QString current = clean;
-    QUrl origin = QUrl(clean);
+    const QUrl origin(clean);
+    QStringList allowedHosts;
+    for (const QString &host : qEnvironmentVariable("ULTIMATE_IAH_WEB_REDIRECT_HOSTS")
+                                   .split(QLatin1Char(','), Qt::SkipEmptyParts))
+        allowedHosts << host.trimmed();
     QJsonObject reply;
-    for (int hop = 0; hop <= 5; ++hop) {
+    int redirects = 0;
+    bool exceeded = false;
+    for (int hop = 0; hop < 3; ++hop) {
         reply = httpGet(current, 5000000, 30000);
-        if (!reply.value(QStringLiteral("redirect")).toString().isEmpty()
-            && reply.value(QStringLiteral("status")).toInt() >= 300
-            && reply.value(QStringLiteral("status")).toInt() < 400) {
-            const QUrl target = QUrl(current).resolved(QUrl(reply.value(QStringLiteral("redirect")).toString()));
-            if (normalizedHost(target) != normalizedHost(origin) || target.scheme() != origin.scheme()
-                || effectivePort(target) != effectivePort(origin) || blockedHost(target))
-                return errorObject(QStringLiteral("WEB_REDIRECT_BLOCKED"), tr("Redirection vers une autre origine refusée."));
-            current = target.toString();
-            continue;
-        }
-        break;
+        const int status = reply.value(QStringLiteral("status")).toInt();
+        const QString redirect = reply.value(QStringLiteral("redirect")).toString();
+        if (redirect.isEmpty() || status < 300 || status >= 400)
+            break;
+        const QUrl target = QUrl(current).resolved(QUrl(redirect));
+        if (!redirectAllowed(origin, target, allowedHosts) || blockedHost(target))
+            return errorObject(QStringLiteral("WEB_REDIRECT_BLOCKED"),
+                               tr("Redirection refusée vers %1. Domaines autorisés : même site, sous-domaines, ou ULTIMATE_IAH_WEB_REDIRECT_HOSTS.")
+                                   .arg(target.host()));
+        current = target.toString();
+        ++redirects;
+        exceeded = hop == 2;
     }
+    if (exceeded && !reply.value(QStringLiteral("redirect")).toString().isEmpty())
+        return errorObject(QStringLiteral("WEB_REDIRECT_LIMIT"),
+                           tr("Trop de redirections (maximum 3)."));
     if (!reply.value(QStringLiteral("ok")).toBool() && reply.value(QStringLiteral("error")).toString().isEmpty())
         return errorObject(QStringLiteral("WEB_PROVIDER_ERROR"), tr("La page n'a pas pu être récupérée."));
     const int status = reply.value(QStringLiteral("status")).toInt();
@@ -492,6 +538,7 @@ QJsonObject WebService::fetch(const QString &url) {
                        {QStringLiteral("url"), current},
                        {QStringLiteral("status"), status},
                        {QStringLiteral("contentType"), type},
+                       {QStringLiteral("redirects"), redirects},
                        {QStringLiteral("truncated"), reply.value(QStringLiteral("truncated")).toBool() || body.size() > 200000},
                        {QStringLiteral("body"), body.left(200000)}};
     rememberCache(cacheKey, result);

@@ -118,3 +118,18 @@ Les plugins externes sont exécutés par défaut dans **bubblewrap**
 système de fichiers en lecture seule, vault monté en écriture, réseau coupé,
 HOME temporaire. Si `bubblewrap` manque, le plugin est refusé sauf si le
 manifeste déclare explicitement `"allowUnsandboxed": true`.
+
+
+## Vérification des crafts
+
+Un binaire ArtCraft n'est compté installé que si son en-tête est natif
+(ELF, Mach-O ou PE) et sa taille réaliste. Un script de complétion posé par
+erreur n'est donc plus exposé. Un `commands` ou `--version` qui sort vide
+avec un code 0 remonte une erreur explicite.
+
+## Redirections web
+
+`web_fetch` suit jusqu'à **3 redirections** : même hôte (y compris
+`http`→`https`), sous-domaines du même site, ou hôtes ajoutés dans
+`ULTIMATE_IAH_WEB_REDIRECT_HOSTS` (liste séparée par des virgules). Le
+résultat expose `redirects`.
