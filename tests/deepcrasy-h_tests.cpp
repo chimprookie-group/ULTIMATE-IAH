@@ -1265,6 +1265,17 @@ private slots:
         }
     }
 
+    void memorySearchUsesOrAcrossTerms()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        MemoryStore store(dir.path() + "/memory.db");
+        store.remember("p", "note", "Atlas", "Le bot Atlas.", "bot");
+        store.remember("p", "note", "Rookie", "Le propriétaire Rookie.", "user");
+        store.search("Atlas Rookie", "");
+        QVERIFY(store.results().size() >= 2);
+    }
+
     void learningEngineIgnoresHallucinatedToolsAndPolicyRefusals()
     {
         QTemporaryDir dir;
@@ -1287,6 +1298,12 @@ private slots:
                                             {"detail", "Redirection refusée"}}}},
         };
         learning.observe(policy);
+        QCOMPARE(learning.stats().value("lessons").toInt(), 0);
+        QJsonArray tooMany;
+        for (int i = 0; i < 13; ++i)
+            tooMany.append(QJsonObject{{"name", QStringLiteral("tool_%1").arg(i)}, {"ok", true}});
+        learning.observe(QJsonObject{{"prompt", "Trop long"}, {"project", dir.path()},
+                                     {"ok", true}, {"model", "test"}, {"tools", tooMany}});
         QCOMPARE(learning.stats().value("lessons").toInt(), 0);
     }
 

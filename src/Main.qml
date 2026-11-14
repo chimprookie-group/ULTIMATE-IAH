@@ -102,7 +102,6 @@ ApplicationWindow {
             list.push({"group": group, "label": label, "hint": hint, "id": id, "icon": icon})
         }
 
-        add(qsTr("Navigation"), qsTr("Home"), "Ctrl+0", "view:home", "icons/home.svg")
         add(qsTr("Navigation"), qsTr("Cockpit"), "Ctrl+0", "view:home", "icons/home.svg")
         add(qsTr("Navigation"), qsTr("Ultimate Agent"), "Ctrl+1", "view:agent", "icons/spark.svg")
         add(qsTr("Navigation"), qsTr("Terminal agent"), "Ctrl+2", "view:terminal", "icons/terminal.svg")
