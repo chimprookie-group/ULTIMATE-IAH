@@ -29,7 +29,12 @@ KnowledgeBase::~KnowledgeBase() {
     if (QSqlDatabase::contains(m_connection)) {
         {
             QSqlDatabase db = QSqlDatabase::database(m_connection, false);
-            if (db.isOpen()) db.close();
+            if (db.isOpen()) {
+                QSqlQuery checkpoint(db);
+                checkpoint.exec(QStringLiteral("PRAGMA wal_checkpoint(TRUNCATE)"));
+                checkpoint.finish();
+                db.close();
+            }
         }
         QSqlDatabase::removeDatabase(m_connection);
     }
@@ -49,6 +54,7 @@ bool KnowledgeBase::open() {
     }
     QSqlQuery pragma(db);
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
+    pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=1000"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
     QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
     return true;

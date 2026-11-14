@@ -17,6 +17,8 @@ class QTcpSocket;
 class CrasyRouter : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool running READ running NOTIFY stateChanged)
+    Q_PROPERTY(bool listening READ listening NOTIFY stateChanged)
+    Q_PROPERTY(bool healthy READ healthy NOTIFY stateChanged)
     Q_PROPERTY(QString endpoint READ endpoint NOTIFY stateChanged)
     Q_PROPERTY(QString token READ token NOTIFY stateChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
@@ -40,6 +42,8 @@ public:
     ~CrasyRouter() override;
 
     bool running() const { return m_server.isListening(); }
+    bool listening() const { return m_server.isListening(); }
+    bool healthy() const;
     QString endpoint() const;
     QString token() const { return m_token; }
     QString error() const { return m_error; }
@@ -134,6 +138,7 @@ private:
     QString m_token;
     QString m_error;
     int m_requestCount = 0;
+    qint64 m_lastServedAt = 0;
     bool m_autoRefresh = true;
     bool m_preferFree = true;
     bool m_freeOnly = false;

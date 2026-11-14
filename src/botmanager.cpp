@@ -119,6 +119,7 @@ QString BotManager::status() const { return m_runner->status(); }
 QString BotManager::output() const { return m_runner->output(); }
 int BotManager::queueCount() const { return m_queue.size(); }
 bool BotManager::serverRunning() const { return m_server->running(); }
+bool BotManager::serverHealthy() const { return m_server->healthy(); }
 QString BotManager::serverUrl() const { return m_server->url(); }
 int BotManager::serverPort() const { return m_server->port(); }
 QString BotManager::token() const { return m_token; }

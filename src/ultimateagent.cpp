@@ -420,9 +420,12 @@ QJsonObject UltimateAgent::snapshot() const {
                     QJsonObject{{QStringLiteral("available"), m_backend->gitAvailable()},
                                 {QStringLiteral("branch"), m_backend->gitBranch()},
                                 {QStringLiteral("dirty"), m_backend->gitDirtyCount()}});
+        QString harnessUrl = m_backend->harnessUrl();
+        if (harnessUrl.isEmpty() && m_backend->harnessState() == QLatin1String("running"))
+            harnessUrl = QStringLiteral("native://local");
         root.insert(QStringLiteral("harness"),
                     QJsonObject{{QStringLiteral("state"), m_backend->harnessState()},
-                                {QStringLiteral("url"), m_backend->harnessUrl()},
+                                {QStringLiteral("url"), harnessUrl},
                                 {QStringLiteral("detail"), m_backend->harnessDetail()}});
     }
     if (m_connections) {
@@ -480,6 +483,8 @@ QJsonObject UltimateAgent::snapshot() const {
         }
         root.insert(QStringLiteral("bots"),
                     QJsonObject{{QStringLiteral("serverRunning"), m_bots->serverRunning()},
+                                {QStringLiteral("serverListening"), m_bots->serverRunning()},
+                                {QStringLiteral("serverHealthy"), m_bots->serverHealthy()},
                                 {QStringLiteral("serverUrl"), m_bots->serverUrl()},
                                 {QStringLiteral("running"), m_bots->running()},
                                 {QStringLiteral("queue"), m_bots->queueCount()},
@@ -1473,9 +1478,11 @@ void UltimateAgent::removeAttachmentsIn(const QJsonArray &ui) {
 QStringList UltimateAgent::views() {
     return {QStringLiteral("agent"), QStringLiteral("home"), QStringLiteral("ecosystem"),
             QStringLiteral("workspace"), QStringLiteral("harness"), QStringLiteral("terminal"),
-            QStringLiteral("connections"), QStringLiteral("memory"),
-            QStringLiteral("autopilot"), QStringLiteral("mcp"), QStringLiteral("agents"),
-            QStringLiteral("installation"), QStringLiteral("bots"), QStringLiteral("settings")};
+            QStringLiteral("connections"), QStringLiteral("memory"), QStringLiteral("notes"),
+            QStringLiteral("github"), QStringLiteral("crasy"), QStringLiteral("learning"),
+            QStringLiteral("plugins"), QStringLiteral("autopilot"), QStringLiteral("mcp"),
+            QStringLiteral("agents"), QStringLiteral("installation"), QStringLiteral("bots"),
+            QStringLiteral("settings")};
 }
 
 QString UltimateAgent::staticKnowledge() {
@@ -2183,7 +2190,22 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         process.start(QStringLiteral("/bin/bash"), {QStringLiteral("-lc"), command});
         const int timeout = qBound(1, arguments.value(QStringLiteral("timeoutSeconds")).toInt(30), 60);
         if (!process.waitForStarted(3000)) return errorResult(tr("Impossible de lancer le shell."));
-        if (!process.waitForFinished(timeout * 1000)) {
+        // Keep the event loop alive while the child runs: the loopback APIs and
+        // the UI must answer during long terminal commands.
+        QEventLoop loop;
+        QTimer limit;
+        limit.setSingleShot(true);
+        limit.setInterval(timeout * 1000);
+        bool timedOut = false;
+        QObject::connect(&process, &QProcess::finished, &loop, &QEventLoop::quit);
+        QObject::connect(&limit, &QTimer::timeout, &loop, [&] {
+            timedOut = true;
+            process.kill();
+            loop.quit();
+        });
+        limit.start();
+        loop.exec();
+        if (timedOut || process.state() != QProcess::NotRunning) {
             process.kill();
             process.waitForFinished(1000);
             return errorResult(tr("Commande interrompue après %1 secondes.").arg(timeout));

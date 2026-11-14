@@ -119,7 +119,8 @@ QVariantList SkillManager::packs() const {
         int installed = 0;
         for (const QVariant &value : m_skills) {
             const QVariantMap skill = value.toMap();
-            if (skill.value(QStringLiteral("pack")).toString() == pack.id) {
+            if (skill.value(QStringLiteral("pack")).toString() == pack.id
+                && pack.ids.contains(skill.value(QStringLiteral("id")).toString())) {
                 packSkills.append(skill.value(QStringLiteral("id")));
                 ++installed;
             }

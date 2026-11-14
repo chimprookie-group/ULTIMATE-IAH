@@ -989,6 +989,10 @@ private slots:
         QVERIFY(!suggestions.isEmpty());
         QCOMPARE(suggestions.first().toMap().value("id").toString(), QString("research"));
         QCOMPARE(skills.skills().size(), 42);
+        for (const QVariant &value : skills.packs()) {
+            const QVariantMap pack = value.toMap();
+            QVERIFY(pack.value("installed").toInt() <= pack.value("total").toInt());
+        }
         const QVariantMap dsWatch = skills.readSkill("ds-watch-pr");
         QCOMPARE(dsWatch.value("pack").toString(), QString("deepseek-stack"));
         const QString script = QFileInfo(dsWatch.value("path").toString()).absolutePath()
@@ -1360,6 +1364,16 @@ private slots:
     {
         QTemporaryDir dir;
         PluginManager plugins(dir.path());
+        bool accentFound = false;
+        for (const QVariant &value : plugins.capabilities()) {
+            const QVariantMap capability = value.toMap();
+            if (capability.value("id").toString() != "agent-loop")
+                continue;
+            const QString description = capability.value("description").toString();
+            accentFound = description.contains(QStringLiteral("arrêt"));
+            QVERIFY(!description.contains(QChar(0x00c3)));
+        }
+        QVERIFY(accentFound);
         plugins.installArtcraftCraft("does-not-exist");
         QVERIFY(!plugins.error().isEmpty());
         QVERIFY(!plugins.artcraftBusy());
