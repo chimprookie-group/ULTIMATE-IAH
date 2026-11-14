@@ -210,7 +210,9 @@ QJsonObject WebService::deepSeekSearch(const QStringList &queries, int maxResult
                 const QString url = item.value(QStringLiteral("url")).toString();
                 if (url.isEmpty())
                     continue;
-                QString snippet = item.value(QStringLiteral("cited_text")).toString();
+                QString snippet = item.value(QStringLiteral("snippet")).toString();
+                if (snippet.isEmpty())
+                    snippet = item.value(QStringLiteral("cited_text")).toString();
                 if (snippet.isEmpty())
                     snippet = item.value(QStringLiteral("text")).toString();
                 if (snippet.isEmpty())

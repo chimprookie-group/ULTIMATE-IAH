@@ -463,7 +463,8 @@ QJsonObject UltimateAgent::snapshot() const {
                     QJsonObject{{QStringLiteral("installed"), m_plugins->installedCount()},
                                 {QStringLiteral("enabled"), m_plugins->enabledCount()},
                                 {QStringLiteral("tools"), m_plugins->toolCount()},
-                                {QStringLiteral("capabilities"), m_plugins->activeCapabilities()},
+                                {QStringLiteral("capabilitiesImplemented"), m_plugins->activeCapabilities()},
+                    {QStringLiteral("capabilitiesTotal"), m_plugins->capabilities().size()},
                                 {QStringLiteral("coreCapabilities"), m_plugins->coreCapabilities()}});
     }
     if (m_notes) {
@@ -516,7 +517,7 @@ QJsonObject UltimateAgent::snapshot() const {
                                       {QStringLiteral("path"), map.value(QStringLiteral("path")).toString()}});
         }
         root.insert(QStringLiteral("skills"), skills);
-        root.insert(QStringLiteral("defaultSkills"), m_skills->defaultCount());
+        root.insert(QStringLiteral("bundledSkills"), m_skills->defaultCount());
         root.insert(QStringLiteral("skillsLoaded"), skills.size());
     }
     if (m_agents) {
@@ -2444,7 +2445,8 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         return okResult({{QStringLiteral("installed"), m_plugins->installedCount()},
                          {QStringLiteral("enabled"), m_plugins->enabledCount()},
                          {QStringLiteral("tools"), m_plugins->toolCount()},
-                         {QStringLiteral("capabilities"), m_plugins->activeCapabilities()},
+                         {QStringLiteral("capabilitiesImplemented"), m_plugins->activeCapabilities()},
+                         {QStringLiteral("capabilitiesTotal"), m_plugins->capabilities().size()},
                          {QStringLiteral("coreCapabilities"), m_plugins->coreCapabilities()},
                          {QStringLiteral("plugins"), QJsonArray::fromVariantList(m_plugins->plugins())},
                          {QStringLiteral("dshCapabilities"), QJsonArray::fromVariantList(m_plugins->capabilities())}});
