@@ -170,6 +170,8 @@ private:
     };
 
     Endpoint resolveEndpoint() const;
+    QString effectivePermission() const;
+    bool retryWithFallback(const QString &reason, bool retryable);
     QString systemPrompt() const;
     QJsonObject snapshot() const;
     QJsonArray allTools() const;
@@ -234,6 +236,8 @@ private:
     QJsonArray m_api;
     QVariantList m_ui;
     Endpoint m_endpoint;
+    int m_retryBudget = 0;
+    QStringList m_usedSources;
     QString m_modelLabel;
     QString m_endpointLabel;
     QString m_status;

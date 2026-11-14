@@ -10,7 +10,7 @@ Un seul poste de travail local pour l’agent, les notes, GitHub, la recherche w
 les skills, les bots, les providers et la création assistée.
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.25.21-4D6BFE?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.25.22-4D6BFE?style=flat-square" />
   <img alt="Qt" src="https://img.shields.io/badge/Qt-6-41CD52?style=flat-square" />
   <img alt="Arch" src="https://img.shields.io/badge/Arch%20Linux-Omarchy-1793D1?style=flat-square" />
   <img alt="Local first" src="https://img.shields.io/badge/local--first-yes-black?style=flat-square" />
@@ -352,7 +352,7 @@ Couches principales :
 - **Qt 6 / QML** : interface native et thème Omarchy ;
 - **Ultimate Agent** : boucle, outils, permissions, conversations ;
 - **Noyau de décision** : provider/modèle, stratégie, autonomie,
-  permissions, retries, fallback, revue, mémoire et apprentissage ;
+  permissions, retries, fallback HTTP, revue, mémoire et apprentissage ;
 - **Services** : `WebService`, `GitHubService`, `CrasyRouter`, `PluginManager`,
   `SkillManager`, `NoteStore`, `MemoryStore`, `MCP` ;
 - **Persistance** : SQLite WAL, FTS5, Markdown et fichiers JSON ;
@@ -365,7 +365,7 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ### Paquet Arch
 
 ```sh
-pkexec pacman -U ultimate-iah-1.25.21-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.22-1-x86_64.pkg.tar.zst
 ```
 
 `ultimate-iah bootstrap`, lancé par l'installateur, connecte par défaut :
@@ -389,7 +389,7 @@ cd ULTIMATE-IAH
 ./bin/build
 ./bin/test
 cd pkgbuild && makepkg -f
-pkexec pacman -U ultimate-iah-1.25.21-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.22-1-x86_64.pkg.tar.zst
 ```
 
 Prérequis principaux : Qt 6, QtWebEngine, Qt SVG, Qt Network, SQLite, Python 3,
@@ -454,7 +454,7 @@ La suite couvre notamment :
 - protection SSRF de `web_fetch` ;
 - sécurité des politiques read-only.
 
-État de référence : **54 tests passent** et **51 combinaisons vue × largeur**
+État de référence : **55 tests passent** et **51 combinaisons vue × largeur**
 ont été vérifiées sans erreur QML.
 
 ## Documentation

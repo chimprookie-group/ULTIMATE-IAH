@@ -283,6 +283,20 @@ UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
     return {};
 }
 
+QString UltimateAgent::effectivePermission() const {
+    const auto rank = [](const QString &value) {
+        if (value == QLatin1String("read-only"))
+            return 0;
+        if (value == QLatin1String("workspace-write"))
+            return 1;
+        return 2;
+    };
+    QString permission = m_permissionMode;
+    if (m_decisions && rank(m_decisions->permissionCeiling()) < rank(permission))
+        permission = m_decisions->permissionCeiling();
+    return permission;
+}
+
 QJsonArray UltimateAgent::allTools() const {
     QJsonArray out = tools();
     if (m_plugins) {
@@ -298,7 +312,7 @@ QString UltimateAgent::systemPrompt() const {
     prompt += QStringLiteral("\n\nLIVE SNAPSHOT\n")
         + QString::fromUtf8(QJsonDocument(snapshot()).toJson(QJsonDocument::Compact));
     prompt += QStringLiteral("\n\nPERMISSION\n");
-    prompt += m_permissionMode == QLatin1String("read-only")
+    prompt += effectivePermission() == QLatin1String("read-only")
         ? QStringLiteral("Lecture seule. N'écris aucun fichier, ne lance aucune commande "
                          "mutante et ne modifie aucune configuration.")
         : QStringLiteral("Écriture workspace autorisée. Les actions destructrices "
@@ -526,6 +540,8 @@ void UltimateAgent::sendMessage(const QString &text) {
     if (m_decisions) {
         m_decisions->setLastDecision(m_decisions->decide(prompt, QStringLiteral("low"),
                                                          m_mode, m_round));
+        m_retryBudget = m_decisions->maxRetries();
+        m_usedSources = QStringList{m_endpoint.source};
     }
     if (m_conversationId.isEmpty())
         ensureConversation();
@@ -601,6 +617,9 @@ void UltimateAgent::handleReply() {
     reply->deleteLater();
 
     if (networkError != QNetworkReply::NoError && httpStatus == 0) {
+        const QString reason = tr("connexion impossible");
+        if (retryWithFallback(reason, true))
+            return;
         finishWithError(tr("Connexion au modèle impossible : %1").arg(reply->errorString()));
         return;
     }
@@ -608,6 +627,9 @@ void UltimateAgent::handleReply() {
     if (httpStatus < 200 || httpStatus >= 300) {
         const QString detail = root.value(QStringLiteral("error")).toObject()
                                    .value(QStringLiteral("message")).toString();
+        const bool retryable = httpStatus == 429 || httpStatus >= 500;
+        if (retryWithFallback(tr("HTTP %1").arg(httpStatus), retryable))
+            return;
         finishWithError(tr("Le modèle a renvoyé HTTP %1 : %2")
                             .arg(httpStatus)
                             .arg(detail.isEmpty() ? QString::fromUtf8(payload).left(400) : detail));
@@ -615,6 +637,8 @@ void UltimateAgent::handleReply() {
     }
     const QJsonArray choices = root.value(QStringLiteral("choices")).toArray();
     if (choices.isEmpty()) {
+        if (retryWithFallback(tr("réponse vide"), true))
+            return;
         finishWithError(tr("Réponse du modèle vide."));
         return;
     }
@@ -705,6 +729,22 @@ void UltimateAgent::recordLearning(bool success, const QString &answer, const QS
         {QStringLiteral("model"), m_endpoint.model},
         {QStringLiteral("tools"), tools},
     });
+}
+
+bool UltimateAgent::retryWithFallback(const QString &reason, bool retryable) {
+    if (!retryable || !m_decisions || m_retryBudget <= 0)
+        return false;
+    const DecisionEngine::Endpoint next = m_decisions->fallback(m_usedSources);
+    if (!next.valid())
+        return false;
+    --m_retryBudget;
+    m_usedSources.append(next.source);
+    m_endpoint = {next.baseUrl, next.apiKey, next.model, next.label, next.source};
+    if (m_round > 0)
+        --m_round;
+    setStatus(tr("Nouvelle tentative via %1 (%2)…").arg(next.label, reason.left(80)));
+    QTimer::singleShot(0, this, &UltimateAgent::runRequest);
+    return true;
 }
 
 void UltimateAgent::finishWithError(const QString &message) {
@@ -1783,7 +1823,7 @@ QJsonArray UltimateAgent::tools() {
 }
 
 QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &arguments) {
-    if (m_permissionMode == QLatin1String("read-only") && !readOnlyToolAllowed(name, arguments))
+    if (effectivePermission() == QLatin1String("read-only") && !readOnlyToolAllowed(name, arguments))
         return errorResult(tr("Action refusée : ce job est en lecture seule."));
     const QString action = arguments.value(QStringLiteral("action")).toString();
     const QString workspace = m_backend ? m_backend->workspace() : QDir::homePath();
@@ -2334,7 +2374,7 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
                          {QStringLiteral("recent"), QJsonArray::fromVariantList(m_web->recentSearches())}});
     }
     if (m_plugins && m_plugins->isPluginTool(name))
-        return m_plugins->executeTool(name, arguments, workspace, m_permissionMode);
+        return m_plugins->executeTool(name, arguments, workspace, effectivePermission());
     if (name == QLatin1String("ultimate_decision")) {
         if (!m_decisions)
             return errorResult(tr("Le noyau de décision est indisponible."));
