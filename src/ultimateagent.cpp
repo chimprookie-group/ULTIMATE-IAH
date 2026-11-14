@@ -3,6 +3,7 @@
 #include "agentconversationstore.h"
 #include "agentmessagemodel.h"
 #include "decisionengine.h"
+#include "notepluginmanager.h"
 #include "agentmanager.h"
 #include "backend.h"
 #include "botmanager.h"
@@ -118,6 +119,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
     if (name == QLatin1String("ultimate_skills"))
         return action == QLatin1String("list") || action == QLatin1String("read")
             || action == QLatin1String("packs");
+    if (name == QLatin1String("ultimate_note_plugins"))
+        return action == QLatin1String("list");
     if (name == QLatin1String("ultimate_notes"))
         return action == QLatin1String("list") || action == QLatin1String("search")
             || action == QLatin1String("read") || action == QLatin1String("tags")
@@ -1703,6 +1706,17 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("intervalMinutes"), agentProperty(QStringLiteral("integer"), QStringLiteral("Schedule interval in minutes."))},
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to remove a bot."))}}),
                     {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_note_plugins"),
+                    QStringLiteral("List or run note plugins integrated with this harness. Builtins extract tasks, turn a note into a task and add a harness brief; external plugins run without a shell."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("list"), QStringLiteral("run")})},
+                                {QStringLiteral("id"), agentProperty(QStringLiteral("string"), QStringLiteral("Plugin id."))},
+                                {QStringLiteral("path"), agentProperty(QStringLiteral("string"), QStringLiteral("Note path relative to the vault."))},
+                                {QStringLiteral("mode"), enumProperty(QStringLiteral("Apply mode."),
+                                                                      {QStringLiteral("append"), QStringLiteral("replace"),
+                                                                       QStringLiteral("create")})}}),
+                    {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_notes"),
                     QStringLiteral("Search, read, create, update or delete Markdown notes in the Ultimate IAH vault."),
                     properties({{QStringLiteral("action"),
@@ -2407,6 +2421,22 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
                          {QStringLiteral("plugins"), QJsonArray::fromVariantList(m_plugins->plugins())},
                          {QStringLiteral("dshCapabilities"), QJsonArray::fromVariantList(m_plugins->capabilities())}});
     }
+    if (name == QLatin1String("ultimate_note_plugins")) {
+        if (!m_notePlugins)
+            return errorResult(tr("Les plugins de notes sont indisponibles."));
+        m_notePlugins->refresh();
+        if (action == QLatin1String("run")) {
+            const QVariantMap result = m_notePlugins->run(
+                arguments.value(QStringLiteral("id")).toString(),
+                arguments.value(QStringLiteral("path")).toString(),
+                arguments.value(QStringLiteral("mode")).toString());
+            return result.value(QStringLiteral("ok")).toBool()
+                ? okResult(QJsonObject::fromVariantMap(result))
+                : errorResult(result.value(QStringLiteral("error")).toString());
+        }
+        return okResult({{QStringLiteral("plugins"),
+                          QJsonArray::fromVariantList(m_notePlugins->plugins())}});
+    }
     if (name == QLatin1String("ultimate_notes")) {
         if (!m_notes)
             return errorResult(tr("Le vault Notes est indisponible."));
@@ -2646,6 +2676,8 @@ QString UltimateAgent::toolSummary(const QString &name, const QJsonObject &argum
         return tr("Web · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_plugins"))
         return tr("Plugins · %1").arg(arguments.value(QStringLiteral("action")).toString());
+    if (name == QLatin1String("ultimate_note_plugins"))
+        return tr("Plugins de notes · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_notes"))
         return tr("Notes · %1").arg(arguments.value(QStringLiteral("action")).toString());
     if (name == QLatin1String("ultimate_settings"))

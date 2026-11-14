@@ -19,6 +19,7 @@ HEADERS += \
     ../src/botstore.h \
     ../src/agentconversationstore.h \
     ../src/notestore.h \
+    ../src/notepluginmanager.h \
     ../src/webservice.h \
     ../src/updateservice.h \
     ../src/learningengine.h \
@@ -50,6 +51,7 @@ SOURCES += \
     ../src/botstore.cpp \
     ../src/agentconversationstore.cpp \
     ../src/notestore.cpp \
+    ../src/notepluginmanager.cpp \
     ../src/webservice.cpp \
     ../src/updateservice.cpp \
     ../src/learningengine.cpp \

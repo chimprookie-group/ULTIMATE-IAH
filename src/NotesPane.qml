@@ -204,6 +204,7 @@ Item {
                         Text { text: qsTr("Vault"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.8 }
                         Item { Layout.fillWidth: true }
                         Text { text: noteStore.count; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/plug.svg"; hint: qsTr("Plugins de notes"); onClicked: notePluginsDialog.open() }
                         IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/plus.svg"; hint: qsTr("Nouvelle note"); onClicked: root.newNote() }
                     }
 
@@ -618,6 +619,87 @@ Item {
                     ActionButton { Layout.fillWidth: true; text: qsTr("Confier à l'agent"); enabled: root.hasNote; onClicked: root.delegateNote() }
                     ActionButton { Layout.fillWidth: true; text: qsTr("Ouvrir le graphe"); onClicked: graphDialog.open() }
                 }
+            }
+        }
+    }
+
+    Dialog {
+        id: notePluginsDialog
+        modal: true
+        width: Math.min(root.width - design.space6, 620)
+        height: Math.min(root.height - design.space6, 560)
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Plugins de notes"); color: theme.brightText; font.pixelSize: design.textBodyLarge; font.weight: Font.DemiBold }
+                Text { text: notePlugins.plugins.length + qsTr(" plugins"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                IconButton { icon: "icons/close.svg"; hint: qsTr("Fermer"); onClicked: notePluginsDialog.close() }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Actions intégrées au harness et commandes externes dans ~/.config/Crasy/deepcrasy-h/note-plugins/.")
+                color: theme.dimText
+                font.pixelSize: design.textCaption
+                wrapMode: Text.Wrap
+            }
+            ListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: notePlugins.plugins
+                spacing: 6
+                delegate: Rectangle {
+                    width: ListView.view.width
+                    height: pluginColumn.implicitHeight + 14
+                    radius: design.radiusSm
+                    color: theme.background
+                    border.width: 1
+                    border.color: theme.border
+                    ColumnLayout {
+                        id: pluginColumn
+                        anchors.fill: parent
+                        anchors.margins: 8
+                        spacing: 3
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            Text { text: modelData.builtin ? qsTr("intégré") : qsTr("externe"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
+                            CheckBox {
+                                text: qsTr("Actif")
+                                checked: modelData.enabled
+                                onToggled: notePlugins.setEnabled(modelData.id, checked)
+                            }
+                            GhostButton {
+                                text: qsTr("Exécuter")
+                                flat: true
+                                font.pixelSize: 8
+                                enabled: modelData.enabled && root.hasNote && !notePlugins.error
+                                onClicked: {
+                                    const result = notePlugins.run(modelData.id, noteStore.selectedPath)
+                                    if (result.ok)
+                                        noteStore.refresh()
+                                }
+                            }
+                        }
+                        Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                    }
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: notePlugins.error !== "" || notePlugins.lastOutput !== ""
+                text: notePlugins.error !== "" ? notePlugins.error : notePlugins.lastOutput
+                color: notePlugins.error !== "" ? theme.red : theme.dimText
+                font.family: backend.monoFont
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+                maximumLineCount: 3
+                elide: Text.ElideRight
             }
         }
     }

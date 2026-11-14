@@ -27,6 +27,7 @@
 #include "botstore.h"
 #include "agentconversationstore.h"
 #include "notestore.h"
+#include "notepluginmanager.h"
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "crasyrouter.h"
@@ -683,6 +684,51 @@ private slots:
         QVERIFY(store.deleteNote(alpha));
         QVERIFY(store.count() >= 2);
         QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
+    }
+
+    void notePluginsRunBuiltinsAndCommands()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        NoteStore store(dir.path() + "/vault");
+        const QString note = store.createNote("Plan");
+        QVERIFY(store.saveNote(note, "# Plan\n\n- [ ] Première\n- [ ] Deuxième\n"));
+        const QString config = dir.path() + "/note-plugins";
+        NotePluginManager manager(&store, "/tmp/workspace", config);
+        QCOMPARE(manager.plugins().size(), 3);
+
+        const QVariantMap extracted = manager.run("task-extract", note);
+        QVERIFY2(extracted.value("ok").toBool(),
+                 qPrintable(extracted.value("error").toString()));
+        QCOMPARE(extracted.value("created").toInt(), 2);
+        int todo = 0;
+        for (const QVariant &value : store.notes()) {
+            if (value.toMap().value("status").toString() == "todo")
+                ++todo;
+        }
+        QVERIFY(todo >= 2);
+
+        QVERIFY(QDir().mkpath(config));
+        QFile script(dir.path() + "/upper.sh");
+        QVERIFY(script.open(QIODevice::WriteOnly));
+        script.write("#!/bin/sh\ncat | tr '[:lower:]' '[:upper:]'\n");
+        script.close();
+        QFile::setPermissions(script.fileName(),
+                              QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        QFile manifest(config + "/upper.json");
+        QVERIFY(manifest.open(QIODevice::WriteOnly));
+        manifest.write(R"({"id":"upper","name":"Upper","command":")"
+                       + script.fileName().toUtf8()
+                       + R"(","mode":"replace"})");
+        manifest.close();
+        manager.refresh();
+        QCOMPARE(manager.plugins().size(), 4);
+        const QVariantMap upper = manager.run("upper", note);
+        QVERIFY2(upper.value("ok").toBool(), qPrintable(upper.value("error").toString()));
+        QVERIFY(store.contentOf(note).contains("PREMI"));
+        QVERIFY(manager.setEnabled("upper", false));
+        const QVariantMap disabled = manager.run("upper", note);
+        QVERIFY(!disabled.value("ok").toBool());
     }
 
     void noteStoreSupportsFoldersOutlineAndSearchFilters()
