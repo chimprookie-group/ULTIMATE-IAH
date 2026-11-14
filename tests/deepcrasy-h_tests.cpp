@@ -994,6 +994,21 @@ private slots:
         QVERIFY2(QFileInfo::exists(script), qPrintable(script));
     }
 
+    void webRedirectPolicyAllowsSameSite()
+    {
+        QVERIFY(WebService::redirectAllowed(QUrl("http://example.com/a"),
+                                            QUrl("https://example.com/b")));
+        QVERIFY(WebService::redirectAllowed(QUrl("https://example.com"),
+                                            QUrl("https://consent.example.com/ok")));
+        QVERIFY(!WebService::redirectAllowed(QUrl("https://httpbin.org/redirect"),
+                                             QUrl("https://example.com")));
+        QVERIFY(WebService::redirectAllowed(QUrl("https://httpbin.org/redirect"),
+                                            QUrl("https://example.com"),
+                                            {QStringLiteral("example.com")}));
+        QCOMPARE(WebService::siteOf(QUrl("https://www.example.co.uk/x")),
+                 QString("example.co.uk"));
+    }
+
     void webFetchBlocksPrivateHosts()
     {
         WebService web;
@@ -1298,7 +1313,7 @@ private slots:
         QVERIFY(QDir().mkpath(bin));
         QFile fake(bin + "/newcraft-cli");
         QVERIFY(fake.open(QIODevice::WriteOnly));
-        fake.write("#!/bin/sh\nexit 0\n");
+        fake.write("\x7f" "ELF");
         fake.write(QByteArray(1100 * 1024, '\0'));
         fake.close();
         QFile::setPermissions(fake.fileName(),

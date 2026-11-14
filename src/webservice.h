@@ -29,6 +29,9 @@ public:
 
     QJsonObject search(const QStringList &queries, int maxResults = 8);
     QJsonObject fetch(const QString &url);
+    static QString siteOf(const QUrl &url);
+    static bool redirectAllowed(const QUrl &from, const QUrl &to,
+                                const QStringList &allowedHosts = {});
     QJsonObject status() const;
     Q_INVOKABLE void clearCache();
     Q_INVOKABLE void clearError();
