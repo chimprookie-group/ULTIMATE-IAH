@@ -1312,6 +1312,14 @@ private slots:
         other["prompt"] = "Autre panne web sans rapport";
         QVERIFY(learning.observe(other).value("learned").toBool());
         QCOMPARE(learning.stats().value("lessons").toInt(), 1);
+        const QJsonObject trivial{
+            {"prompt", "Deux outils"}, {"project", dir.path()}, {"ok", true},
+            {"model", "test"},
+            {"tools", QJsonArray{QJsonObject{{"name", "ultimate_memory"}, {"ok", true}},
+                                 QJsonObject{{"name", "ultimate_status"}, {"ok", true}}}},
+        };
+        learning.observe(trivial);
+        QCOMPARE(learning.stats().value("lessons").toInt(), 1);
         const QString context = learning.contextFor("corrige le bug web", dir.path(), 4);
         QVERIFY(context.contains("LEÇONS APPRISES"));
         const QVariantList proposals = learning.proposals();
