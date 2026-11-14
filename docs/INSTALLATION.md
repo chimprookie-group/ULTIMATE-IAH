@@ -7,13 +7,18 @@ curl -fsSL https://github.com/chimprookie-group/ULTIMATE-IAH/releases/latest/dow
 ```
 
 Le script vérifie les dépendances, télécharge le paquet avec un checksum
-SHA256 obligatoire, installe via `pkexec`, initialise les skills/4Crasy et
-exécute `doctor`.
+SHA256 obligatoire, installe via `pkexec`, exécute `ultimate-iah bootstrap`
+puis `doctor`.
+
+Le bootstrap initialise 42 skills, la base de connaissances, le jeton 4Crasy
+avec démarrage automatique, et un provider agent par défaut (4Crasy local ou
+le premier provider disposant d'une clé). `doctor` vérifie les sept points :
+portail, home, QtWebEngine, skills, base de connaissances, 4Crasy et provider.
 
 ## Paquet système
 
 ```bash
-pkexec pacman -U ultimate-iah-1.25.16-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.17-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git,

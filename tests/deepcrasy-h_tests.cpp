@@ -814,6 +814,11 @@ private slots:
         QVERIFY(router.freeOnly());
         QCOMPARE(router.maxFallbacks(), 2);
         QCOMPARE(router.strategy(), QString("quality"));
+        router.saveSettings(8899, true, 2, true, "quality");
+        QVERIFY(router.autoStart());
+        CrasyRouter reloaded(dir.path());
+        QVERIFY(reloaded.autoStart());
+        QCOMPARE(reloaded.port(), 8899);
         QVERIFY(router.removeChannel("custom"));
         QCOMPARE(router.channels().size(), 8);
     }
