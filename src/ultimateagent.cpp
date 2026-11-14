@@ -2016,12 +2016,13 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
 
     if (name == QLatin1String("ultimate_memory")) {
         if (!m_memory) return errorResult(tr("Mémoire indisponible."));
-        const QString project = arguments.value(QStringLiteral("project")).toString().isEmpty()
-            ? workspace : arguments.value(QStringLiteral("project")).toString();
+        const QString requestedProject = arguments.value(QStringLiteral("project")).toString();
         if (action == QLatin1String("search")) {
-            m_memory->search(arguments.value(QStringLiteral("query")).toString(), project);
+            // No project means every project: old memories must stay visible.
+            m_memory->search(arguments.value(QStringLiteral("query")).toString(), requestedProject);
             return okResult({{QStringLiteral("results"), listJson(m_memory->results())}});
         }
+        const QString project = requestedProject.isEmpty() ? workspace : requestedProject;
         if (action == QLatin1String("remember")) {
             const QString title = arguments.value(QStringLiteral("title")).toString();
             const QString body = arguments.value(QStringLiteral("body")).toString();
