@@ -19,6 +19,7 @@ class NotePluginManager : public QObject {
     Q_PROPERTY(QVariantList plugins READ plugins NOTIFY changed)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString lastOutput READ lastOutput NOTIFY changed)
+    Q_PROPERTY(bool canUndo READ canUndo NOTIFY changed)
 
 public:
     struct Plugin {
@@ -41,11 +42,15 @@ public:
     QVariantList plugins() const;
     QString error() const { return m_error; }
     QString lastOutput() const { return m_lastOutput; }
+    bool canUndo() const { return !m_undoPath.isEmpty(); }
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE bool setEnabled(const QString &id, bool enabled);
     Q_INVOKABLE QVariantMap run(const QString &id, const QString &path,
                                 const QString &mode = {});
+    Q_INVOKABLE QVariantMap runBatch(const QString &id, const QVariantList &paths,
+                                     const QString &mode = {});
+    Q_INVOKABLE bool undoLast();
 
     static QString defaultConfigDir();
 
@@ -63,6 +68,7 @@ private:
     QVariantMap runCommand(const Plugin &plugin, const QString &path);
     void setError(const QString &error);
     void setLastOutput(const QString &output);
+    void rememberUndo(const QString &path);
 
     NoteStore *m_notes = nullptr;
     QString m_workspace;
@@ -73,4 +79,7 @@ private:
     QHash<QString, bool> m_enabled;
     QString m_error;
     QString m_lastOutput;
+    QString m_undoPath;
+    QString m_undoContent;
+    QString m_undoPlugin;
 };

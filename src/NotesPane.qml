@@ -71,6 +71,13 @@ Item {
         backend.setView("agent")
     }
 
+    function filteredPaths() {
+        var paths = []
+        for (var i = 0; i < noteStore.filteredNotes.length; ++i)
+            paths.push(noteStore.filteredNotes[i].path)
+        return paths
+    }
+
     function setTaskStatus(status) {
         if (root.hasNote)
             noteStore.setNoteStatus(noteStore.selectedPath, status)
@@ -653,6 +660,16 @@ Item {
                 clip: true
                 model: notePlugins.plugins
                 spacing: 6
+                section.property: "category"
+                section.delegate: Text {
+                    width: ListView.view.width
+                    height: 24
+                    text: section
+                    color: theme.dimText
+                    font.family: backend.monoFont
+                    font.pixelSize: design.textMicro
+                    verticalAlignment: Text.AlignBottom
+                }
                 delegate: Rectangle {
                     width: ListView.view.width
                     height: pluginColumn.implicitHeight + 14
@@ -678,17 +695,42 @@ Item {
                                 text: qsTr("Exécuter")
                                 flat: true
                                 font.pixelSize: 8
-                                enabled: modelData.enabled && root.hasNote && !notePlugins.error
+                                enabled: modelData.enabled && root.hasNote
                                 onClicked: {
                                     const result = notePlugins.run(modelData.id, noteStore.selectedPath)
                                     if (result.ok)
                                         noteStore.refresh()
                                 }
                             }
+                            GhostButton {
+                                text: qsTr("Appliquer à %1").arg(noteStore.filteredNotes.length)
+                                flat: true
+                                font.pixelSize: 8
+                                visible: noteStore.filteredNotes.length > 1
+                                enabled: modelData.enabled && !modelData.readOnly
+                                onClicked: {
+                                    notePlugins.runBatch(modelData.id, root.filteredPaths())
+                                    noteStore.refresh()
+                                }
+                            }
                         }
                         Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                     }
                 }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                GhostButton {
+                    text: qsTr("Annuler la dernière action")
+                    flat: true
+                    font.pixelSize: 8
+                    enabled: notePlugins.canUndo
+                    onClicked: {
+                        if (notePlugins.undoLast())
+                            noteStore.refresh()
+                    }
+                }
+                Item { Layout.fillWidth: true }
             }
             Text {
                 Layout.fillWidth: true

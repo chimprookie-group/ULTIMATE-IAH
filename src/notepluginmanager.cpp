@@ -244,6 +244,7 @@ QVariantMap NotePluginManager::runBuiltin(const Plugin &plugin, const QString &p
         return QString();
     };
     const auto saveTransformed = [&](const QString &updated, const QString &message) {
+        rememberUndo(path);
         if (!m_notes->saveNote(path, updated))
             return QVariantMap{{QStringLiteral("ok"), false},
                                {QStringLiteral("error"), m_notes->error()}};
@@ -469,6 +470,7 @@ QVariantMap NotePluginManager::runBuiltin(const Plugin &plugin, const QString &p
     if (!plugin.readOnly) {
         const QString next = plugin.mode == QLatin1String("replace")
             ? output : content + QStringLiteral("\n\n") + output;
+        rememberUndo(path);
         if (!m_notes->saveNote(path, next))
             return {{QStringLiteral("ok"), false}, {QStringLiteral("error"), m_notes->error()}};
     }
@@ -525,8 +527,10 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
             return {{QStringLiteral("ok"), false}, {QStringLiteral("error"), m_notes->error()}};
         if (!m_notes->saveNote(target, output))
             return {{QStringLiteral("ok"), false}, {QStringLiteral("error"), m_notes->error()}};
-    } else if (!m_notes->saveNote(target, next)) {
-        return {{QStringLiteral("ok"), false}, {QStringLiteral("error"), m_notes->error()}};
+    } else {
+        rememberUndo(target);
+        if (!m_notes->saveNote(target, next))
+            return {{QStringLiteral("ok"), false}, {QStringLiteral("error"), m_notes->error()}};
     }
     setLastOutput(output);
     return {{QStringLiteral("ok"), true},
@@ -540,6 +544,57 @@ void NotePluginManager::setError(const QString &error) {
         return;
     m_error = error;
     emit errorChanged();
+}
+
+void NotePluginManager::rememberUndo(const QString &path) {
+    if (!m_notes)
+        return;
+    m_undoPath = path;
+    m_undoContent = m_notes->contentOf(path);
+    emit changed();
+}
+
+bool NotePluginManager::undoLast() {
+    if (!m_notes || m_undoPath.isEmpty())
+        return false;
+    const bool ok = m_notes->saveNote(m_undoPath, m_undoContent);
+    if (ok) {
+        m_undoPath.clear();
+        m_undoContent.clear();
+        emit changed();
+    }
+    return ok;
+}
+
+QVariantMap NotePluginManager::runBatch(const QString &id, const QVariantList &paths,
+                                       const QString &mode) {
+    int succeeded = 0;
+    int failed = 0;
+    QStringList errors;
+    for (const QVariant &value : paths) {
+        const QString path = value.toString();
+        if (path.isEmpty())
+            continue;
+        const QVariantMap result = run(id, path, mode);
+        if (result.value(QStringLiteral("ok")).toBool()) {
+            ++succeeded;
+        } else {
+            ++failed;
+            const QString error = result.value(QStringLiteral("error")).toString();
+            if (!error.isEmpty() && errors.size() < 5)
+                errors << QStringLiteral("%1: %2").arg(path, error);
+        }
+    }
+    const QString summary = tr("%1 note(s) traitée(s), %2 échec(s).")
+                                .arg(succeeded).arg(failed);
+    setLastOutput(summary);
+    if (failed > 0)
+        setError(errors.join(QLatin1Char('\n')));
+    return {{QStringLiteral("ok"), failed == 0},
+            {QStringLiteral("succeeded"), succeeded},
+            {QStringLiteral("failed"), failed},
+            {QStringLiteral("output"), summary},
+            {QStringLiteral("error"), errors.join(QLatin1Char('\n'))}};
 }
 
 void NotePluginManager::setLastOutput(const QString &output) {
