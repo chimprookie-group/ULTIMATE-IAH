@@ -745,6 +745,19 @@ private slots:
         const QVariantMap audit = manager.run("link-audit", linked);
         QVERIFY(audit.value("ok").toBool());
         QVERIFY(audit.value("output").toString().contains("Note absente"));
+
+        const QString batchA = store.createNote("Batch A");
+        QVERIFY(store.saveNote(batchA, "# Batch A\n\n## Un\n"));
+        const QString batchB = store.createNote("Batch B");
+        QVERIFY(store.saveNote(batchB, "# Batch B\n\n## Deux\n"));
+        const QVariantMap batch = manager.runBatch("toc", {batchA, batchB});
+        QVERIFY(batch.value("ok").toBool());
+        QCOMPARE(batch.value("succeeded").toInt(), 2);
+        QVERIFY(store.contentOf(batchA).contains("## Sommaire"));
+        QVERIFY(store.contentOf(batchB).contains("## Sommaire"));
+        QVERIFY(manager.canUndo());
+        QVERIFY(manager.undoLast());
+        QVERIFY(!store.contentOf(batchB).contains("## Sommaire"));
     }
 
     void noteStoreSupportsFoldersOutlineAndSearchFilters()

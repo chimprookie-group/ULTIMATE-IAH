@@ -87,3 +87,7 @@ Le script reçoit le chemin absolu de la note en `argv[1]`, le titre en
 `mode` : `append`, `replace` ou `create`. Aucun shell n'est utilisé, délai
 max 8 s. La liste et l'exécution sont aussi exposées à l'agent via
 `ultimate_note_plugins`.
+
+Dans Notes, chaque plugin peut s'exécuter sur la note courante ou sur
+**toutes les notes filtrées** (`Appliquer à N`). Une action d'écriture est
+annulable une fois via **Annuler la dernière action**.
