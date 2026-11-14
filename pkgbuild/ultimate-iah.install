@@ -5,6 +5,7 @@ post_install() {
 
 post_upgrade() {
   systemctl daemon-reload >/dev/null 2>&1 || true
+  systemctl enable --now ultimate-iah-note-plugins.timer >/dev/null 2>&1 || true
   systemctl restart ultimate-iah-note-plugins.timer >/dev/null 2>&1 || true
 }
 
