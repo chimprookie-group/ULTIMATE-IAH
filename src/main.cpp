@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.26"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.27"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -487,6 +487,8 @@ int main(int argc, char *argv[]) {
     skills.setWorkspace(backend.workspace());
     NoteStore noteStore;
     NotePluginManager notePlugins(&noteStore, backend.workspace());
+    notePlugins.setSkills(&skills);
+    notePlugins.setMemory(&memory);
     QObject::connect(&backend, &Backend::workspaceChanged, &notePlugins,
                      [&backend, &notePlugins] { notePlugins.setWorkspace(backend.workspace()); });
     PluginManager plugins;

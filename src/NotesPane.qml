@@ -668,7 +668,7 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             Text { Layout.fillWidth: true; text: modelData.name; color: theme.text; font.pixelSize: design.textCaption; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                            Text { text: modelData.builtin ? qsTr("intégré") : qsTr("externe"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
+                            Text { text: (modelData.category !== undefined ? modelData.category + " · " : "") + (modelData.builtin ? qsTr("intégré") : qsTr("externe")); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: 8 }
                             CheckBox {
                                 text: qsTr("Actif")
                                 checked: modelData.enabled
