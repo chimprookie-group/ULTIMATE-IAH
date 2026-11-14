@@ -23,6 +23,29 @@ namespace {
 QString nowIso() {
     return QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
 }
+
+QString parseStatus(const QString &content) {
+    const QRegularExpression expression(
+        QStringLiteral("(?m)^\\s*status\\s*:\\s*(todo|doing|done)\\b"),
+        QRegularExpression::CaseInsensitiveOption);
+    const auto match = expression.match(content);
+    return match.hasMatch() ? match.captured(1).toLower() : QString();
+}
+
+QString withStatus(const QString &content, const QString &status) {
+    if (status.isEmpty())
+        return content;
+    const QRegularExpression existing(QStringLiteral("(?m)^\\s*status\\s*:.*$"));
+    if (existing.match(content).hasMatch())
+        return content;
+    if (content.startsWith(QStringLiteral("---\n"))) {
+        const int close = content.indexOf(QStringLiteral("\n---"), 4);
+        if (close > 0)
+            return content.left(close) + QStringLiteral("\nstatus: ") + status
+                + content.mid(close);
+    }
+    return QStringLiteral("---\nstatus: ") + status + QStringLiteral("\n---\n\n") + content;
+}
 QString slug(const QString &value) {
     QString slugValue = value.toLower().trimmed();
     slugValue.replace(QRegularExpression(QStringLiteral("[^a-z0-9à-ÿ_-]+")), QStringLiteral("-"));
@@ -93,6 +116,7 @@ bool NoteStore::ensureSchema() {
         setError(query.lastError().text());
         return false;
     }
+    query.exec(QStringLiteral("ALTER TABLE notes ADD COLUMN status TEXT NOT NULL DEFAULT ''"));
     query.exec(QStringLiteral(
         "CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(path UNINDEXED,title,content,tags)"));
     return true;
@@ -104,7 +128,7 @@ QVariantList NoteStore::notes() const {
         return out;
     QSqlQuery query(*m_db);
     if (!query.exec(QStringLiteral(
-            "SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned "
+            "SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned,status "
             "FROM notes ORDER BY pinned DESC, updated_at DESC"))) {
         return out;
     }
@@ -119,6 +143,7 @@ QVariantList NoteStore::notes() const {
             {QStringLiteral("updatedAt"), query.value(6).toString()},
             {QStringLiteral("wordCount"), query.value(7).toInt()},
             {QStringLiteral("pinned"), query.value(8).toBool()},
+            {QStringLiteral("status"), query.value(9).toString()},
         });
     }
     return out;
@@ -135,6 +160,7 @@ QVariantList NoteStore::filteredNotes() const {
     QString folder = m_activeFolder;
     QString titleFilter;
     QString pathFilter;
+    QString statusFilter = m_activeStatus;
     QStringList words;
     const QStringList tokens = text.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
     for (const QString &token : tokens) {
@@ -146,6 +172,8 @@ QVariantList NoteStore::filteredNotes() const {
             pathFilter = token.mid(5);
         else if (token.startsWith(QStringLiteral("title:"), Qt::CaseInsensitive))
             titleFilter = token.mid(6);
+        else if (token.startsWith(QStringLiteral("status:"), Qt::CaseInsensitive))
+            statusFilter = token.mid(7);
         else if (token.startsWith(QLatin1Char('#')) && token.size() > 1)
             tag = token.mid(1);
         else
@@ -155,7 +183,7 @@ QVariantList NoteStore::filteredNotes() const {
 
     QSqlQuery query(*m_db);
     QString sql = QStringLiteral(
-        "SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned "
+        "SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned,status "
         "FROM notes WHERE 1=1");
     if (!text.isEmpty())
         sql += QStringLiteral(" AND (title LIKE :text OR excerpt LIKE :text OR tags_json LIKE :text)");
@@ -167,6 +195,8 @@ QVariantList NoteStore::filteredNotes() const {
         sql += QStringLiteral(" AND tags_json LIKE :tag");
     if (!folder.isEmpty())
         sql += QStringLiteral(" AND path LIKE :folder");
+    if (!statusFilter.isEmpty())
+        sql += QStringLiteral(" AND status = :status");
     sql += QStringLiteral(" ORDER BY pinned DESC, updated_at DESC");
     query.prepare(sql);
     if (!text.isEmpty())
@@ -180,6 +210,8 @@ QVariantList NoteStore::filteredNotes() const {
     if (!folder.isEmpty())
         query.bindValue(QStringLiteral(":folder"),
                         (folder == QLatin1String("/") ? QString() : folder) + QStringLiteral("/%"));
+    if (!statusFilter.isEmpty())
+        query.bindValue(QStringLiteral(":status"), statusFilter);
     if (!query.exec())
         return out;
     while (query.next()) {
@@ -193,6 +225,7 @@ QVariantList NoteStore::filteredNotes() const {
             {QStringLiteral("updatedAt"), query.value(6).toString()},
             {QStringLiteral("wordCount"), query.value(7).toInt()},
             {QStringLiteral("pinned"), query.value(8).toBool()},
+            {QStringLiteral("status"), query.value(9).toString()},
         });
     }
     return out;
@@ -320,7 +353,7 @@ QVariantMap NoteStore::selectedNote() const {
     if (!m_db || m_selectedPath.isEmpty())
         return {};
     QSqlQuery query(*m_db);
-    query.prepare(QStringLiteral("SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned FROM notes WHERE path=:path"));
+    query.prepare(QStringLiteral("SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned,status FROM notes WHERE path=:path"));
     query.bindValue(QStringLiteral(":path"), m_selectedPath);
     if (!query.exec() || !query.next())
         return {};
@@ -334,6 +367,7 @@ QVariantMap NoteStore::selectedNote() const {
         {QStringLiteral("updatedAt"), query.value(6).toString()},
         {QStringLiteral("wordCount"), query.value(7).toInt()},
         {QStringLiteral("pinned"), query.value(8).toBool()},
+        {QStringLiteral("status"), query.value(9).toString()},
         {QStringLiteral("content"), contentOf(m_selectedPath)},
     };
     return note;
@@ -380,6 +414,13 @@ void NoteStore::setActiveTag(const QString &tag) {
     if (m_activeTag == tag)
         return;
     m_activeTag = tag;
+    emit changed();
+}
+
+void NoteStore::setActiveStatus(const QString &status) {
+    if (m_activeStatus == status)
+        return;
+    m_activeStatus = status;
     emit changed();
 }
 
@@ -481,12 +522,12 @@ bool NoteStore::indexNote(const QString &path, const QString &content, const QSt
     const QString createdValue = created.isEmpty() ? updated : created;
     QSqlQuery query(*m_db);
     query.prepare(QStringLiteral(
-        "INSERT INTO notes(path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned) "
+        "INSERT INTO notes(path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned,status) "
         "VALUES(:path,:title,:tags,:links,:excerpt,:created,:updated,:words,"
-        "COALESCE((SELECT pinned FROM notes WHERE path=:path2),0)) "
+        "COALESCE((SELECT pinned FROM notes WHERE path=:path2),0),:status) "
         "ON CONFLICT(path) DO UPDATE SET title=excluded.title,tags_json=excluded.tags_json,"
         "links_json=excluded.links_json,excerpt=excluded.excerpt,updated_at=excluded.updated_at,"
-        "word_count=excluded.word_count"));
+        "word_count=excluded.word_count,status=excluded.status"));
     query.bindValue(QStringLiteral(":path"), path);
     query.bindValue(QStringLiteral(":path2"), path);
     query.bindValue(QStringLiteral(":title"), title);
@@ -496,6 +537,8 @@ bool NoteStore::indexNote(const QString &path, const QString &content, const QSt
     query.bindValue(QStringLiteral(":created"), createdValue);
     query.bindValue(QStringLiteral(":updated"), updated);
     query.bindValue(QStringLiteral(":words"), content.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts).size());
+    const QString status = parseStatus(content);
+    query.bindValue(QStringLiteral(":status"), status.isNull() ? QStringLiteral("") : status);
     if (!query.exec()) {
         setError(query.lastError().text());
         return false;
@@ -674,6 +717,49 @@ QString NoteStore::createFromTemplate(const QString &templatePath, const QString
     emit selectedChanged();
     emit changed();
     return path;
+}
+
+QString NoteStore::createTaskNote(const QString &titleValue, const QString &prompt,
+                                  const QString &workspace) {
+    const QString title = titleValue.trimmed().isEmpty() ? tr("Nouvelle tâche") : titleValue.trimmed();
+    const QString path = uniquePath({}, title);
+    QString content = QStringLiteral("---\nstatus: todo\n");
+    if (!workspace.trimmed().isEmpty())
+        content += QStringLiteral("workspace: %1\n").arg(workspace.trimmed());
+    content += QStringLiteral("created: %1\n---\n\n").arg(QDate::currentDate().toString(Qt::ISODate));
+    content += QStringLiteral("# %1\n\n## Demande\n\n%2\n\n## Journal\n\n")
+                   .arg(title, prompt.trimmed());
+    QDir().mkpath(QFileInfo(notePath(path)).absolutePath());
+    QSaveFile file(notePath(path));
+    if (!file.open(QIODevice::WriteOnly)) {
+        setError(tr("Impossible de créer la tâche."));
+        return {};
+    }
+    file.write(content.toUtf8());
+    if (!file.commit()) {
+        setError(tr("Impossible d'enregistrer la tâche."));
+        return {};
+    }
+    indexNote(path, content, nowIso());
+    m_selectedPath = path;
+    emit selectedChanged();
+    emit changed();
+    return path;
+}
+
+bool NoteStore::setNoteStatus(const QString &path, const QString &status) {
+    if (!safeRelative(path) || status.isEmpty())
+        return false;
+    const QString content = contentOf(path);
+    if (content.isEmpty())
+        return false;
+    QString updated = content;
+    const QRegularExpression expression(QStringLiteral("(?m)^\\s*status\\s*:.*$"));
+    if (expression.match(updated).hasMatch())
+        updated.replace(expression, QStringLiteral("status: ") + status);
+    else
+        updated = withStatus(updated, status);
+    return saveNote(path, updated);
 }
 
 bool NoteStore::deleteNote(const QString &path) {
