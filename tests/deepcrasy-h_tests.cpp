@@ -30,6 +30,7 @@
 #include "pluginmanager.h"
 #include "webservice.h"
 #include "crasyrouter.h"
+#include "decisionengine.h"
 #include "learningengine.h"
 #include "knowledgebase.h"
 #include "updateservice.h"
@@ -784,6 +785,79 @@ private slots:
         QCOMPARE(local, QStringList({"pr", "create", "--repo", "owner/repo", "--title", "Title",
                                      "--body", "", "--base", "develop"}));
         QVERIFY(!local.contains("--head"));
+    }
+
+    void decisionEngineResolvesProvidersAndModels()
+    {
+        DecisionEngine::ProviderInfo provider{
+            QStringLiteral("harness"), QStringLiteral("Harness"),
+            QStringLiteral("https://example.test/v1"),
+            {QStringLiteral("model-chat"), QStringLiteral("model-pro")},
+            QStringLiteral("key"), false};
+        DecisionEngine::Context context;
+        context.providers = {provider};
+        context.defaultProvider = QStringLiteral("harness");
+        context.defaultModel = QStringLiteral("model-chat");
+        context.strategy = QStringLiteral("balanced");
+        DecisionEngine::Endpoint endpoint = DecisionEngine::resolve(context);
+        QVERIFY(endpoint.valid());
+        QCOMPARE(endpoint.providerId, QString("harness"));
+        QCOMPARE(endpoint.source, QString("harness"));
+        QCOMPARE(endpoint.model, QString("model-chat"));
+        context.defaultModel.clear();
+        context.strategy = QStringLiteral("quality");
+        endpoint = DecisionEngine::resolve(context);
+        QCOMPARE(endpoint.model, QString("model-pro"));
+
+        DecisionEngine::Context deepSeek;
+        deepSeek.deepSeekKey = QStringLiteral("sk-test");
+        deepSeek.strategy = QStringLiteral("quality");
+        endpoint = DecisionEngine::resolve(deepSeek);
+        QCOMPARE(endpoint.source, QString("deepseek"));
+        QCOMPARE(endpoint.model, QString("deepseek-reasoner"));
+        QCOMPARE(endpoint.baseUrl, QString("https://api.deepseek.com/v1"));
+
+        DecisionEngine::Context router;
+        router.routerEndpoint = QStringLiteral("http://127.0.0.1:8788/v1");
+        router.routerToken = QStringLiteral("token");
+        router.source = QStringLiteral("4crasy");
+        endpoint = DecisionEngine::resolve(router);
+        QCOMPARE(endpoint.source, QString("4crasy"));
+        QCOMPARE(endpoint.model, QString("auto"));
+
+        DecisionEngine::Context empty;
+        QVERIFY(!DecisionEngine::resolve(empty).valid());
+    }
+
+    void decisionEngineAppliesDecisionRules()
+    {
+        DecisionEngine engine;
+        engine.setStrategy("balanced");
+        engine.setAutonomy("assisted");
+        engine.setPermissionCeiling("workspace-write");
+        engine.setMaxRounds(5);
+        engine.setMaxRetries(2);
+        engine.setAllowFallback(true);
+        engine.setReviewChanges(true);
+        DecisionEngine::Decision decision = engine.decide("fix", "high", "build", 1);
+        QCOMPARE(decision.permission, QString("workspace-write"));
+        QVERIFY(decision.review);
+        QVERIFY(decision.fallback);
+        QCOMPARE(decision.retries, 2);
+        QVERIFY(!decision.stop);
+
+        engine.setPermissionCeiling("read-only");
+        decision = engine.decide("inspect", "low", "diagnostic", 1);
+        QCOMPARE(decision.permission, QString("read-only"));
+
+        engine.setPermissionCeiling("full");
+        engine.setAutonomy("auto");
+        decision = engine.decide("ship", "low", "build", 1);
+        QCOMPARE(decision.permission, QString("full"));
+
+        engine.setMaxRounds(2);
+        decision = engine.decide("again", "low", "build", 2);
+        QVERIFY(decision.stop);
     }
 
     void crasyRouterPersistsChannelAndRoutingConfig()

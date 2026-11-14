@@ -23,6 +23,7 @@ HEADERS += \
     src/learningengine.h \
     src/knowledgebase.h \
     src/crasyrouter.h \
+    src/decisionengine.h \
     src/githubservice.h \
     src/webservice.h \
     src/pluginmanager.h \
@@ -63,6 +64,7 @@ SOURCES += \
     src/learningengine.cpp \
     src/knowledgebase.cpp \
     src/crasyrouter.cpp \
+    src/decisionengine.cpp \
     src/githubservice.cpp \
     src/webservice.cpp \
     src/pluginmanager.cpp \

@@ -9,6 +9,7 @@
 
 class AgentManager;
 class MemoryStore;
+class DecisionEngine;
 
 // Sequential multi-agent mission: Planner -> Builder -> Reviewer. Every step
 // runs through the native agent job runner in the mission workspace, gets the previous
@@ -34,6 +35,7 @@ public:
     QString lastOutput() const { return m_lastOutput; }
     QString error() const { return m_error; }
 
+    void setDecisionEngine(DecisionEngine *engine) { m_decisions = engine; }
     void setDshBinary(const QString &binary) { if (!binary.trimmed().isEmpty()) m_dshBinary = binary.trimmed(); }
     Q_INVOKABLE void refresh();
     Q_INVOKABLE int startMission(const QString &title, const QString &task,
@@ -80,6 +82,7 @@ private:
     QProcess *m_process = nullptr;
     AgentManager *m_agents = nullptr;
     MemoryStore *m_memory = nullptr;
+    DecisionEngine *m_decisions = nullptr;
     int m_currentMissionId = -1;
     int m_currentStepId = -1;
     QString m_currentMissionTitle;
