@@ -489,6 +489,7 @@ QJsonObject UltimateAgent::snapshot() const {
                                 {QStringLiteral("serverUrl"), m_bots->serverUrl()},
                                 {QStringLiteral("running"), m_bots->running()},
                                 {QStringLiteral("queue"), m_bots->queueCount()},
+                                {QStringLiteral("schedules"), m_bots->statusJson().value(QStringLiteral("schedules"))},
                                 {QStringLiteral("items"), bots}});
     }
     if (m_mcp) {
@@ -519,6 +520,7 @@ QJsonObject UltimateAgent::snapshot() const {
         root.insert(QStringLiteral("skills"), skills);
         root.insert(QStringLiteral("bundledSkills"), m_skills->defaultCount());
         root.insert(QStringLiteral("skillsLoaded"), skills.size());
+        root.insert(QStringLiteral("userSkills"), qMax(0, skills.size() - m_skills->defaultCount()));
     }
     if (m_agents) {
         QJsonArray profiles;
@@ -1507,8 +1509,8 @@ SYSTEM MAP
 - Memory: SQLite/FTS5 via the memory MCP server. Skills: ~/.agents/skills and project skills.
 - Bots: persistent operators in SQLite, executed by the native agent job runner, exposed on a loopback HTTP API and through the ultimate-iah-bots MCP bridge.
 - Notes: local Markdown vault, wiki-links, tags, backlinks, graph and daily notes.
-- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, autopilot, mcp, agents, bots, installation, settings.
-- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Harness, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+B Bots, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
+- Views: agent, home, ecosystem, workspace, harness, terminal, connections, memory, notes, github, crasy, learning, plugins, autopilot, mcp, agents, bots, installation, settings.
+- Shortcuts: Ctrl+0 Cockpit, Ctrl+1 Ultimate Agent, Ctrl+2 Terminal, Ctrl+4 Settings, Ctrl+6 Ecosystem, Ctrl+7 Files, Ctrl+8 Connections, Ctrl+Alt+B Bots, Ctrl+Alt+C MCP, Ctrl+Alt+G Agents, Ctrl+Alt+I Installation, Ctrl+Alt+M Memory, Ctrl+Alt+A Autopilot, Ctrl+Alt+U Ultimate Agent, Ctrl+K palette.
 
 ACTION RULES
 - Use tools for actions and facts. Never claim a command, configuration change or service start succeeded without a successful tool result.
@@ -2190,7 +2192,7 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         }
         process.setProcessEnvironment(env);
         process.start(QStringLiteral("/bin/bash"), {QStringLiteral("-lc"), command});
-        const int timeout = qBound(1, arguments.value(QStringLiteral("timeoutSeconds")).toInt(30), 60);
+        const int timeout = qBound(1, arguments.value(QStringLiteral("timeoutSeconds")).toInt(60), 300);
         if (!process.waitForStarted(3000)) return errorResult(tr("Impossible de lancer le shell."));
         // Keep the event loop alive while the child runs: the loopback APIs and
         // the UI must answer during long terminal commands.
@@ -2447,6 +2449,8 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
                          {QStringLiteral("tools"), m_plugins->toolCount()},
                          {QStringLiteral("capabilitiesImplemented"), m_plugins->activeCapabilities()},
                          {QStringLiteral("capabilitiesTotal"), m_plugins->capabilities().size()},
+                         {QStringLiteral("capabilitiesExperimental"),
+                          m_plugins->capabilities().size() - m_plugins->activeCapabilities()},
                          {QStringLiteral("coreCapabilities"), m_plugins->coreCapabilities()},
                          {QStringLiteral("plugins"), QJsonArray::fromVariantList(m_plugins->plugins())},
                          {QStringLiteral("dshCapabilities"), QJsonArray::fromVariantList(m_plugins->capabilities())}});

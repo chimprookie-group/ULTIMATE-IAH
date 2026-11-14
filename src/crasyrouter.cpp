@@ -200,18 +200,24 @@ bool CrasyRouter::saveConfig() const {
 void CrasyRouter::rebuildChannelView() {
     QVariantList view;
     for (const Channel &channel : m_channelData) {
+        const bool local = channel.baseUrl.contains(QStringLiteral("127.0.0.1"))
+            || channel.baseUrl.contains(QStringLiteral("localhost"));
+        const bool hasKey = !channel.apiKey.isEmpty();
+        const bool usable = channel.enabled && (hasKey || local);
         view.append(QVariantMap{
             {QStringLiteral("id"), channel.id},
             {QStringLiteral("name"), channel.name},
             {QStringLiteral("baseUrl"), channel.baseUrl},
             {QStringLiteral("apiKeyEnv"), channel.apiKeyEnv},
-            {QStringLiteral("enabled"), channel.enabled},
+            {QStringLiteral("enabled"), usable},
+            {QStringLiteral("configured"), channel.enabled},
+            {QStringLiteral("local"), local},
             {QStringLiteral("free"), channel.free},
             {QStringLiteral("priority"), channel.priority},
-            {QStringLiteral("hasKey"), !channel.apiKey.isEmpty() || channel.apiKeyEnv.isEmpty()},
+            {QStringLiteral("hasKey"), hasKey},
             {QStringLiteral("modelCount"), channel.modelIds.size()},
             {QStringLiteral("freeModelCount"), channel.freeModelIds.size()},
-            {QStringLiteral("status"), !channel.enabled ? QStringLiteral("disabled")
+            {QStringLiteral("status"), !usable ? QStringLiteral("disabled")
                  : (channel.modelIds.isEmpty() ? QStringLiteral("idle") : QStringLiteral("ready"))},
         });
     }

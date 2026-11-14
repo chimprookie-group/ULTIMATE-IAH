@@ -427,6 +427,7 @@ QJsonObject BotManager::statusJson() const {
         {QStringLiteral("queue"), m_queue.size()},
         {QStringLiteral("bots"), m_store->bots().size()},
         {QStringLiteral("runs"), m_store->stats().value(QStringLiteral("runs")).toInt()},
+        {QStringLiteral("schedules"), m_store->schedules().size()},
     };
 }
 

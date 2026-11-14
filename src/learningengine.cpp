@@ -274,7 +274,7 @@ QVariantMap LearningEngine::observe(const QJsonObject &trajectory) {
                                 "tentative sans nouvelle preuve.")
                                  .arg(prompt.left(500), evidence.left(700));
         lessonId = upsertLesson(project, QStringLiteral("failure"), title, body, evidence, 0.55);
-    } else if (success && sequence.size() >= 3
+    } else if (success && sequence.size() >= 3 && sequence.size() <= 12
                && QSet<QString>(sequence.begin(), sequence.end()).size() >= 2) {
         const QString title = tr("Procédure : %1").arg(sequence.join(QStringLiteral(" → ")));
         const QString evidence = sequence.join(QStringLiteral(" → "));

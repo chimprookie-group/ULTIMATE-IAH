@@ -245,7 +245,7 @@ void MemoryStore::search(const QString &queryText, const QString &project) {
     QVariantList rows;
     QSqlQuery query(m_db);
     const QStringList tokens = queryTokens(clean);
-    const QString match = tokens.join(QStringLiteral(" AND "));
+    const QString match = tokens.join(QStringLiteral(" OR "));
     const QString projectFilter = project.isNull() ? QStringLiteral("") : project;
     if (!match.isEmpty()) {
         query.prepare(QStringLiteral(
@@ -276,6 +276,23 @@ void MemoryStore::search(const QString &queryText, const QString &project) {
     }
     while (query.next())
         rows.append(rowFromQuery(query));
+    if (rows.isEmpty() && !match.isEmpty()) {
+        QSqlQuery fallback(m_db);
+        fallback.prepare(QStringLiteral(
+            "SELECT id,project,kind,title,body,tags,pinned,importance,source,created_at,updated_at "
+            "FROM memories WHERE (title LIKE ? OR body LIKE ? OR tags LIKE ?) "
+            "AND (? = '' OR project = ?) ORDER BY pinned DESC, updated_at DESC LIMIT 120"));
+        const QString like = QStringLiteral("%") + clean + QStringLiteral("%");
+        fallback.addBindValue(like);
+        fallback.addBindValue(like);
+        fallback.addBindValue(like);
+        fallback.addBindValue(projectFilter);
+        fallback.addBindValue(projectFilter);
+        if (fallback.exec()) {
+            while (fallback.next())
+                rows.append(rowFromQuery(fallback));
+        }
+    }
     m_results = rows;
     emit resultsChanged();
 }
