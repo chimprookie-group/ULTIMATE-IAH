@@ -244,17 +244,31 @@ QVariantMap LearningEngine::observe(const QJsonObject &trajectory) {
 
     int lessonId = 0;
     if (!success || !failed.isEmpty()) {
-        const QString category = categoryOf(prompt);
-        const QString title = tr("Échec %1 : vérifier avant de réessayer").arg(category);
         const QString evidence = error.isEmpty() ? failed.join(QStringLiteral("; ")) : error;
+        QString title;
+        if (!failed.isEmpty()) {
+            const QString first = failed.first();
+            const QString tool = first.section(QLatin1Char(':'), 0, 0).trimmed();
+            const QString cause = first.section(QLatin1Char(':'), 1).trimmed();
+            const QRegularExpression http(QStringLiteral("HTTP (\\d{3})"));
+            const auto match = http.match(cause);
+            if (match.hasMatch())
+                title = tr("Échec %1 : HTTP %2").arg(tool, match.captured(1));
+            else if (cause.contains(QStringLiteral("redirection"), Qt::CaseInsensitive))
+                title = tr("Échec %1 : redirection refusée").arg(tool);
+            else
+                title = tr("Échec %1 : %2").arg(tool, cause.left(80));
+        } else {
+            title = tr("Échec : %1").arg(error.left(80));
+        }
         const QString body = tr("Contexte : %1\nÉchec observé : %2\nRègle apprise : reproduire d'abord, "
                                 "lire l'erreur réelle, vérifier la configuration et ne pas répéter la même "
                                 "tentative sans nouvelle preuve.")
                                  .arg(prompt.left(500), evidence.left(700));
         lessonId = upsertLesson(project, QStringLiteral("failure"), title, body, evidence, 0.55);
-    } else if (success && sequence.size() >= 2) {
-        const QString category = categoryOf(prompt);
-        const QString title = tr("Procédure réussie : %1").arg(category);
+    } else if (success && sequence.size() >= 2
+               && QSet<QString>(sequence.begin(), sequence.end()).size() >= 2) {
+        const QString title = tr("Procédure : %1").arg(sequence.join(QStringLiteral(" → ")));
         const QString evidence = sequence.join(QStringLiteral(" → "));
         const QString body = tr("Pour une tâche « %1 », la séquence d'outils qui a fonctionné est : %2.\n"
                                 "Vérifier le résultat réel avant de conclure.")

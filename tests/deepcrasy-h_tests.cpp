@@ -1240,6 +1240,10 @@ private slots:
         QCOMPARE(learning.stats().value("lessons").toInt(), 1);
         QVERIFY(learning.observe(trajectory).value("learned").toBool());
         QCOMPARE(learning.stats().value("proposals").toInt(), 1);
+        QJsonObject other = trajectory;
+        other["prompt"] = "Autre panne web sans rapport";
+        QVERIFY(learning.observe(other).value("learned").toBool());
+        QCOMPARE(learning.stats().value("lessons").toInt(), 1);
         const QString context = learning.contextFor("corrige le bug web", dir.path(), 4);
         QVERIFY(context.contains("LEÇONS APPRISES"));
         const QVariantList proposals = learning.proposals();
