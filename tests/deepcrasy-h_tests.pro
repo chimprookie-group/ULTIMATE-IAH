@@ -24,6 +24,7 @@ HEADERS += \
     ../src/learningengine.h \
     ../src/knowledgebase.h \
     ../src/crasyrouter.h \
+    ../src/decisionengine.h \
     ../src/pluginmanager.h \
     ../src/terminalsession.h \
     ../src/theme.h \
@@ -54,6 +55,7 @@ SOURCES += \
     ../src/learningengine.cpp \
     ../src/knowledgebase.cpp \
     ../src/crasyrouter.cpp \
+    ../src/decisionengine.cpp \
     ../src/pluginmanager.cpp \
     ../src/theme.cpp \
     ../src/workspacemodel.cpp \

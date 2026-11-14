@@ -1,6 +1,7 @@
 #include "missionrunner.h"
 
 #include "agentmanager.h"
+#include "decisionengine.h"
 #include "memorystore.h"
 
 #include <QDateTime>
@@ -303,10 +304,20 @@ void MissionRunner::runStep(int missionId, int stepId) {
     const int position = step.value("position").toInt();
     const QString permission = (position == 0 || position == 2)
         ? QStringLiteral("read-only") : QStringLiteral("workspace-write");
-    m_process->start(m_dshBinary, {QStringLiteral("--agent-job"),
-                                   QStringLiteral("--agent-prompt"), stepPrompt(mission, step, previous),
-                                   QStringLiteral("--workspace"), mission.value("project").toString(),
-                                   QStringLiteral("--permission"), permission});
+    QStringList arguments{QStringLiteral("--agent-job"),
+                          QStringLiteral("--agent-prompt"), stepPrompt(mission, step, previous),
+                          QStringLiteral("--workspace"), mission.value("project").toString(),
+                          QStringLiteral("--permission"), permission};
+    if (m_decisions) {
+        const DecisionEngine::Endpoint endpoint = DecisionEngine::resolve(m_decisions->context());
+        if (endpoint.valid()) {
+            if (!endpoint.providerId.isEmpty()) {
+                arguments << QStringLiteral("--agent-provider") << endpoint.providerId;
+            }
+            arguments << QStringLiteral("--agent-model") << endpoint.model;
+        }
+    }
+    m_process->start(m_dshBinary, arguments);
 }
 
 void MissionRunner::finishStep(bool success, int exitCode) {

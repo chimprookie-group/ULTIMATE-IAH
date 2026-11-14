@@ -43,6 +43,7 @@
 #include "webservice.h"
 #include "githubservice.h"
 #include "crasyrouter.h"
+#include "decisionengine.h"
 #include "updateservice.h"
 #include "learningengine.h"
 #include "knowledgebase.h"
@@ -249,7 +250,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.19"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.20"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -315,6 +316,18 @@ int main(int argc, char *argv[]) {
             return 1;
         }
         return 0;
+    }
+    if (arguments.value(0) == "decision") {
+        QCoreApplication app(argc, argv);
+        HarnessConnections connections;
+        CrasyRouter router;
+        DecisionEngine decisions;
+        decisions.setConnections(&connections);
+        decisions.setRouter(&router);
+        decisions.refresh();
+        const QVariantMap status = decisions.status();
+        QTextStream(stdout) << QJsonDocument(QJsonObject::fromVariantMap(status)).toJson(QJsonDocument::Compact) << '\n';
+        return status.value(QStringLiteral("provider")).toString().isEmpty() ? 1 : 0;
     }
     if (arguments.value(0) == "doctor") {
         QCoreApplication app(argc, argv);
@@ -479,6 +492,10 @@ int main(int argc, char *argv[]) {
     WebService web;
     GitHubService gitHub(&backend);
     CrasyRouter crasy;
+    DecisionEngine decisions;
+    decisions.setConnections(&connections);
+    decisions.setRouter(&crasy);
+    decisions.refresh();
     if (routerConfigure || routerService) {
         if (!crasy.start()) {
             QTextStream(stderr) << "4Crasy: " << crasy.error() << Qt::endl;
@@ -505,6 +522,7 @@ int main(int argc, char *argv[]) {
     });
     MissionRunner missions(MissionRunner::defaultPath(), &agents, &memory);
     missions.setDshBinary(QCoreApplication::applicationFilePath());
+    missions.setDecisionEngine(&decisions);
     translator.setOverride(backend.languagePreference());
     Autopilot autopilot;
     autopilot.setMemory(&memory);
@@ -514,6 +532,7 @@ int main(int argc, char *argv[]) {
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,
                                 &skills, &agents, &missions, &terminal,
                                 &installation, &connectionDoctor, &bots, &noteStore, &plugins, &web, &gitHub, &crasy, &learning, &knowledge);
+    ultimateAgent.setDecisionEngine(&decisions);
     knowledge.seed(UltimateAgent::tools(), plugins.plugins(), skills.skills());
     if (agentJob) {
         if (!workspace.isEmpty())
@@ -600,6 +619,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("connectionDoctor", &connectionDoctor);
     engine.rootContext()->setContextProperty("installation", &installation);
     engine.rootContext()->setContextProperty("ultimateAgent", &ultimateAgent);
+    engine.rootContext()->setContextProperty("decisions", &decisions);
     engine.rootContext()->setContextProperty("agents", &agents);
     engine.rootContext()->setContextProperty("skills", &skills);
     engine.rootContext()->setContextProperty("missions", &missions);

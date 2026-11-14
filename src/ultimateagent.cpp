@@ -2,6 +2,7 @@
 
 #include "agentconversationstore.h"
 #include "agentmessagemodel.h"
+#include "decisionengine.h"
 #include "agentmanager.h"
 #include "backend.h"
 #include "botmanager.h"
@@ -140,6 +141,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
         return action.isEmpty() || action == QLatin1String("status") || action == QLatin1String("clear_cache");
     if (name == QLatin1String("ultimate_plugins"))
         return action == QLatin1String("list") || action == QLatin1String("status");
+    if (name == QLatin1String("ultimate_decision"))
+        return action == QLatin1String("status") || action == QLatin1String("explain");
     if (name.startsWith(QLatin1String("artcraft_")))
         return action == QLatin1String("commands") || action == QLatin1String("version");
     if (name.startsWith(QLatin1String("plugin_")))
@@ -237,6 +240,12 @@ QString UltimateAgent::credential(const QString &name) const {
 QObject *UltimateAgent::messageModel() const { return m_messageModel; }
 
 UltimateAgent::Endpoint UltimateAgent::resolveEndpoint() const {
+    if (m_decisions) {
+        m_decisions->setOverrides(m_providerOverride, m_modelOverride);
+        const DecisionEngine::Endpoint resolved = DecisionEngine::resolve(m_decisions->context());
+        if (resolved.valid())
+            return {resolved.baseUrl, resolved.apiKey, resolved.model, resolved.label, resolved.source};
+    }
     if (m_connections) {
         const QVariantList providers = m_connections->providers();
         const QString wanted = m_providerOverride.isEmpty()
@@ -368,6 +377,12 @@ QString UltimateAgent::systemPrompt() const {
         const QString capabilities = m_knowledge->promptContext(m_userPrompt, 6500);
         if (!capabilities.isEmpty())
             prompt += QStringLiteral("\n\n") + capabilities;
+    }
+    if (m_decisions) {
+        prompt += QStringLiteral("\n\nDÉCISION\n");
+        prompt += m_decisions->summary();
+        prompt += QStringLiteral("\n");
+        prompt += m_decisions->decide(m_userPrompt, QStringLiteral("low"), m_mode, 0).reason;
     }
     prompt += QStringLiteral("\n\nTOOLS\n")
         + QString::fromUtf8(QJsonDocument(allTools()).toJson(QJsonDocument::Compact));
@@ -508,6 +523,10 @@ void UltimateAgent::sendMessage(const QString &text) {
         setError(tr("Aucun provider utilisable. Ajoutez une clé DeepSeek dans Providers."));
         return;
     }
+    if (m_decisions) {
+        m_decisions->setLastDecision(m_decisions->decide(prompt, QStringLiteral("low"),
+                                                         m_mode, m_round));
+    }
     if (m_conversationId.isEmpty())
         ensureConversation();
     m_error.clear();
@@ -530,8 +549,9 @@ void UltimateAgent::runRequest() {
         finishWithError(tr("Aucun provider utilisable."));
         return;
     }
-    if (m_round >= 100) {
-        finishWithError(tr("L'agent a atteint la limite de 100 tours d'outils."));
+    const int roundLimit = m_decisions ? m_decisions->maxRounds() : 100;
+    if (m_round >= roundLimit) {
+        finishWithError(tr("L'agent a atteint la limite de %1 tours d'outils.").arg(roundLimit));
         return;
     }
     ++m_round;
@@ -1729,6 +1749,15 @@ QJsonArray UltimateAgent::tools() {
                                                QStringLiteral("artcraft_install"),
                                                QStringLiteral("artcraft_update")})}}),
                     {QStringLiteral("action")}));
+    out.append(tool(QStringLiteral("ultimate_decision"),
+                    QStringLiteral("Read the harness decision core: resolved provider/model, strategy, autonomy, permission ceiling, retries, fallback, review, memory and learning."),
+                    properties({{QStringLiteral("action"),
+                                 enumProperty(QStringLiteral("Operation."),
+                                              {QStringLiteral("status"), QStringLiteral("explain")})},
+                                {QStringLiteral("risk"),
+                                 enumProperty(QStringLiteral("Risk of the current task."),
+                                              {QStringLiteral("low"), QStringLiteral("high")})}}),
+                    {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_settings"),
                     QStringLiteral("Read or change app theme, language, startup view and harness autostart."),
                     properties({{QStringLiteral("action"),
@@ -2306,6 +2335,17 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
     }
     if (m_plugins && m_plugins->isPluginTool(name))
         return m_plugins->executeTool(name, arguments, workspace, m_permissionMode);
+    if (name == QLatin1String("ultimate_decision")) {
+        if (!m_decisions)
+            return errorResult(tr("Le noyau de décision est indisponible."));
+        if (action == QLatin1String("explain")) {
+            return okResult({{QStringLiteral("explanation"),
+                              m_decisions->explain(m_userPrompt,
+                                                   arguments.value(QStringLiteral("risk")).toString(),
+                                                   m_mode, 0)}});
+        }
+        return okResult(QJsonObject::fromVariantMap(m_decisions->status()));
+    }
     if (name == QLatin1String("ultimate_plugins")) {
         if (!m_plugins)
             return errorResult(tr("Le registre de plugins est indisponible."));

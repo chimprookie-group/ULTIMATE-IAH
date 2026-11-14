@@ -256,6 +256,121 @@ Item {
             }
 
             SettingsSection {
+                title: qsTr("Décisions")
+                collapsible: true
+                expanded: false
+                Layout.fillWidth: true
+
+                Text {
+                    Layout.fillWidth: true
+                    text: decisions.summary
+                    color: theme.text
+                    font.family: backend.monoFont
+                    font.pixelSize: design.textMicro
+                    wrapMode: Text.Wrap
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("Provider résolu : %1 · modèle %2 · source %3")
+                          .arg(decisions.providerLabel !== "" ? decisions.providerLabel : qsTr("aucun"))
+                          .arg(decisions.modelLabel !== "" ? decisions.modelLabel : qsTr("aucun"))
+                          .arg(decisions.sourceLabel !== "" ? decisions.sourceLabel : qsTr("aucune"))
+                    color: decisions.providerLabel !== "" ? theme.green : theme.orange
+                    font.pixelSize: design.textCaption
+                    wrapMode: Text.Wrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text { text: qsTr("Stratégie"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    ComboBox {
+                        Layout.preferredWidth: 150
+                        model: [qsTr("Équilibré"), qsTr("Qualité"), qsTr("Gratuit")]
+                        currentIndex: decisions.strategy === "quality" ? 1 : (decisions.strategy === "free" ? 2 : 0)
+                        onActivated: decisions.strategy = ["balanced", "quality", "free"][index]
+                    }
+                    Text { text: qsTr("Autonomie"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    ComboBox {
+                        Layout.preferredWidth: 150
+                        model: [qsTr("Manuel"), qsTr("Assisté"), qsTr("Auto")]
+                        currentIndex: decisions.autonomy === "manual" ? 0 : (decisions.autonomy === "auto" ? 2 : 1)
+                        onActivated: decisions.autonomy = ["manual", "assisted", "auto"][index]
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space2
+                    Text { text: qsTr("Provider"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    ComboBox {
+                        Layout.preferredWidth: 150
+                        model: [qsTr("Auto"), qsTr("Harness"), qsTr("DeepSeek"), qsTr("4Crasy")]
+                        currentIndex: decisions.providerSource === "harness" ? 1
+                                      : (decisions.providerSource === "deepseek" ? 2
+                                      : (decisions.providerSource === "4crasy" ? 3 : 0))
+                        onActivated: decisions.providerSource = ["auto", "harness", "deepseek", "4crasy"][index]
+                    }
+                    Text { text: qsTr("Permissions"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    ComboBox {
+                        Layout.preferredWidth: 170
+                        model: [qsTr("Lecture seule"), qsTr("Workspace"), qsTr("Complet")]
+                        currentIndex: decisions.permissionCeiling === "read-only" ? 0
+                                      : (decisions.permissionCeiling === "full" ? 2 : 1)
+                        onActivated: decisions.permissionCeiling = ["read-only", "workspace-write", "full"][index]
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: design.space3
+                    Text { text: qsTr("Tours max"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    SpinBox {
+                        from: 1; to: 500; value: decisions.maxRounds
+                        onValueModified: decisions.maxRounds = value
+                    }
+                    Text { text: qsTr("Retries"); color: theme.dimText; font.pixelSize: design.textCaption }
+                    SpinBox {
+                        from: 0; to: 10; value: decisions.maxRetries
+                        onValueModified: decisions.maxRetries = value
+                    }
+                    CheckBox {
+                        text: qsTr("Fallback")
+                        checked: decisions.allowFallback
+                        onToggled: decisions.allowFallback = checked
+                    }
+                    CheckBox {
+                        text: qsTr("Revue")
+                        checked: decisions.reviewChanges
+                        onToggled: decisions.reviewChanges = checked
+                    }
+                    CheckBox {
+                        text: qsTr("Mémoire")
+                        checked: decisions.useMemory
+                        onToggled: decisions.useMemory = checked
+                    }
+                    CheckBox {
+                        text: qsTr("Apprentissage")
+                        checked: decisions.useLearning
+                        onToggled: decisions.useLearning = checked
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    GhostButton { text: qsTr("Réinitialiser les décisions"); flat: true; onClicked: decisions.resetOptions() }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: decisions.lastReason
+                        color: theme.dimText
+                        font.pixelSize: design.textMicro
+                        elide: Text.ElideRight
+                        Layout.maximumWidth: 420
+                    }
+                }
+            }
+
+            SettingsSection {
                 title: qsTr("Mises à jour")
                 Layout.fillWidth: true
                 Text {
