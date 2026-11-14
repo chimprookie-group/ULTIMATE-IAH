@@ -50,7 +50,7 @@ Agents, Terminal agent, Bots, Providers, Plugins, MCP, Installation, Réglages.
   agent-attachments/, vault/, integrations).
 - Aucun serveur web DSH n'est lancé. Les jobs agent utilisent le même binaire
   en mode `--agent-job`.
-- API bots : `127.0.0.1:8790`, jeton `bot.token` mode 600, dashboard local.
+- API bots : `127.0.0.1:8790`, jeton `~/.config/Crasy/deepcrasy-h/bot.token` mode 600, dashboard local.
 - Credentials : store local historique (mode 600).
 - `agent.env` : miroir privé, mode 600.
 

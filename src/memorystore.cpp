@@ -141,6 +141,8 @@ bool MemoryStore::open() {
     }
     QSqlQuery pragma(m_db);
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
+    pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=256"));
+    pragma.exec(QStringLiteral("PRAGMA journal_size_limit=1048576"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
     pragma.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
     pragma.exec(QStringLiteral("PRAGMA busy_timeout=5000"));

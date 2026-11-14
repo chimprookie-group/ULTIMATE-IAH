@@ -517,6 +517,7 @@ QJsonObject UltimateAgent::snapshot() const {
         }
         root.insert(QStringLiteral("skills"), skills);
         root.insert(QStringLiteral("defaultSkills"), m_skills->defaultCount());
+        root.insert(QStringLiteral("skillsLoaded"), skills.size());
     }
     if (m_agents) {
         QJsonArray profiles;

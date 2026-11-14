@@ -54,6 +54,8 @@ bool KnowledgeBase::open() {
     }
     QSqlQuery pragma(db);
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
+    pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=256"));
+    pragma.exec(QStringLiteral("PRAGMA journal_size_limit=1048576"));
     pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=1000"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
     QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
@@ -99,7 +101,8 @@ void KnowledgeBase::upsert(const QString &key, const QString &category, const QS
     query.exec();
 }
 
-void KnowledgeBase::seed(const QJsonArray &tools, const QVariantList &plugins, const QVariantList &skills) {
+void KnowledgeBase::seed(const QJsonArray &tools, const QVariantList &plugins,
+                         const QVariantList &skills, const QVariantList &capabilities) {
     if (!m_ready) return;
     QSqlQuery clear(QSqlDatabase::database(m_connection, false));
     clear.exec(QStringLiteral("DELETE FROM entries WHERE source='system'"));
@@ -137,7 +140,8 @@ void KnowledgeBase::seed(const QJsonArray &tools, const QVariantList &plugins, c
                                                       skill.value(QStringLiteral("path")).toString()),
                QStringLiteral("system"));
     }
-    const QVariantList capabilities = {
+    QVariantList capabilityEntries = capabilities;
+    if (capabilityEntries.isEmpty()) capabilityEntries = {
         QVariantMap{{QStringLiteral("id"), QStringLiteral("ultimate_agent")}, {QStringLiteral("name"), QStringLiteral("Ultimate Agent")}, {QStringLiteral("summary"), QStringLiteral("Agent natif principal : raisonnement, outils, mémoire, skills, apprentissage et permissions.")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("4crasy")}, {QStringLiteral("name"), QStringLiteral("4Crasy")}, {QStringLiteral("summary"), QStringLiteral("Routeur local de modèles gratuits avec fallback et API OpenAI-compatible.")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("learning")}, {QStringLiteral("name"), QStringLiteral("Apprentissage")}, {QStringLiteral("summary"), QStringLiteral("Boucle locale : trajectoires, leçons, propositions de skills et réinjection de contexte.")}},
@@ -151,11 +155,19 @@ void KnowledgeBase::seed(const QJsonArray &tools, const QVariantList &plugins, c
         QVariantMap{{QStringLiteral("id"), QStringLiteral("mcp")}, {QStringLiteral("name"), QStringLiteral("MCP")}, {QStringLiteral("summary"), QStringLiteral("Serveurs MCP intégrés mémoire/bots et serveurs personnalisés.")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("terminal")}, {QStringLiteral("name"), QStringLiteral("Terminal")}, {QStringLiteral("summary"), QStringLiteral("Terminal intégré et exécution de commandes avec permissions.")}}
     };
-    for (const QVariant &value : capabilities) {
+    for (const QVariant &value : capabilityEntries) {
         const QVariantMap capability = value.toMap();
-        upsert(QStringLiteral("capability:") + capability.value(QStringLiteral("id")).toString(),
-               QStringLiteral("capability"), capability.value(QStringLiteral("name")).toString(),
-               capability.value(QStringLiteral("summary")).toString(),
+        const QString id = capability.value(QStringLiteral("id")).toString();
+        if (id.isEmpty())
+            continue;
+        QString name = capability.value(QStringLiteral("name")).toString();
+        if (name.isEmpty())
+            name = id;
+        QString summary = capability.value(QStringLiteral("summary")).toString();
+        if (summary.isEmpty())
+            summary = capability.value(QStringLiteral("description")).toString();
+        upsert(QStringLiteral("capability:") + id, QStringLiteral("capability"),
+               name, summary,
                QStringLiteral("Composant natif du harness Ultimate IAH."), QStringLiteral("system"));
     }
     refresh();

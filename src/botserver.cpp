@@ -208,9 +208,14 @@ void BotServer::handleConnection(QTcpSocket *socket) {
     connect(socket, &QTcpSocket::errorOccurred, socket, &QTcpSocket::deleteLater);
 }
 
+QString BotServer::lastActivityAt() const {
+    return m_lastServedAt > 0
+        ? QDateTime::fromMSecsSinceEpoch(m_lastServedAt).toString(Qt::ISODate)
+        : QString();
+}
+
 bool BotServer::healthy() const {
-    return m_server.isListening() && m_lastServedAt > 0
-        && QDateTime::currentMSecsSinceEpoch() - m_lastServedAt < 120000;
+    return m_server.isListening();
 }
 
 void BotServer::respond(QTcpSocket *socket, int status, const QByteArray &type,
