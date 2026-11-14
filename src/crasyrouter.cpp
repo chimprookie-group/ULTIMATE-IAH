@@ -591,13 +591,20 @@ void CrasyRouter::copyToken() const {
     QGuiApplication::clipboard()->setText(m_token);
 }
 
+bool CrasyRouter::healthy() const {
+    return m_server.isListening() && m_lastServedAt > 0
+        && QDateTime::currentMSecsSinceEpoch() - m_lastServedAt < 120000;
+}
+
 QJsonObject CrasyRouter::status() const {
     QJsonArray channelArray;
     for (const QVariant &value : m_channels)
         channelArray.append(QJsonObject::fromVariantMap(value.toMap()));
     return QJsonObject{
-        {QStringLiteral("ok"), true},
+        {QStringLiteral("ok"), running() && healthy()},
         {QStringLiteral("running"), running()},
+        {QStringLiteral("listening"), listening()},
+        {QStringLiteral("healthy"), healthy()},
         {QStringLiteral("endpoint"), endpoint()},
         {QStringLiteral("channels"), channelArray},
         {QStringLiteral("models"), m_models.size()},
@@ -639,6 +646,7 @@ QByteArray CrasyRouter::httpStatus(int code) {
 void CrasyRouter::respond(QTcpSocket *socket, int status, const QByteArray &type,
                           const QByteArray &body) {
     if (!socket) return;
+    m_lastServedAt = QDateTime::currentMSecsSinceEpoch();
     QByteArray response = "HTTP/1.1 " + QByteArray::number(status) + ' ' + httpStatus(status) + "\r\n";
     response += "Content-Type: " + type + "\r\n";
     response += "Content-Length: " + QByteArray::number(body.size()) + "\r\n";

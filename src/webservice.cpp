@@ -136,10 +136,18 @@ QJsonObject WebService::search(const QStringList &queries, int maxResults) {
     QJsonObject result;
     if (searchReady()) {
         result = deepSeekSearch(unique, maxResults);
-        if (result.value(QStringLiteral("ok")).toBool())
+        bool hasSnippet = false;
+        if (result.value(QStringLiteral("ok")).toBool()) {
+            for (const QJsonValue &value : result.value(QStringLiteral("sources")).toArray())
+                if (!value.toObject().value(QStringLiteral("snippet")).toString().trimmed().isEmpty())
+                    hasSnippet = true;
+        }
+        if (result.value(QStringLiteral("ok")).toBool() && hasSnippet) {
             m_searchProvider = QStringLiteral("deepseek");
-        else
-            result = duckDuckGoSearch(unique, maxResults);
+        } else {
+            const QJsonObject fallback = duckDuckGoSearch(unique, maxResults);
+            result = fallback.value(QStringLiteral("ok")).toBool() ? fallback : result;
+        }
     } else {
         result = duckDuckGoSearch(unique, maxResults);
     }
@@ -181,6 +189,18 @@ QJsonObject WebService::deepSeekSearch(const QStringList &queries, int maxResult
         }
         const QJsonArray content = QJsonDocument::fromJson(reply.value(QStringLiteral("body")).toString().toUtf8())
                                        .object().value(QStringLiteral("content")).toArray();
+        QHash<QString, QString> citations;
+        for (const QJsonValue &blockValue : content) {
+            const QJsonObject block = blockValue.toObject();
+            if (block.value(QStringLiteral("type")).toString() != QLatin1String("text"))
+                continue;
+            for (const QJsonValue &citationValue : block.value(QStringLiteral("citations")).toArray()) {
+                const QJsonObject citation = citationValue.toObject();
+                const QString url = citation.value(QStringLiteral("url")).toString();
+                if (!url.isEmpty() && !citation.value(QStringLiteral("cited_text")).toString().isEmpty())
+                    citations.insert(url, citation.value(QStringLiteral("cited_text")).toString());
+            }
+        }
         for (const QJsonValue &blockValue : content) {
             const QJsonObject block = blockValue.toObject();
             if (block.value(QStringLiteral("type")).toString() != QLatin1String("web_search_tool_result"))
@@ -190,10 +210,18 @@ QJsonObject WebService::deepSeekSearch(const QStringList &queries, int maxResult
                 const QString url = item.value(QStringLiteral("url")).toString();
                 if (url.isEmpty())
                     continue;
+                QString snippet = item.value(QStringLiteral("cited_text")).toString();
+                if (snippet.isEmpty())
+                    snippet = item.value(QStringLiteral("text")).toString();
+                if (snippet.isEmpty())
+                    snippet = citations.value(url);
+                QString date = item.value(QStringLiteral("page_age")).toString();
+                if (date.isEmpty())
+                    date = item.value(QStringLiteral("published_date")).toString();
                 sources.append(QJsonObject{{QStringLiteral("url"), url},
                                            {QStringLiteral("title"), item.value(QStringLiteral("title")).toString(url)},
-                                           {QStringLiteral("date"), item.value(QStringLiteral("page_age")).toString()},
-                                           {QStringLiteral("snippet"), item.value(QStringLiteral("cited_text")).toString()}});
+                                           {QStringLiteral("date"), date},
+                                           {QStringLiteral("snippet"), snippet}});
             }
         }
         if (sources.size() >= maxResults)
@@ -242,12 +270,23 @@ QJsonObject WebService::duckDuckGoSearch(const QStringList &queries, int maxResu
         if (status < 200 || status >= 300)
             return errorObject(QStringLiteral("WEB_PROVIDER_ERROR"), tr("DuckDuckGo a répondu HTTP %1.").arg(status));
         const QRegularExpression resultExpression(
-            QStringLiteral("<a[^>]+class=\"result__a\"[^>]+href=\"([^\"]+)\"[^>]*>(.*?)</a>.*?<a[^>]+class=\"result__snippet\"[^>]*>(.*?)</a>"),
+            QStringLiteral("<a[^>]+class=\"result__a\"[^>]*>(.*?)</a>"),
             QRegularExpression::DotMatchesEverythingOption);
+        const QRegularExpression hrefExpression(QStringLiteral("href=\"([^\"]+)\""));
+        const QRegularExpression snippetExpression(
+            QStringLiteral("class=\"result__snippet\"[^>]*>(.*?)</(?:a|div|span)>"),
+            QRegularExpression::DotMatchesEverythingOption);
+        QList<QRegularExpressionMatch> matches;
         auto iterator = resultExpression.globalMatch(html);
-        while (iterator.hasNext() && sources.size() < maxResults) {
-            const auto match = iterator.next();
-            QString href = match.captured(1);
+        while (iterator.hasNext())
+            matches.append(iterator.next());
+        for (int index = 0; index < matches.size() && sources.size() < maxResults; ++index) {
+            const auto match = matches.at(index);
+            const QString anchor = match.captured(0);
+            const auto hrefMatch = hrefExpression.match(anchor);
+            if (!hrefMatch.hasMatch())
+                continue;
+            QString href = hrefMatch.captured(1);
             href.replace(QStringLiteral("&amp;"), QStringLiteral("&"));
             QUrl target(href);
             if (target.host().endsWith(QStringLiteral("duckduckgo.com"))) {
@@ -257,9 +296,15 @@ QJsonObject WebService::duckDuckGoSearch(const QStringList &queries, int maxResu
             }
             if (!target.isValid() || target.scheme().isEmpty())
                 continue;
+            const int blockEnd = index + 1 < matches.size() ? matches.at(index + 1).capturedStart()
+                                                            : html.size();
+            const QString block = html.mid(match.capturedStart(), blockEnd - match.capturedStart());
+            const auto snippetMatch = snippetExpression.match(block);
+            const QString snippet = snippetMatch.hasMatch()
+                ? decodeEntities(htmlToText(snippetMatch.captured(1))).trimmed() : QString();
             sources.append(QJsonObject{{QStringLiteral("url"), target.toString()},
-                                       {QStringLiteral("title"), decodeEntities(htmlToText(match.captured(2))).trimmed()},
-                                       {QStringLiteral("snippet"), decodeEntities(htmlToText(match.captured(3))).trimmed()},
+                                       {QStringLiteral("title"), decodeEntities(htmlToText(match.captured(1))).trimmed()},
+                                       {QStringLiteral("snippet"), snippet},
                                        {QStringLiteral("date"), QString()}});
         }
         if (sources.size() >= maxResults)

@@ -1,5 +1,7 @@
 #include "botserver.h"
 
+#include <QDateTime>
+
 #include "botmanager.h"
 
 #include <QFile>
@@ -206,10 +208,17 @@ void BotServer::handleConnection(QTcpSocket *socket) {
     connect(socket, &QTcpSocket::errorOccurred, socket, &QTcpSocket::deleteLater);
 }
 
+bool BotServer::healthy() const {
+    return m_server.isListening() && m_lastServedAt > 0
+        && QDateTime::currentMSecsSinceEpoch() - m_lastServedAt < 120000;
+}
+
 void BotServer::respond(QTcpSocket *socket, int status, const QByteArray &type,
                         const QByteArray &body) {
     if (!socket)
         return;
+    m_lastServedAt = QDateTime::currentMSecsSinceEpoch();
+    emit stateChanged();
     QByteArray response = "HTTP/1.1 " + QByteArray::number(status) + " " + statusText(status) + "\r\n";
     response += "Content-Type: " + type + "\r\n";
     response += "Content-Length: " + QByteArray::number(body.size()) + "\r\n";

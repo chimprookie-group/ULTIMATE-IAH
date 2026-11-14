@@ -41,6 +41,7 @@ class BotManager : public QObject {
 public:
     BotManager(Backend *backend, MemoryStore *memory, QObject *parent = nullptr);
     void setDecisionEngine(DecisionEngine *engine) { m_decisions = engine; }
+    bool serverHealthy() const;
     ~BotManager() override;
 
     QVariantList bots() const;

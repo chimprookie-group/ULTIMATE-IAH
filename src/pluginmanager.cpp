@@ -94,7 +94,7 @@ const QList<DshCapability> &dshCapabilities() {
         {"time-context", "Contexte temporel", "Noyau", "Date, heure et espace de travail dans le prompt.", true, true, "ultimate_status", "agent"},
         {"persona", "Persona", "Noyau", "Instructions et profils de comportement.", true, true, "ultimate_agents", "agents"},
         {"ask-user", "Ask user", "Noyau", "Confirmation explicite des actions destructrices.", true, true, "ultimate_status", "agent"},
-        {"present", "Présentation", "Noyau", "Artefacts et rendus de résultats.", false, false, "", "workspace"},
+        {"present", "Présentation", "Expérimental", "Artefacts et rendus de résultats.", false, false, "", "workspace"},
         {"todo", "Todo", "Noyau", "Suivi de tâches dans une mission.", true, true, "ultimate_mission", "agents"},
         {"workflow", "Workflow", "Noyau", "Orchestration multi-étapes native.", true, true, "ultimate_mission", "agents"},
         {"workspace", "Workspace", "Noyau", "Projet, Git et fichiers partagés.", true, true, "ultimate_git", "workspace"},
@@ -167,7 +167,8 @@ QString PluginManager::artcraftVersion() const {
 int PluginManager::activeCapabilities() const {
     int count = 0;
     for (const QVariant &value : m_capabilities)
-        if (value.toMap().value(QStringLiteral("enabled")).toBool()) ++count;
+        if (value.toMap().value(QStringLiteral("enabled")).toBool()
+            && value.toMap().value(QStringLiteral("implemented")).toBool()) ++count;
     return count;
 }
 int PluginManager::coreCapabilities() const {
@@ -268,15 +269,15 @@ void PluginManager::refresh() {
     m_capabilities.clear();
     for (const DshCapability &capability : dshCapabilities()) {
         m_capabilities.append(QVariantMap{
-            {QStringLiteral("id"), QString::fromLatin1(capability.id)},
-            {QStringLiteral("name"), QString::fromLatin1(capability.name)},
-            {QStringLiteral("category"), QString::fromLatin1(capability.category)},
-            {QStringLiteral("description"), QString::fromLatin1(capability.description)},
+            {QStringLiteral("id"), QString::fromUtf8(capability.id)},
+            {QStringLiteral("name"), QString::fromUtf8(capability.name)},
+            {QStringLiteral("category"), QString::fromUtf8(capability.category)},
+            {QStringLiteral("description"), QString::fromUtf8(capability.description)},
             {QStringLiteral("defaultEnabled"), capability.enabledByDefault},
-            {QStringLiteral("enabled"), capability.enabledByDefault},
+            {QStringLiteral("enabled"), capability.enabledByDefault && capability.implemented},
             {QStringLiteral("implemented"), capability.implemented},
-            {QStringLiteral("tool"), QString::fromLatin1(capability.tool)},
-            {QStringLiteral("view"), QString::fromLatin1(capability.view)},
+            {QStringLiteral("tool"), QString::fromUtf8(capability.tool)},
+            {QStringLiteral("view"), QString::fromUtf8(capability.view)},
         });
     }
     QSet<QString> knownCrafts;

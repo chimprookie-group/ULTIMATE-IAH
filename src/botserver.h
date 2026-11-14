@@ -11,6 +11,8 @@ class BotManager;
 class BotServer : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool running READ running NOTIFY stateChanged)
+    Q_PROPERTY(bool listening READ listening NOTIFY stateChanged)
+    Q_PROPERTY(bool healthy READ healthy NOTIFY stateChanged)
     Q_PROPERTY(QString url READ url NOTIFY stateChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(int port READ port NOTIFY stateChanged)
@@ -19,6 +21,8 @@ public:
     explicit BotServer(BotManager *manager, QObject *parent = nullptr);
 
     bool running() const { return m_server.isListening(); }
+    bool listening() const { return m_server.isListening(); }
+    bool healthy() const;
     QString url() const { return m_url; }
     QString error() const { return m_error; }
     int port() const { return m_server.serverPort(); }
@@ -45,4 +49,5 @@ private:
     QString m_url;
     QString m_token;
     QString m_error;
+    qint64 m_lastServedAt = 0;
 };

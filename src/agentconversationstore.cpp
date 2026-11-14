@@ -35,6 +35,7 @@ AgentConversationStore::AgentConversationStore(const QString &path, QObject *par
     }
     QSqlQuery pragma(*database);
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
+    pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=1000"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
     pragma.exec(QStringLiteral("PRAGMA busy_timeout=5000"));
     ensureSchema();
@@ -43,6 +44,9 @@ AgentConversationStore::AgentConversationStore(const QString &path, QObject *par
 
 AgentConversationStore::~AgentConversationStore() {
     if (m_db) {
+        QSqlQuery checkpoint(*m_db);
+        checkpoint.exec(QStringLiteral("PRAGMA wal_checkpoint(TRUNCATE)"));
+        checkpoint.finish();
         const QString connection = m_connectionName;
         delete m_db;
         m_db = nullptr;
