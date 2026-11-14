@@ -639,6 +639,43 @@ bool NoteStore::moveNote(const QString &path, const QString &folderValue) {
     return true;
 }
 
+QVariantList NoteStore::templates() const {
+    QVariantList out;
+    const QDir directory(m_vaultPath + QStringLiteral("/Templates"));
+    if (!directory.exists())
+        return out;
+    const QFileInfoList files = directory.entryInfoList({QStringLiteral("*.md")}, QDir::Files, QDir::Name);
+    for (const QFileInfo &file : files) {
+        out.append(QVariantMap{{QStringLiteral("name"), file.completeBaseName()},
+                               {QStringLiteral("path"), QStringLiteral("Templates/") + file.fileName()}});
+    }
+    return out;
+}
+
+QString NoteStore::createFromTemplate(const QString &templatePath, const QString &titleValue) {
+    if (!safeRelative(templatePath))
+        return {};
+    QString content = contentOf(templatePath);
+    if (content.isEmpty())
+        return {};
+    const QString title = titleValue.trimmed().isEmpty() ? tr("Nouvelle note") : titleValue.trimmed();
+    content.replace(QStringLiteral("{{title}}"), title);
+    content.replace(QStringLiteral("{{date}}"), QDate::currentDate().toString(Qt::ISODate));
+    const QString path = uniquePath({}, title);
+    QDir().mkpath(QFileInfo(notePath(path)).absolutePath());
+    QSaveFile file(notePath(path));
+    if (!file.open(QIODevice::WriteOnly))
+        return {};
+    file.write(content.toUtf8());
+    if (!file.commit())
+        return {};
+    indexNote(path, content, nowIso());
+    m_selectedPath = path;
+    emit selectedChanged();
+    emit changed();
+    return path;
+}
+
 bool NoteStore::deleteNote(const QString &path) {
     if (!safeRelative(path))
         return false;

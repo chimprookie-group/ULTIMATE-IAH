@@ -78,6 +78,8 @@
         <file>icons/send.svg</file>
         <file>icons/stop.svg</file>
         <file>icons/plus.svg</file>
+        <file>icons/minus.svg</file>
+        <file>icons/target.svg</file>
         <file>icons/history.svg</file>
         <file>icons/notes.svg</file>
         <file>icons/eye.svg</file>

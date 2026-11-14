@@ -70,6 +70,8 @@ public:
     Q_INVOKABLE bool deleteNote(const QString &path);
     Q_INVOKABLE bool renameNote(const QString &path, const QString &title);
     Q_INVOKABLE QString duplicateNote(const QString &path);
+    Q_INVOKABLE QVariantList templates() const;
+    Q_INVOKABLE QString createFromTemplate(const QString &templatePath, const QString &title);
     Q_INVOKABLE bool moveNote(const QString &path, const QString &folder);
     Q_INVOKABLE bool togglePin(const QString &path);
     Q_INVOKABLE QString dailyNote();
