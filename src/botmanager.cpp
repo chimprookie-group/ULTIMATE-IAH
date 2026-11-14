@@ -5,6 +5,7 @@
 #include "botserver.h"
 #include "botstore.h"
 #include "memorystore.h"
+#include "decisionengine.h"
 
 #include <QClipboard>
 #include <QCoreApplication>
@@ -264,13 +265,22 @@ void BotManager::startJob(const Job &job) {
     m_activeBotId = job.botId;
     m_activeScheduleId = job.scheduleId;
     m_store->updateRun(job.runId, QStringLiteral("running"), {}, {});
+    QString provider = bot.value(QStringLiteral("provider")).toString();
+    QString model = bot.value(QStringLiteral("model")).toString();
+    if (m_decisions && (provider.isEmpty() || model.isEmpty())) {
+        const DecisionEngine::Endpoint endpoint = DecisionEngine::resolve(m_decisions->context());
+        if (endpoint.valid()) {
+            if (provider.isEmpty())
+                provider = endpoint.providerId;
+            if (model.isEmpty())
+                model = endpoint.model;
+        }
+    }
     m_runner->start(job.runId, bot.value(QStringLiteral("name")).toString(),
                     buildPrompt(bot, job.task),
                     bot.value(QStringLiteral("permission")).toString(),
                     m_backend ? m_backend->workspace() : QDir::homePath(),
-                    m_dshBinary,
-                    bot.value(QStringLiteral("provider")).toString(),
-                    bot.value(QStringLiteral("model")).toString());
+                    m_dshBinary, provider, model);
     emit runningChanged();
     emit statusChanged();
 }

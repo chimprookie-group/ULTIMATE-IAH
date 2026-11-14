@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.20"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.21"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -527,6 +527,7 @@ int main(int argc, char *argv[]) {
     Autopilot autopilot;
     autopilot.setMemory(&memory);
     BotManager bots(&backend, &memory);
+    bots.setDecisionEngine(&decisions);
     ConnectionDoctor connectionDoctor(&backend, &connections, &mcpManager, &memory, &bots);
     InstallationDoctor installation(&backend, &memory);
     UltimateAgent ultimateAgent(&backend, &connections, &mcpManager, &memory,

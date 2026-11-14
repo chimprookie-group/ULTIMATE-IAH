@@ -10,6 +10,7 @@
 #include <QVariantMap>
 
 class Backend;
+class DecisionEngine;
 class BotRunner;
 class BotServer;
 class BotStore;
@@ -39,6 +40,7 @@ class BotManager : public QObject {
 
 public:
     BotManager(Backend *backend, MemoryStore *memory, QObject *parent = nullptr);
+    void setDecisionEngine(DecisionEngine *engine) { m_decisions = engine; }
     ~BotManager() override;
 
     QVariantList bots() const;
@@ -130,6 +132,7 @@ private:
 
     Backend *m_backend = nullptr;
     MemoryStore *m_memory = nullptr;
+    DecisionEngine *m_decisions = nullptr;
     BotStore *m_store = nullptr;
     BotRunner *m_runner = nullptr;
     BotServer *m_server = nullptr;
