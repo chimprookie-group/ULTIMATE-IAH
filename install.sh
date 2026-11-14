@@ -10,7 +10,7 @@ set -Eeuo pipefail
 REPO="chimprookie-group/ULTIMATE-IAH"
 BASE="https://github.com/${REPO}"
 RAW="https://raw.githubusercontent.com/${REPO}/main"
-VERSION="1.25.28"
+VERSION="1.25.29"
 PKG="ultimate-iah-${VERSION}-1-x86_64.pkg.tar.zst"
 ASSET="${BASE}/releases/latest/download/${PKG}"
 CHECKSUM="${ASSET}.sha256"

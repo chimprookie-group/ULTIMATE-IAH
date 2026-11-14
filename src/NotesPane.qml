@@ -691,6 +691,11 @@ Item {
                                 checked: modelData.enabled
                                 onToggled: notePlugins.setEnabled(modelData.id, checked)
                             }
+                        }
+                        Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
                             GhostButton {
                                 text: qsTr("Exécuter")
                                 flat: true
@@ -713,20 +718,48 @@ Item {
                                     noteStore.refresh()
                                 }
                             }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                visible: !modelData.builtin
+                                text: modelData.sandbox ? qsTr("sandbox") : qsTr("sans sandbox")
+                                color: theme.dimText
+                                font.family: backend.monoFont
+                                font.pixelSize: 8
+                            }
+                            ComboBox {
+                                Layout.preferredWidth: 116
+                                Layout.preferredHeight: 26
+                                font.pixelSize: 9
+                                model: [qsTr("Manuel"), "15 min", "1 h", "6 h", "24 h"]
+                                currentIndex: modelData.scheduleMinutes === 15 ? 1
+                                              : (modelData.scheduleMinutes === 60 ? 2
+                                              : (modelData.scheduleMinutes === 360 ? 3
+                                              : (modelData.scheduleMinutes === 1440 ? 4 : 0)))
+                                onActivated: notePlugins.setSchedule(modelData.id, [0, 15, 60, 360, 1440][index])
+                            }
                         }
-                        Text { Layout.fillWidth: true; text: modelData.description; color: theme.dimText; font.pixelSize: design.textMicro; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                     }
                 }
             }
             RowLayout {
                 Layout.fillWidth: true
                 GhostButton {
-                    text: qsTr("Annuler la dernière action")
+                    text: qsTr("Annuler")
                     flat: true
                     font.pixelSize: 8
                     enabled: notePlugins.canUndo
                     onClicked: {
                         if (notePlugins.undoLast())
+                            noteStore.refresh()
+                    }
+                }
+                GhostButton {
+                    text: qsTr("Rétablir")
+                    flat: true
+                    font.pixelSize: 8
+                    enabled: notePlugins.canRedo
+                    onClicked: {
+                        if (notePlugins.redoLast())
                             noteStore.refresh()
                     }
                 }
