@@ -108,7 +108,7 @@ const QList<DshCapability> &dshCapabilities() {
         {"artcraft", "ArtCraft", "Noyau", "14 CLI créatives exposées comme outils.", true, true, "artcraft_gridcraft", "plugins"},
         {"agent-team", "Agent team", "Expérimental", "Équipe d’agents avec rôles parallèles.", false, false, "", "agents"},
         {"voice-input", "Voice input", "Expérimental", "Entrée vocale et dictée.", false, false, "", "agent"},
-        {"auto-review", "Auto review", "Expérimental", "Revue automatique des changements.", false, true, "", "agents"},
+        {"auto-review", "Auto review", "Expérimental", "Revue automatique des changements (non câblée ; la revue manuelle reste active dans le noyau de décision).", false, false, "", "agents"},
         {"cot-translation", "CoT translation", "Expérimental", "Traduction du raisonnement.", false, false, "", "agent"},
         {"ralph", "Ralph", "Expérimental", "Boucle autonome de construction.", false, false, "", "autopilot"},
         {"liveshare", "Live share", "Expérimental", "Partage de session en direct.", false, false, "", "agent"},
