@@ -148,6 +148,7 @@ Item {
             icon: "icons/notes.svg"
             accent: theme.yellow
             ActionButton { text: qsTr("Nouvelle note"); onClicked: root.newNote() }
+            ActionButton { text: qsTr("Modèles"); onClicked: templatesDialog.open() }
             ActionButton { text: qsTr("Quotidienne"); onClicked: root.dailyNote() }
             ActionButton { text: qsTr("Graphe"); onClicked: graphDialog.open() }
         }
@@ -554,6 +555,59 @@ Item {
                     ActionButton { Layout.fillWidth: true; text: qsTr("Ouvrir le graphe"); onClicked: graphDialog.open() }
                 }
             }
+        }
+    }
+
+    Dialog {
+        id: templatesDialog
+        modal: true
+        width: Math.min(root.width - design.space6, 460)
+        height: Math.min(root.height - design.space6, 420)
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Nouvelle note depuis un modèle"); color: theme.brightText; font.pixelSize: design.textBodyLarge; font.weight: Font.DemiBold }
+                IconButton { icon: "icons/close.svg"; hint: qsTr("Fermer"); onClicked: templatesDialog.close() }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Placez vos modèles dans Templates/. {{title}} et {{date}} sont remplacés.")
+                color: theme.dimText
+                font.pixelSize: design.textCaption
+                wrapMode: Text.Wrap
+            }
+            ListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: noteStore.templates()
+                delegate: Rectangle {
+                    width: ListView.view.width
+                    height: 36
+                    radius: design.radiusSm
+                    color: templateMouse.containsMouse ? theme.chip : theme.background
+                    border.width: 1
+                    border.color: theme.border
+                    Text { anchors.fill: parent; anchors.leftMargin: 10; verticalAlignment: Text.AlignVCenter; text: modelData.name; color: theme.text; font.pixelSize: design.textCaption }
+                    MouseArea {
+                        id: templateMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            noteStore.createFromTemplate(modelData.path, modelData.name)
+                            templatesDialog.close()
+                            Qt.callLater(function () { editor.forceActiveFocus() })
+                        }
+                    }
+                }
+            }
+            Text { Layout.fillWidth: true; visible: noteStore.templates().length === 0; text: qsTr("Aucun modèle pour l'instant."); color: theme.dimText; font.pixelSize: design.textCaption }
         }
     }
 

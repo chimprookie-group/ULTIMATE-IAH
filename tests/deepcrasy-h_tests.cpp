@@ -719,6 +719,16 @@ private slots:
         store.setQuery("title:Autre");
         QCOMPARE(store.filteredNotes().size(), 1);
         store.setQuery({});
+
+        QVERIFY(QDir().mkpath(dir.path() + "/vault/Templates"));
+        QFile templateFile(dir.path() + "/vault/Templates/Base.md");
+        QVERIFY(templateFile.open(QIODevice::WriteOnly));
+        templateFile.write("# {{title}}\n\nDate : {{date}}\n");
+        templateFile.close();
+        QCOMPARE(store.templates().size(), 1);
+        const QString fromTemplate = store.createFromTemplate("Templates/Base.md", "Depuis modèle");
+        QVERIFY(!fromTemplate.isEmpty());
+        QVERIFY(store.contentOf(fromTemplate).contains("Depuis modèle"));
     }
 
     void defaultSkillLibraryIsSeededAndSearchable()
