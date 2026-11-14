@@ -49,7 +49,9 @@ QJsonValue GitHubService::runGh(const QStringList &arguments, int timeoutMs, boo
     }
     const QString stdoutText = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
     const QString stderrText = QString::fromUtf8(process.readAllStandardError()).trimmed();
-    if (output) *output = stderrText;
+    // gh auth status writes its scopes on stderr (or stdout depending on the
+    // version); keep both so the parser works everywhere.
+    if (output) *output = (stderrText + QLatin1Char('\n') + stdoutText).trimmed();
     if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
         if (output && output->isEmpty()) *output = stdoutText;
         return QJsonValue();

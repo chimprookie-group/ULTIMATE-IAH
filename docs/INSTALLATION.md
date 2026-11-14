@@ -18,7 +18,7 @@ portail, home, QtWebEngine, skills, base de connaissances, 4Crasy et provider.
 ## Paquet système
 
 ```bash
-pkexec pacman -U ultimate-iah-1.25.43-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.44-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git,

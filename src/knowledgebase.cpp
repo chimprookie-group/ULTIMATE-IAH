@@ -56,7 +56,6 @@ bool KnowledgeBase::open() {
     pragma.exec(QStringLiteral("PRAGMA journal_mode=WAL"));
     pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=256"));
     pragma.exec(QStringLiteral("PRAGMA journal_size_limit=1048576"));
-    pragma.exec(QStringLiteral("PRAGMA wal_autocheckpoint=1000"));
     pragma.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
     QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
     return true;
