@@ -360,8 +360,7 @@ Item {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: ultimateAgent.busy ? ultimateAgent.status
-                                                 : ultimateAgent.conversationTitle + "  ·  " + ultimateAgent.modelLabel
+                        text: ultimateAgent.conversationTitle + "  ·  " + ultimateAgent.modelLabel
                         color: ultimateAgent.error !== "" ? theme.red : theme.dimText
                         font.family: backend.monoFont
                         font.pixelSize: design.textMicro
