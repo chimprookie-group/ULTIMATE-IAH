@@ -71,6 +71,18 @@ Item {
             })
     }
 
+    function offsetForLine(lineNumber) {
+        var text = editor.text
+        var position = 0
+        for (var line = 1; line < lineNumber; ++line) {
+            var index = text.indexOf("\n", position)
+            if (index < 0)
+                return text.length
+            position = index + 1
+        }
+        return position
+    }
+
     function insertAttachment() {
         if (!root.hasNote) {
             root.newNote()
@@ -203,6 +215,24 @@ Item {
                         }
                     }
 
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        Repeater {
+                            model: noteStore.folders.slice(0, 6)
+                            Rectangle {
+                                width: folderLabel.implicitWidth + 12
+                                height: 20
+                                radius: 10
+                                color: noteStore.activeFolder === modelData.path ? Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.16) : theme.chip
+                                border.width: 1
+                                border.color: noteStore.activeFolder === modelData.path ? theme.accent : theme.border
+                                Text { id: folderLabel; anchors.centerIn: parent; text: (modelData.path === "" ? qsTr("Racine") : modelData.name) + " " + modelData.count; color: theme.mutedText; font.family: backend.monoFont; font.pixelSize: 8 }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: noteStore.activeFolder = noteStore.activeFolder === modelData.path ? "" : modelData.path }
+                            }
+                        }
+                    }
+
                     ListView {
                         id: noteList
                         Layout.fillWidth: true
@@ -305,6 +335,7 @@ Item {
                                 enabled: root.hasNote
                                 onClicked: root.previewMode = !root.previewMode
                             }
+                            IconButton { icon: "icons/copy.svg"; hint: qsTr("Dupliquer la note"); enabled: root.hasNote; onClicked: noteStore.duplicateNote(noteStore.selectedPath) }
                             IconButton { icon: "icons/close.svg"; hint: qsTr("Supprimer la note"); enabled: root.hasNote; onClicked: root.openDelete(noteStore.selectedPath, root.note.title) }
                         }
                     }
@@ -443,6 +474,56 @@ Item {
                         Text { visible: root.note.tags === undefined || root.note.tags.length === 0; text: qsTr("Aucun"); color: theme.dimText; font.pixelSize: 9 }
                     }
                     Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                    Text { text: qsTr("Sommaire"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    Repeater {
+                        model: noteStore.headings.slice(0, 8)
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.leftMargin: (modelData.level - 1) * 8
+                            text: modelData.text
+                            color: theme.mutedText
+                            font.pixelSize: design.textMicro
+                            elide: Text.ElideRight
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    editor.cursorPosition = root.offsetForLine(modelData.line)
+                                    editor.forceActiveFocus()
+                                }
+                            }
+                        }
+                    }
+                    Text { Layout.fillWidth: true; visible: noteStore.headings.length === 0; text: qsTr("Aucun titre. Utilisez # Titre."); color: theme.dimText; font.pixelSize: 9 }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: theme.border }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { Layout.fillWidth: true; text: qsTr("Liens sortants"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        Text { text: noteStore.outgoingLinks.length; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                    }
+                    Repeater {
+                        model: noteStore.outgoingLinks.slice(0, 6)
+                        Text {
+                            Layout.fillWidth: true
+                            text: (modelData.exists ? "→ " : "? ") + modelData.title
+                            color: modelData.exists ? theme.accent : theme.dimText
+                            font.pixelSize: design.textMicro
+                            elide: Text.ElideRight
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (modelData.exists)
+                                        noteStore.selectNote(modelData.path)
+                                    else
+                                        noteStore.openWikiLink(modelData.target)
+                                }
+                            }
+                        }
+                    }
+                    Text { Layout.fillWidth: true; visible: noteStore.outgoingLinks.length === 0; text: qsTr("Aucun lien. Reliez avec [[Titre]]."); color: theme.dimText; font.pixelSize: 9 }
+
                     RowLayout {
                         Layout.fillWidth: true
                         Text { Layout.fillWidth: true; text: qsTr("Backlinks"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }

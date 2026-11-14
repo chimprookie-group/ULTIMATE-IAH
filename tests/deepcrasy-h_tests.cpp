@@ -685,6 +685,42 @@ private slots:
         QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
     }
 
+    void noteStoreSupportsFoldersOutlineAndSearchFilters()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        NoteStore store(dir.path() + "/vault");
+        const QString project = store.createNote("Projet", "docs");
+        QVERIFY(project.startsWith("docs/"));
+        QVERIFY(store.saveNote(project, "# Projet\n\n## Section\n\nVoir [[Autre]] #ia"));
+        const QString other = store.createNote("Autre");
+        QVERIFY(store.saveNote(other, "# Autre\n\nRetour [[Projet]] #ia"));
+        store.selectNote(project);
+        QVERIFY(store.headings().size() >= 2);
+        QCOMPARE(store.headings().first().toMap().value("level").toInt(), 1);
+        QVERIFY(store.outgoingLinks().size() >= 1);
+        QCOMPARE(store.outgoingLinks().first().toMap().value("exists").toBool(), true);
+        bool foundFolder = false;
+        for (const QVariant &value : store.folders())
+            if (value.toMap().value("path").toString() == "docs")
+                foundFolder = true;
+        QVERIFY(foundFolder);
+
+        const QString copy = store.duplicateNote(project);
+        QVERIFY(!copy.isEmpty());
+        QVERIFY(store.moveNote(copy, "archive"));
+        QVERIFY(QFileInfo::exists(dir.path() + "/vault/archive/" + QFileInfo(copy).fileName()));
+
+        store.setActiveFolder("docs");
+        QCOMPARE(store.filteredNotes().size(), 1);
+        store.setActiveFolder({});
+        store.setQuery("tag:ia");
+        QVERIFY(store.filteredNotes().size() >= 2);
+        store.setQuery("title:Autre");
+        QCOMPARE(store.filteredNotes().size(), 1);
+        store.setQuery({});
+    }
+
     void defaultSkillLibraryIsSeededAndSearchable()
     {
         QTemporaryDir dir;

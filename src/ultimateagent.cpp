@@ -121,7 +121,8 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
     if (name == QLatin1String("ultimate_notes"))
         return action == QLatin1String("list") || action == QLatin1String("search")
             || action == QLatin1String("read") || action == QLatin1String("tags")
-            || action == QLatin1String("graph");
+            || action == QLatin1String("graph") || action == QLatin1String("links")
+            || action == QLatin1String("outline");
     if (name == QLatin1String("ultimate_files"))
         return action == QLatin1String("list") || action == QLatin1String("read") || action == QLatin1String("search");
     if (name == QLatin1String("ultimate_git"))
@@ -2421,6 +2422,12 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         }
         if (action == QLatin1String("graph"))
             return okResult({{QStringLiteral("graph"), QJsonValue::fromVariant(m_notes->graph())}});
+        if (action == QLatin1String("links"))
+            return okResult({{QStringLiteral("links"),
+                              QJsonArray::fromVariantList(m_notes->outgoingLinks())}});
+        if (action == QLatin1String("outline"))
+            return okResult({{QStringLiteral("headings"),
+                              QJsonArray::fromVariantList(m_notes->headings())}});
         if (action == QLatin1String("daily")) {
             const QString path = m_notes->dailyNote();
             return path.isEmpty() ? errorResult(m_notes->error())

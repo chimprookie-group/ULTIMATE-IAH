@@ -19,10 +19,13 @@ class NoteStore : public QObject {
     Q_PROPERTY(QVariantList tags READ tags NOTIFY changed)
     Q_PROPERTY(QVariantList folders READ folders NOTIFY changed)
     Q_PROPERTY(QVariantList backlinks READ backlinks NOTIFY selectedChanged)
+    Q_PROPERTY(QVariantList outgoingLinks READ outgoingLinks NOTIFY selectedChanged)
+    Q_PROPERTY(QVariantList headings READ headings NOTIFY selectedChanged)
     Q_PROPERTY(QVariantMap selectedNote READ selectedNote NOTIFY selectedChanged)
     Q_PROPERTY(QString selectedPath READ selectedPath NOTIFY selectedChanged)
     Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY changed)
     Q_PROPERTY(QString activeTag READ activeTag WRITE setActiveTag NOTIFY changed)
+    Q_PROPERTY(QString activeFolder READ activeFolder WRITE setActiveFolder NOTIFY changed)
     Q_PROPERTY(QVariantMap graph READ graph NOTIFY changed)
     Q_PROPERTY(int count READ count NOTIFY changed)
     Q_PROPERTY(bool graphOpen READ graphOpen WRITE setGraphOpen NOTIFY graphOpenChanged)
@@ -38,10 +41,13 @@ public:
     QVariantList tags() const;
     QVariantList folders() const;
     QVariantList backlinks() const;
+    QVariantList outgoingLinks() const;
+    QVariantList headings() const;
     QVariantMap selectedNote() const;
     QString selectedPath() const { return m_selectedPath; }
     QString query() const { return m_query; }
     QString activeTag() const { return m_activeTag; }
+    QString activeFolder() const { return m_activeFolder; }
     QVariantMap graph() const;
     int count() const;
     QString error() const { return m_error; }
@@ -55,6 +61,7 @@ public:
 
     void setQuery(const QString &query);
     void setActiveTag(const QString &tag);
+    void setActiveFolder(const QString &folder);
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void selectNote(const QString &path);
@@ -62,6 +69,8 @@ public:
     Q_INVOKABLE bool saveNote(const QString &path, const QString &content);
     Q_INVOKABLE bool deleteNote(const QString &path);
     Q_INVOKABLE bool renameNote(const QString &path, const QString &title);
+    Q_INVOKABLE QString duplicateNote(const QString &path);
+    Q_INVOKABLE bool moveNote(const QString &path, const QString &folder);
     Q_INVOKABLE bool togglePin(const QString &path);
     Q_INVOKABLE QString dailyNote();
     Q_INVOKABLE QString importAttachment(const QUrl &url);
@@ -99,6 +108,7 @@ private:
     QString m_selectedPath;
     QString m_query;
     QString m_activeTag;
+    QString m_activeFolder;
     QString m_error;
     bool m_graphOpen = false;
 };

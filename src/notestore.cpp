@@ -125,25 +125,61 @@ QVariantList NoteStore::notes() const {
 }
 
 QVariantList NoteStore::filteredNotes() const {
-    if (m_query.trimmed().isEmpty() && m_activeTag.isEmpty())
+    if (m_query.trimmed().isEmpty() && m_activeTag.isEmpty() && m_activeFolder.isEmpty())
         return notes();
     QVariantList out;
     if (!m_db)
         return out;
+    QString text = m_query.trimmed();
+    QString tag = m_activeTag;
+    QString folder = m_activeFolder;
+    QString titleFilter;
+    QString pathFilter;
+    QStringList words;
+    const QStringList tokens = text.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+    for (const QString &token : tokens) {
+        if (token.startsWith(QStringLiteral("tag:"), Qt::CaseInsensitive))
+            tag = token.mid(4);
+        else if (token.startsWith(QStringLiteral("folder:"), Qt::CaseInsensitive))
+            folder = token.mid(7);
+        else if (token.startsWith(QStringLiteral("path:"), Qt::CaseInsensitive))
+            pathFilter = token.mid(5);
+        else if (token.startsWith(QStringLiteral("title:"), Qt::CaseInsensitive))
+            titleFilter = token.mid(6);
+        else if (token.startsWith(QLatin1Char('#')) && token.size() > 1)
+            tag = token.mid(1);
+        else
+            words << token;
+    }
+    text = words.join(QLatin1Char(' '));
+
     QSqlQuery query(*m_db);
     QString sql = QStringLiteral(
         "SELECT path,title,tags_json,links_json,excerpt,created_at,updated_at,word_count,pinned "
         "FROM notes WHERE 1=1");
-    if (!m_query.trimmed().isEmpty())
-        sql += QStringLiteral(" AND (title LIKE :q OR excerpt LIKE :q OR tags_json LIKE :q)");
-    if (!m_activeTag.isEmpty())
+    if (!text.isEmpty())
+        sql += QStringLiteral(" AND (title LIKE :text OR excerpt LIKE :text OR tags_json LIKE :text)");
+    if (!titleFilter.isEmpty())
+        sql += QStringLiteral(" AND title LIKE :title");
+    if (!pathFilter.isEmpty())
+        sql += QStringLiteral(" AND path LIKE :path");
+    if (!tag.isEmpty())
         sql += QStringLiteral(" AND tags_json LIKE :tag");
+    if (!folder.isEmpty())
+        sql += QStringLiteral(" AND path LIKE :folder");
     sql += QStringLiteral(" ORDER BY pinned DESC, updated_at DESC");
     query.prepare(sql);
-    if (!m_query.trimmed().isEmpty())
-        query.bindValue(QStringLiteral(":q"), QStringLiteral("%") + m_query.trimmed() + QStringLiteral("%"));
-    if (!m_activeTag.isEmpty())
-        query.bindValue(QStringLiteral(":tag"), QStringLiteral("%\\\"") + m_activeTag + QStringLiteral("\\\"%"));
+    if (!text.isEmpty())
+        query.bindValue(QStringLiteral(":text"), QStringLiteral("%") + text + QStringLiteral("%"));
+    if (!titleFilter.isEmpty())
+        query.bindValue(QStringLiteral(":title"), QStringLiteral("%") + titleFilter + QStringLiteral("%"));
+    if (!pathFilter.isEmpty())
+        query.bindValue(QStringLiteral(":path"), QStringLiteral("%") + pathFilter + QStringLiteral("%"));
+    if (!tag.isEmpty())
+        query.bindValue(QStringLiteral(":tag"), QStringLiteral("%\"") + tag + QStringLiteral("\"%"));
+    if (!folder.isEmpty())
+        query.bindValue(QStringLiteral(":folder"),
+                        (folder == QLatin1String("/") ? QString() : folder) + QStringLiteral("/%"));
     if (!query.exec())
         return out;
     while (query.next()) {
@@ -225,6 +261,61 @@ QVariantList NoteStore::backlinks() const {
     return out;
 }
 
+QVariantList NoteStore::outgoingLinks() const {
+    QVariantList out;
+    if (m_selectedPath.isEmpty())
+        return out;
+    const QVariantMap active = selectedNote();
+    QSet<QString> seen;
+    for (const QVariant &value : active.value(QStringLiteral("links")).toList()) {
+        const QString target = value.toString().trimmed();
+        if (target.isEmpty() || seen.contains(target.toLower()))
+            continue;
+        seen.insert(target.toLower());
+        const QString path = resolveLink(target);
+        QString title = target;
+        if (!path.isEmpty()) {
+            for (const QVariant &noteValue : notes()) {
+                const QVariantMap note = noteValue.toMap();
+                if (note.value(QStringLiteral("path")).toString() == path) {
+                    title = note.value(QStringLiteral("title")).toString();
+                    break;
+                }
+            }
+        }
+        out.append(QVariantMap{{QStringLiteral("target"), target},
+                               {QStringLiteral("title"), title},
+                               {QStringLiteral("path"), path},
+                               {QStringLiteral("exists"), !path.isEmpty()}});
+    }
+    return out;
+}
+
+QVariantList NoteStore::headings() const {
+    QVariantList out;
+    if (m_selectedPath.isEmpty())
+        return out;
+    const QStringList lines = contentOf(m_selectedPath).split(QLatin1Char('\n'));
+    bool fenced = false;
+    const QRegularExpression heading(QStringLiteral("^(#{1,6})\\s+(.+?)\\s*$"));
+    for (int i = 0; i < lines.size(); ++i) {
+        const QString line = lines.at(i);
+        if (line.trimmed().startsWith(QStringLiteral("```"))) {
+            fenced = !fenced;
+            continue;
+        }
+        if (fenced)
+            continue;
+        const auto match = heading.match(line);
+        if (!match.hasMatch())
+            continue;
+        out.append(QVariantMap{{QStringLiteral("level"), match.captured(1).size()},
+                               {QStringLiteral("text"), match.captured(2)},
+                               {QStringLiteral("line"), i + 1}});
+    }
+    return out;
+}
+
 QVariantMap NoteStore::selectedNote() const {
     if (!m_db || m_selectedPath.isEmpty())
         return {};
@@ -289,6 +380,13 @@ void NoteStore::setActiveTag(const QString &tag) {
     if (m_activeTag == tag)
         return;
     m_activeTag = tag;
+    emit changed();
+}
+
+void NoteStore::setActiveFolder(const QString &folder) {
+    if (m_activeFolder == folder)
+        return;
+    m_activeFolder = folder;
     emit changed();
 }
 
@@ -479,6 +577,63 @@ bool NoteStore::saveNote(const QString &path, const QString &content) {
     if (!indexNote(path, content, nowIso()))
         return false;
     m_selectedPath = path;
+    emit selectedChanged();
+    emit changed();
+    return true;
+}
+
+QString NoteStore::duplicateNote(const QString &path) {
+    if (!safeRelative(path))
+        return {};
+    const QString content = contentOf(path);
+    if (content.isEmpty())
+        return {};
+    const QVariantMap current = selectedNote();
+    QString title = current.value(QStringLiteral("title")).toString();
+    if (title.isEmpty())
+        title = QFileInfo(path).completeBaseName();
+    const QString folder = QFileInfo(path).path() == QLatin1String(".") ? QString()
+                                                                        : QFileInfo(path).path();
+    const QString newPath = uniquePath(folder, title + tr(" copie"));
+    QDir().mkpath(QFileInfo(notePath(newPath)).absolutePath());
+    QSaveFile file(notePath(newPath));
+    if (!file.open(QIODevice::WriteOnly))
+        return {};
+    file.write(content.toUtf8());
+    if (!file.commit())
+        return {};
+    indexNote(newPath, content, nowIso());
+    m_selectedPath = newPath;
+    emit selectedChanged();
+    emit changed();
+    return newPath;
+}
+
+bool NoteStore::moveNote(const QString &path, const QString &folderValue) {
+    if (!safeRelative(path))
+        return false;
+    const QString folder = folderValue.trimmed();
+    if (!folder.isEmpty() && !safeRelative(folder + QStringLiteral("/placeholder.md"))) {
+        setError(tr("Dossier de destination invalide."));
+        return false;
+    }
+    const QString content = contentOf(path);
+    if (content.isEmpty())
+        return false;
+    const QString fileName = QFileInfo(path).fileName();
+    const QString newPath = (folder.isEmpty() ? QString() : folder + QLatin1Char('/')) + fileName;
+    if (newPath == path)
+        return true;
+    if (QFileInfo::exists(notePath(newPath))) {
+        setError(tr("Une note existe déjà à cet emplacement."));
+        return false;
+    }
+    QDir().mkpath(QFileInfo(notePath(newPath)).absolutePath());
+    if (!QFile::rename(notePath(path), notePath(newPath)))
+        return false;
+    removeIndex(path);
+    indexNote(newPath, content, nowIso());
+    m_selectedPath = newPath;
     emit selectedChanged();
     emit changed();
     return true;
