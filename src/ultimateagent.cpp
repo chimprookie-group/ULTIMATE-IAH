@@ -2483,6 +2483,10 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
                              {QStringLiteral("remote"), m_notes->gitRemote()},
                              {QStringLiteral("lastCommit"), m_notes->gitLastCommit()}});
         }
+        if (action == QLatin1String("git-continue")) {
+            return m_notes->gitContinue() ? okResult({{QStringLiteral("continued"), true}})
+                                          : errorResult(m_notes->error());
+        }
         if (action == QLatin1String("git-sync")) {
             if (!arguments.value(QStringLiteral("url")).toString().isEmpty())
                 m_notes->gitSetRemote(arguments.value(QStringLiteral("url")).toString());

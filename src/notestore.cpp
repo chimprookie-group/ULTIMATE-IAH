@@ -1154,6 +1154,20 @@ bool NoteStore::gitResolve(const QString &path, const QString &side) {
     return true;
 }
 
+bool NoteStore::gitContinue() {
+    const bool rebase = QFileInfo::exists(m_vaultPath + QStringLiteral("/.git/rebase-merge"))
+        || QFileInfo::exists(m_vaultPath + QStringLiteral("/.git/rebase-apply"));
+    const GitResult result = rebase
+        ? runGit(m_vaultPath, {QStringLiteral("-c"), QStringLiteral("core.editor=true"),
+                               QStringLiteral("rebase"), QStringLiteral("--continue")})
+        : runGit(m_vaultPath, {QStringLiteral("commit"), QStringLiteral("-m"),
+                               QStringLiteral("Resolve conflicts")});
+    if (!result.ok)
+        setError(result.output);
+    gitRefresh();
+    return result.ok;
+}
+
 bool NoteStore::gitAbort() {
     runGit(m_vaultPath, {QStringLiteral("rebase"), QStringLiteral("--abort")});
     runGit(m_vaultPath, {QStringLiteral("merge"), QStringLiteral("--abort")});
@@ -1231,6 +1245,14 @@ bool NoteStore::gitInit() {
                          QStringLiteral("Ultimate IAH")});
     runGit(m_vaultPath, {QStringLiteral("config"), QStringLiteral("user.email"),
                          QStringLiteral("ultimate-iah@localhost")});
+    const QString ignorePath = m_vaultPath + QStringLiteral("/.gitignore");
+    if (!QFileInfo::exists(ignorePath)) {
+        QSaveFile ignore(ignorePath);
+        if (ignore.open(QIODevice::WriteOnly)) {
+            ignore.write(".ultimate-iai/\n.backups/\n.sandbox-home/\n");
+            ignore.commit();
+        }
+    }
     gitRefresh();
     return true;
 }
@@ -1260,10 +1282,13 @@ bool NoteStore::gitSync(const QString &message) {
     runGit(m_vaultPath, {QStringLiteral("add"), QStringLiteral("-A")});
     const QString commitMessage = message.trimmed().isEmpty()
         ? tr("Ultimate IAH notes sync") : message.trimmed();
-    const GitResult commit = runGit(m_vaultPath, {QStringLiteral("commit"),
+    const GitResult commit = runGit(m_vaultPath, {QStringLiteral("-c"), QStringLiteral("user.name=Ultimate IAH"),
+                                                   QStringLiteral("-c"), QStringLiteral("user.email=ultimate-iah@localhost"),
+                                                   QStringLiteral("commit"),
                                                    QStringLiteral("-m"), commitMessage});
     if (!commit.ok && !commit.output.contains(QStringLiteral("nothing to commit"))) {
         setError(commit.output);
+        gitRefresh();
         return false;
     }
     if (!m_gitRemote.isEmpty()) {
@@ -1275,6 +1300,7 @@ bool NoteStore::gitSync(const QString &message) {
                                                          QStringLiteral("--autostash")});
             if (!pull.ok) {
                 setError(pull.output);
+                gitRefresh();
                 return false;
             }
         }

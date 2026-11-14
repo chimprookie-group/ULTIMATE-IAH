@@ -780,6 +780,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 visible: noteStore.gitConflicts.length > 0
+                GhostButton { text: qsTr("Continuer"); flat: true; font.pixelSize: 8; enabled: noteStore.gitConflicts.length === 0; onClicked: noteStore.gitContinue() }
                 GhostButton { text: qsTr("Abandonner la fusion"); flat: true; font.pixelSize: 8; onClicked: noteStore.gitAbort() }
                 Item { Layout.fillWidth: true }
             }

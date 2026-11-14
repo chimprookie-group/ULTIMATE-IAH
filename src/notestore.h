@@ -112,6 +112,7 @@ public:
     Q_INVOKABLE void gitClearToken();
     Q_INVOKABLE bool gitResolve(const QString &path, const QString &side);
     Q_INVOKABLE bool gitAbort();
+    Q_INVOKABLE bool gitContinue();
     Q_INVOKABLE int pruneBackups(int keep = 10);
 
     static QString defaultVaultPath();
