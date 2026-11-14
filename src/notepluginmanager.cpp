@@ -538,7 +538,6 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
         arguments = {QStringLiteral("--ro-bind"), QStringLiteral("/"), QStringLiteral("/"),
                      QStringLiteral("--dev"), QStringLiteral("/dev"),
                      QStringLiteral("--proc"), QStringLiteral("/proc"),
-                     QStringLiteral("--tmpfs"), QStringLiteral("/tmp"),
                      QStringLiteral("--bind"), m_notes->vaultPath(), m_notes->vaultPath(),
                      QStringLiteral("--chdir"), m_notes->vaultPath(),
                      QStringLiteral("--unshare-net"), QStringLiteral("--die-with-parent"),

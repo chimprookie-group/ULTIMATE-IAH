@@ -686,6 +686,39 @@ private slots:
         QVERIFY(QFileInfo::exists(dir.path() + "/vault/.ultimate-iai/trash"));
     }
 
+    void notePluginsSandboxExternalCommands()
+    {
+        if (QStandardPaths::findExecutable("bwrap").isEmpty())
+            QSKIP("bubblewrap is not installed");
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        NoteStore store(dir.path() + "/vault");
+        const QString note = store.createNote("Sandbox");
+        QVERIFY(store.saveNote(note, "# Sandbox\n\nContenu.\n"));
+        const QString config = dir.path() + "/note-plugins";
+        QVERIFY(QDir().mkpath(config));
+        QFile script(dir.path() + "/cat.sh");
+        QVERIFY(script.open(QIODevice::WriteOnly));
+        script.write("#!/bin/sh\ncat\n");
+        script.close();
+        QFile::setPermissions(script.fileName(),
+                              QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        QFile manifest(config + "/cat.json");
+        QVERIFY(manifest.open(QIODevice::WriteOnly));
+        manifest.write(R"({"id":"cat","name":"Cat","command":")"
+                       + script.fileName().toUtf8()
+                       + R"(","mode":"replace","sandbox":true})");
+        manifest.close();
+        NotePluginManager manager(&store, "/tmp/workspace", config);
+        const QVariantMap result = manager.run("cat", note);
+        if (!result.value("ok").toBool()
+            && result.value("error").toString().contains("bwrap"))
+            QSKIP(qPrintable(result.value("error").toString()));
+        QVERIFY2(result.value("ok").toBool(), qPrintable(result.value("error").toString()));
+        QCOMPARE(result.value("sandboxed").toBool(), true);
+        QVERIFY(store.contentOf(note).contains("Contenu"));
+    }
+
     void notePluginsRunBuiltinsAndCommands()
     {
         QTemporaryDir dir;

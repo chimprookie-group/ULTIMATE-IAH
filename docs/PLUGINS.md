@@ -93,6 +93,11 @@ Dans Notes, chaque plugin peut s'exécuter sur la note courante ou sur
 annulables et rétablissables (40 niveaux), et un plugin peut être planifié
 (15 min, 1 h, 6 h, 24 h) sur toutes les notes.
 
+La planification survit à la fermeture de l'application : `bootstrap`
+installe `ultimate-iah-note-plugins.timer` (systemd utilisateur, toutes les
+15 min) qui appelle `ultimate-iah note-plugins-run`. Les échéances sont
+stockées dans `settings.json`.
+
 Les plugins externes sont exécutés par défaut dans **bubblewrap** :
 système de fichiers en lecture seule, vault monté en écriture, réseau coupé,
 HOME temporaire. Un manifeste peut demander `"sandbox": false`, et les
