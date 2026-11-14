@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QImageReader>
 #include <QJsonDocument>
+#include <QProcess>
 #include <QRegularExpression>
 #include <algorithm>
 #include <QSaveFile>
@@ -80,6 +81,7 @@ NoteStore::NoteStore(const QString &vaultPath, QObject *parent)
     refresh();
     ensureStarter();
     refresh();
+    gitRefresh();
 }
 
 NoteStore::~NoteStore() {
@@ -983,6 +985,239 @@ QString NoteStore::resolveLink(const QString &target) const {
             return path;
     }
     return {};
+}
+
+bool NoteStore::gitAvailable() const {
+    return !QStandardPaths::findExecutable(QStringLiteral("git")).isEmpty();
+}
+
+QString NoteStore::backupVault() {
+    const QString directory = m_vaultPath + QStringLiteral("/.backups");
+    if (!QDir().mkpath(directory)) {
+        setError(tr("Impossible de créer le dossier de sauvegarde."));
+        return {};
+    }
+    const QString path = directory + QStringLiteral("/ultimate-iah-")
+        + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss"))
+        + QStringLiteral(".tar.gz");
+    QProcess process;
+    process.start(QStringLiteral("tar"),
+                  {QStringLiteral("-czf"), path, QStringLiteral("-C"), m_vaultPath,
+                   QStringLiteral("--exclude=.ultimate-iai"), QStringLiteral("--exclude=.backups"),
+                   QStringLiteral("--exclude=.git"), QStringLiteral(".")});
+    if (!process.waitForFinished(60000) || process.exitCode() != 0) {
+        setError(tr("Sauvegarde impossible : %1")
+                     .arg(QString::fromUtf8(process.readAllStandardError()).trimmed()));
+        return {};
+    }
+    return path;
+}
+
+QString NoteStore::exportVault(const QString &destination, bool withMetadata) {
+    if (destination.trimmed().isEmpty()) {
+        setError(tr("Destination d'export vide."));
+        return {};
+    }
+    QDir root(destination);
+    if (!QDir().mkpath(destination)) {
+        setError(tr("Impossible de créer la destination."));
+        return {};
+    }
+    QDirIterator iterator(m_vaultPath, QDir::Files, QDirIterator::Subdirectories);
+    while (iterator.hasNext()) {
+        const QString source = iterator.next();
+        const QString relative = QDir(m_vaultPath).relativeFilePath(source);
+        if (relative.startsWith(QStringLiteral(".ultimate-iai/"))
+            || relative.startsWith(QStringLiteral(".backups/"))
+            || relative.startsWith(QStringLiteral(".git/")))
+            continue;
+        const QFileInfo info(source);
+        if (relative.endsWith(QStringLiteral(".md"))
+            || QStringList{QStringLiteral("png"), QStringLiteral("jpg"), QStringLiteral("jpeg"),
+                           QStringLiteral("webp"), QStringLiteral("gif"), QStringLiteral("svg")}
+                   .contains(info.suffix().toLower())) {
+            const QString target = root.absoluteFilePath(relative);
+            QDir().mkpath(QFileInfo(target).absolutePath());
+            QFile::copy(source, target);
+        }
+    }
+    if (withMetadata) {
+        QJsonArray items;
+        for (const QVariant &value : notes()) {
+            const QVariantMap note = value.toMap();
+            items.append(QJsonObject{{QStringLiteral("path"), note.value(QStringLiteral("path")).toString()},
+                                     {QStringLiteral("title"), note.value(QStringLiteral("title")).toString()},
+                                     {QStringLiteral("tags"), QJsonArray::fromVariantList(note.value(QStringLiteral("tags")).toList())},
+                                     {QStringLiteral("status"), note.value(QStringLiteral("status")).toString()},
+                                     {QStringLiteral("updatedAt"), note.value(QStringLiteral("updatedAt")).toString()}});
+        }
+        QSaveFile manifest(root.absoluteFilePath(QStringLiteral("ultimate-iah-export.json")));
+        if (manifest.open(QIODevice::WriteOnly)) {
+            manifest.write(QJsonDocument(QJsonObject{{QStringLiteral("vault"), m_vaultPath},
+                                                     {QStringLiteral("exportedAt"), nowIso()},
+                                                     {QStringLiteral("notes"), items}})
+                               .toJson(QJsonDocument::Indented));
+            manifest.commit();
+        }
+    }
+    return root.absolutePath();
+}
+
+namespace {
+struct GitResult {
+    bool ok = false;
+    QString output;
+};
+
+GitResult runGit(const QString &vault, const QStringList &arguments, int timeout = 30000) {
+    QProcess process;
+    process.setWorkingDirectory(vault);
+    process.start(QStringLiteral("git"), arguments);
+    if (!process.waitForStarted(3000))
+        return {false, QObject::tr("git introuvable.")};
+    if (!process.waitForFinished(timeout)) {
+        process.kill();
+        process.waitForFinished(1000);
+        return {false, QObject::tr("git a dépassé le délai.")};
+    }
+    const QString output = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+    const QString error = QString::fromUtf8(process.readAllStandardError()).trimmed();
+    return {process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0,
+            error.isEmpty() ? output : error};
+}
+} // namespace
+
+void NoteStore::gitRefresh() {
+    m_gitBranch.clear();
+    m_gitDirty = false;
+    m_gitRemote.clear();
+    m_gitLastCommit.clear();
+    if (!QFileInfo::exists(m_vaultPath + QStringLiteral("/.git"))) {
+        emit gitChanged();
+        return;
+    }
+    const GitResult branch = runGit(m_vaultPath, {QStringLiteral("rev-parse"),
+                                                   QStringLiteral("--abbrev-ref"),
+                                                   QStringLiteral("HEAD")});
+    if (branch.ok)
+        m_gitBranch = branch.output;
+    const GitResult status = runGit(m_vaultPath, {QStringLiteral("status"),
+                                                   QStringLiteral("--porcelain")});
+    m_gitDirty = status.ok && !status.output.isEmpty();
+    const GitResult remote = runGit(m_vaultPath, {QStringLiteral("remote"),
+                                                   QStringLiteral("get-url"),
+                                                   QStringLiteral("origin")});
+    if (remote.ok)
+        m_gitRemote = remote.output;
+    const GitResult log = runGit(m_vaultPath, {QStringLiteral("log"),
+                                                QStringLiteral("-1"),
+                                                QStringLiteral("--format=%h %s")});
+    if (log.ok)
+        m_gitLastCommit = log.output;
+    emit gitChanged();
+}
+
+bool NoteStore::gitInit() {
+    if (!gitAvailable()) {
+        setError(tr("git n'est pas installé."));
+        return false;
+    }
+    GitResult result = runGit(m_vaultPath, {QStringLiteral("init")});
+    if (!result.ok) {
+        setError(result.output);
+        return false;
+    }
+    runGit(m_vaultPath, {QStringLiteral("config"), QStringLiteral("user.name"),
+                         QStringLiteral("Ultimate IAH")});
+    runGit(m_vaultPath, {QStringLiteral("config"), QStringLiteral("user.email"),
+                         QStringLiteral("ultimate-iah@localhost")});
+    gitRefresh();
+    return true;
+}
+
+bool NoteStore::gitSetRemote(const QString &url) {
+    const QString remote = url.trimmed();
+    if (remote.isEmpty()) {
+        setError(tr("URL de dépôt vide."));
+        return false;
+    }
+    runGit(m_vaultPath, {QStringLiteral("remote"), QStringLiteral("remove"),
+                         QStringLiteral("origin")});
+    const GitResult result = runGit(m_vaultPath, {QStringLiteral("remote"),
+                                                   QStringLiteral("add"),
+                                                   QStringLiteral("origin"), remote});
+    if (!result.ok) {
+        setError(result.output);
+        return false;
+    }
+    gitRefresh();
+    return true;
+}
+
+bool NoteStore::gitSync(const QString &message) {
+    if (!QFileInfo::exists(m_vaultPath + QStringLiteral("/.git")) && !gitInit())
+        return false;
+    runGit(m_vaultPath, {QStringLiteral("add"), QStringLiteral("-A")});
+    const QString commitMessage = message.trimmed().isEmpty()
+        ? tr("Ultimate IAH notes sync") : message.trimmed();
+    const GitResult commit = runGit(m_vaultPath, {QStringLiteral("commit"),
+                                                   QStringLiteral("-m"), commitMessage});
+    if (!commit.ok && !commit.output.contains(QStringLiteral("nothing to commit"))) {
+        setError(commit.output);
+        return false;
+    }
+    if (!m_gitRemote.isEmpty()) {
+        const GitResult heads = runGit(m_vaultPath, {QStringLiteral("ls-remote"),
+                                                      QStringLiteral("--heads"),
+                                                      QStringLiteral("origin")});
+        if (heads.ok && !heads.output.isEmpty()) {
+            const GitResult pull = runGit(m_vaultPath, {QStringLiteral("pull"), QStringLiteral("--rebase"),
+                                                         QStringLiteral("--autostash")});
+            if (!pull.ok) {
+                setError(pull.output);
+                return false;
+            }
+        }
+    }
+    bool pushed = true;
+    if (!m_gitRemote.isEmpty()) {
+        const GitResult push = runGit(m_vaultPath, {QStringLiteral("push"), QStringLiteral("-u"),
+                                                     QStringLiteral("origin"), QStringLiteral("HEAD")},
+                                      60000);
+        pushed = push.ok;
+        if (!pushed)
+            setError(push.output);
+    }
+    gitRefresh();
+    return pushed;
+}
+
+bool NoteStore::gitPull() {
+    if (m_gitRemote.isEmpty()) {
+        setError(tr("Aucun dépôt distant configuré."));
+        return false;
+    }
+    const GitResult result = runGit(m_vaultPath, {QStringLiteral("pull"), QStringLiteral("--rebase"),
+                                                   QStringLiteral("--autostash")}, 60000);
+    if (!result.ok)
+        setError(result.output);
+    refresh();
+    gitRefresh();
+    return result.ok;
+}
+
+bool NoteStore::gitPush() {
+    if (m_gitRemote.isEmpty()) {
+        setError(tr("Aucun dépôt distant configuré."));
+        return false;
+    }
+    const GitResult result = runGit(m_vaultPath, {QStringLiteral("push"), QStringLiteral("-u"),
+                                                   QStringLiteral("origin"), QStringLiteral("HEAD")},
+                                    60000);
+    if (!result.ok)
+        setError(result.output);
+    gitRefresh();
+    return result.ok;
 }
 
 void NoteStore::setError(const QString &error) {

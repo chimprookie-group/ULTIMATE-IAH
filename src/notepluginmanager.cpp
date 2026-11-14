@@ -41,9 +41,14 @@ NotePluginManager::NotePluginManager(NoteStore *notes, const QString &workspace,
     : QObject(parent),
       m_notes(notes),
       m_workspace(workspace),
-      m_configDir(configDir.isEmpty() ? defaultConfigDir() : configDir) {
+      m_configDir(configDir.isEmpty() ? defaultConfigDir() : configDir),
+      m_vaultPath(notes ? notes->vaultPath() : QString()) {
     QDir().mkpath(m_configDir);
     loadSettings();
+    if (!m_vaultPath.isEmpty() && !m_vaults.contains(m_vaultPath)) {
+        m_vaults.append(m_vaultPath);
+        saveSettings();
+    }
     refresh();
     m_timer = new QTimer(this);
     m_timer->setInterval(60000);
@@ -79,15 +84,30 @@ void NotePluginManager::loadSettings() {
                 m_enabled.insert(it.key(), it.value().toBool());
         }
     }
+    for (const QJsonValue &value : root.value(QStringLiteral("vaults")).toArray())
+        if (!value.toString().trimmed().isEmpty() && !m_vaults.contains(value.toString()))
+            m_vaults.append(value.toString());
     const QJsonObject schedules = root.value(QStringLiteral("schedules")).toObject();
-    for (auto it = schedules.constBegin(); it != schedules.constEnd(); ++it) {
-        const QJsonObject value = it.value().toObject();
-        Schedule schedule;
-        schedule.minutes = qBound(0, value.value(QStringLiteral("minutes")).toInt(), 1440);
-        const QString last = value.value(QStringLiteral("lastRun")).toString();
-        if (!last.isEmpty())
-            schedule.lastRun = QDateTime::fromString(last, Qt::ISODate);
-        m_schedules.insert(it.key(), schedule);
+    for (auto vault = schedules.constBegin(); vault != schedules.constEnd(); ++vault) {
+        const QJsonObject entries = vault.value().toObject();
+        if (entries.contains(QStringLiteral("minutes"))) {
+            Schedule schedule;
+            schedule.minutes = qBound(0, entries.value(QStringLiteral("minutes")).toInt(), 1440);
+            const QString last = entries.value(QStringLiteral("lastRun")).toString();
+            if (!last.isEmpty())
+                schedule.lastRun = QDateTime::fromString(last, Qt::ISODate);
+            m_schedules[m_vaultPath].insert(vault.key(), schedule);
+            continue;
+        }
+        for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
+            const QJsonObject value = it.value().toObject();
+            Schedule schedule;
+            schedule.minutes = qBound(0, value.value(QStringLiteral("minutes")).toInt(), 1440);
+            const QString last = value.value(QStringLiteral("lastRun")).toString();
+            if (!last.isEmpty())
+                schedule.lastRun = QDateTime::fromString(last, Qt::ISODate);
+            m_schedules[vault.key()].insert(it.key(), schedule);
+        }
     }
 }
 
@@ -97,16 +117,24 @@ bool NotePluginManager::saveSettings() const {
     for (auto it = m_enabled.constBegin(); it != m_enabled.constEnd(); ++it)
         enabled.insert(it.key(), it.value());
     QJsonObject schedules;
-    for (auto it = m_schedules.constBegin(); it != m_schedules.constEnd(); ++it) {
-        schedules.insert(it.key(), QJsonObject{
-            {QStringLiteral("minutes"), it.value().minutes},
-            {QStringLiteral("lastRun"), it.value().lastRun.toString(Qt::ISODate)},
-        });
+    for (auto vault = m_schedules.constBegin(); vault != m_schedules.constEnd(); ++vault) {
+        QJsonObject entries;
+        for (auto it = vault.value().constBegin(); it != vault.value().constEnd(); ++it) {
+            entries.insert(it.key(), QJsonObject{
+                {QStringLiteral("minutes"), it.value().minutes},
+                {QStringLiteral("lastRun"), it.value().lastRun.toString(Qt::ISODate)},
+            });
+        }
+        schedules.insert(vault.key(), entries);
     }
+    QJsonArray vaultArray;
+    for (const QString &vault : m_vaults)
+        vaultArray.append(vault);
     QSaveFile file(settingsPath());
     if (!file.open(QIODevice::WriteOnly))
         return false;
     file.write(QJsonDocument(QJsonObject{{QStringLiteral("enabled"), enabled},
+                                         {QStringLiteral("vaults"), vaultArray},
                                          {QStringLiteral("schedules"), schedules}})
                    .toJson(QJsonDocument::Indented));
     return file.commit();
@@ -149,7 +177,7 @@ void NotePluginManager::loadManifests() {
             {QStringLiteral("command"), plugin.command},
             {QStringLiteral("sandbox"), plugin.sandbox},
             {QStringLiteral("allowUnsandboxed"), plugin.allowUnsandboxed},
-            {QStringLiteral("scheduleMinutes"), m_schedules.value(plugin.id).minutes},
+            {QStringLiteral("scheduleMinutes"), m_schedules.value(m_vaultPath).value(plugin.id).minutes},
         });
     }
 }
@@ -203,7 +231,7 @@ void NotePluginManager::refresh() {
             {QStringLiteral("enabled"), plugin.enabled},
             {QStringLiteral("command"), QString()},
             {QStringLiteral("sandbox"), false},
-            {QStringLiteral("scheduleMinutes"), m_schedules.value(plugin.id).minutes},
+            {QStringLiteral("scheduleMinutes"), m_schedules.value(m_vaultPath).value(plugin.id).minutes},
         });
     }
     loadManifests();
@@ -613,6 +641,29 @@ QVariantMap NotePluginManager::runCommand(const Plugin &plugin, const QString &p
             {QStringLiteral("sandboxed"), sandboxed}};
 }
 
+QVariantList NotePluginManager::vaults() const {
+    QVariantList out;
+    for (const QString &vault : m_vaults)
+        out.append(vault);
+    return out;
+}
+
+void NotePluginManager::registerVault(const QString &path) {
+    const QString vault = path.trimmed();
+    if (vault.isEmpty() || m_vaults.contains(vault))
+        return;
+    m_vaults.append(vault);
+    saveSettings();
+    emit changed();
+}
+
+void NotePluginManager::unregisterVault(const QString &path) {
+    if (!m_vaults.removeOne(path))
+        return;
+    saveSettings();
+    emit changed();
+}
+
 void NotePluginManager::setError(const QString &error) {
     if (m_error == error)
         return;
@@ -663,10 +714,10 @@ void NotePluginManager::setSchedule(const QString &id, int minutes) {
         return;
     if (!m_enabled.contains(id))
         m_enabled.insert(id, true);
-    Schedule schedule = m_schedules.value(id);
+    Schedule schedule = m_schedules.value(m_vaultPath).value(id);
     schedule.minutes = qBound(0, minutes, 1440);
     schedule.lastRun = QDateTime::currentDateTimeUtc();
-    m_schedules.insert(id, schedule);
+    m_schedules[m_vaultPath].insert(id, schedule);
     saveSettings();
     refresh();
 }
@@ -679,7 +730,8 @@ void NotePluginManager::runDueSchedules() {
     for (const QVariant &value : m_notes->notes())
         paths.append(value.toMap().value(QStringLiteral("path")));
     bool dirty = false;
-    for (auto it = m_schedules.begin(); it != m_schedules.end(); ++it) {
+    QHash<QString, Schedule> &schedules = m_schedules[m_vaultPath];
+    for (auto it = schedules.begin(); it != schedules.end(); ++it) {
         if (it.value().minutes <= 0)
             continue;
         if (it.value().lastRun.isValid()

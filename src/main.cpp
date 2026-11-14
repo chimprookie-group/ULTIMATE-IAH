@@ -147,6 +147,25 @@ void ensureNotePluginTimer() {
     }
 }
 
+QString runScheduledVaults() {
+    NoteStore defaults;
+    NotePluginManager probe(&defaults, {});
+    QStringList vaults;
+    for (const QVariant &value : probe.vaults())
+        vaults << value.toString();
+    if (vaults.isEmpty())
+        vaults << defaults.vaultPath();
+    QStringList outputs;
+    for (const QString &vault : vaults) {
+        NoteStore notes(vault);
+        NotePluginManager plugins(&notes, vault);
+        plugins.runDueSchedules();
+        if (!plugins.lastOutput().isEmpty())
+            outputs << QStringLiteral("%1: %2").arg(vault, plugins.lastOutput());
+    }
+    return outputs.join(QLatin1Char('\n'));
+}
+
 int runDoctor(bool json) {
     QJsonArray checks;
     auto add = [&checks](const QString &name, bool ok, const QString &detail) {
@@ -309,7 +328,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.31"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.32"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -391,23 +410,19 @@ int main(int argc, char *argv[]) {
     }
     if (arguments.value(0) == "note-plugins-daemon") {
         QCoreApplication app(argc, argv);
-        NoteStore notes;
-        NotePluginManager plugins(&notes, {});
+        runScheduledVaults();
         QTimer timer;
         timer.setInterval(60000);
-        QObject::connect(&timer, &QTimer::timeout, &plugins, &NotePluginManager::runDueSchedules);
+        QObject::connect(&timer, &QTimer::timeout, &app, [] { runScheduledVaults(); });
         timer.start();
-        plugins.runDueSchedules();
         return app.exec();
     }
     if (arguments.value(0) == "note-plugins-run") {
         QCoreApplication app(argc, argv);
-        NoteStore notes;
-        NotePluginManager plugins(&notes, {});
-        plugins.runDueSchedules();
-        QTextStream(stdout) << (plugins.lastOutput().isEmpty()
+        const QString output = runScheduledVaults();
+        QTextStream(stdout) << (output.isEmpty()
                                     ? QStringLiteral("note-plugins: nothing due\n")
-                                    : plugins.lastOutput() + QLatin1Char('\n'));
+                                    : output + QLatin1Char('\n'));
         return 0;
     }
     if (arguments.value(0) == "doctor") {

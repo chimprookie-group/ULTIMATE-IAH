@@ -125,7 +125,7 @@ bool readOnlyToolAllowed(const QString &name, const QJsonObject &arguments) {
         return action == QLatin1String("list") || action == QLatin1String("search")
             || action == QLatin1String("read") || action == QLatin1String("tags")
             || action == QLatin1String("graph") || action == QLatin1String("links")
-            || action == QLatin1String("outline");
+            || action == QLatin1String("outline") || action == QLatin1String("git-status");
     if (name == QLatin1String("ultimate_files"))
         return action == QLatin1String("list") || action == QLatin1String("read") || action == QLatin1String("search");
     if (name == QLatin1String("ultimate_git"))
@@ -1733,6 +1733,9 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("status"), agentProperty(QStringLiteral("string"), QStringLiteral("Task status: todo, doing or done."))},
                                 {QStringLiteral("prompt"), agentProperty(QStringLiteral("string"), QStringLiteral("Task request stored in the note."))},
                                 {QStringLiteral("workspace"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional workspace attached to the task note."))},
+                                {QStringLiteral("destination"), agentProperty(QStringLiteral("string"), QStringLiteral("Export destination folder."))},
+                                {QStringLiteral("message"), agentProperty(QStringLiteral("string"), QStringLiteral("Git commit message."))},
+                                {QStringLiteral("url"), agentProperty(QStringLiteral("string"), QStringLiteral("Git remote URL."))},
                                 {QStringLiteral("confirm"), agentProperty(QStringLiteral("boolean"), QStringLiteral("Required true to delete a note."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("github_status"),
@@ -2461,6 +2464,33 @@ QJsonObject UltimateAgent::executeTool(const QString &name, const QJsonObject &a
         if (action == QLatin1String("outline"))
             return okResult({{QStringLiteral("headings"),
                               QJsonArray::fromVariantList(m_notes->headings())}});
+        if (action == QLatin1String("backup")) {
+            const QString path = m_notes->backupVault();
+            return path.isEmpty() ? errorResult(m_notes->error())
+                                  : okResult({{QStringLiteral("archive"), path}});
+        }
+        if (action == QLatin1String("export")) {
+            const QString path = m_notes->exportVault(
+                arguments.value(QStringLiteral("destination")).toString());
+            return path.isEmpty() ? errorResult(m_notes->error())
+                                  : okResult({{QStringLiteral("destination"), path}});
+        }
+        if (action == QLatin1String("git-status")) {
+            m_notes->gitRefresh();
+            return okResult({{QStringLiteral("available"), m_notes->gitAvailable()},
+                             {QStringLiteral("branch"), m_notes->gitBranch()},
+                             {QStringLiteral("dirty"), m_notes->gitDirty()},
+                             {QStringLiteral("remote"), m_notes->gitRemote()},
+                             {QStringLiteral("lastCommit"), m_notes->gitLastCommit()}});
+        }
+        if (action == QLatin1String("git-sync")) {
+            if (!arguments.value(QStringLiteral("url")).toString().isEmpty())
+                m_notes->gitSetRemote(arguments.value(QStringLiteral("url")).toString());
+            const bool ok = m_notes->gitSync(arguments.value(QStringLiteral("message")).toString());
+            return ok ? okResult({{QStringLiteral("branch"), m_notes->gitBranch()},
+                                  {QStringLiteral("lastCommit"), m_notes->gitLastCommit()}})
+                      : errorResult(m_notes->error());
+        }
         if (action == QLatin1String("task")) {
             const QString path = m_notes->createTaskNote(
                 arguments.value(QStringLiteral("title")).toString(),
