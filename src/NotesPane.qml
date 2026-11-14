@@ -666,6 +666,14 @@ Item {
                     }
                 }
                 GhostButton { text: qsTr("Exporter…"); flat: true; onClicked: exportFolderDialog.open() }
+                GhostButton {
+                    text: qsTr("Purger (garder 10)")
+                    flat: true
+                    onClicked: {
+                        const removed = noteStore.pruneBackups(10)
+                        backupStatus.text = qsTr("%1 ancienne(s) archive(s) supprimée(s).").arg(removed)
+                    }
+                }
                 GhostButton { text: qsTr("Ouvrir .backups"); flat: true; onClicked: Qt.openUrlExternally("file://" + noteStore.vaultPath + "/.backups") }
             }
             Text {
@@ -724,6 +732,56 @@ Item {
                 Layout.fillWidth: true
                 placeholderText: qsTr("Dépôt distant (https:// ou git@)")
                 text: noteStore.gitRemote
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                SettingsField {
+                    id: tokenField
+                    Layout.fillWidth: true
+                    placeholderText: noteStore.gitTokenConfigured ? qsTr("Jeton configuré (laisser vide pour conserver)") : qsTr("Jeton Git (HTTPS)")
+                    echoMode: TextInput.Password
+                }
+                GhostButton {
+                    text: qsTr("Enregistrer le jeton")
+                    flat: true
+                    onClicked: {
+                        if (tokenField.text !== "") {
+                            noteStore.gitSetToken(tokenField.text)
+                            tokenField.text = ""
+                        }
+                    }
+                }
+                GhostButton {
+                    text: qsTr("Effacer")
+                    flat: true
+                    enabled: noteStore.gitTokenConfigured
+                    onClicked: noteStore.gitClearToken()
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: noteStore.gitConflicts.length > 0
+                text: qsTr("Conflits : choisissez le côté à garder, puis synchronisez à nouveau.")
+                color: theme.orange
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+            }
+            Repeater {
+                model: noteStore.gitConflicts
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    Text { Layout.fillWidth: true; text: modelData; color: theme.text; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideMiddle }
+                    GhostButton { text: qsTr("Local"); flat: true; font.pixelSize: 8; onClicked: noteStore.gitResolve(modelData, "ours") }
+                    GhostButton { text: qsTr("Distant"); flat: true; font.pixelSize: 8; onClicked: noteStore.gitResolve(modelData, "theirs") }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                visible: noteStore.gitConflicts.length > 0
+                GhostButton { text: qsTr("Abandonner la fusion"); flat: true; font.pixelSize: 8; onClicked: noteStore.gitAbort() }
+                Item { Layout.fillWidth: true }
             }
             RowLayout {
                 Layout.fillWidth: true

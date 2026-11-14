@@ -1,0 +1,7 @@
+[Unit]
+Description=Ultimate IAH multi-user note plugin scheduler
+After=logind.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ultimate-iah note-plugins-all-users

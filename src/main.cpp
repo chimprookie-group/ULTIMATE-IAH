@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.32"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.33"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;
@@ -416,6 +416,48 @@ int main(int argc, char *argv[]) {
         QObject::connect(&timer, &QTimer::timeout, &app, [] { runScheduledVaults(); });
         timer.start();
         return app.exec();
+    }
+    if (arguments.value(0) == "note-plugins-all-users") {
+        QCoreApplication app(argc, argv);
+        const bool root = geteuid() == 0;
+        QStringList users;
+        if (root) {
+            QProcess sessions;
+            sessions.start(QStringLiteral("loginctl"),
+                           {QStringLiteral("list-sessions"), QStringLiteral("--no-legend")});
+            if (sessions.waitForFinished(5000)) {
+                for (const QString &line : QString::fromUtf8(sessions.readAllStandardOutput())
+                                               .split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+                    const QStringList fields = line.split(QRegularExpression(QStringLiteral("\\s+")),
+                                                          Qt::SkipEmptyParts);
+                    if (fields.size() > 2 && fields.at(2) != QLatin1String("root")
+                        && !users.contains(fields.at(2)))
+                        users << fields.at(2);
+                }
+            }
+        } else {
+            const QString user = qEnvironmentVariable("USER");
+            if (!user.isEmpty())
+                users << user;
+        }
+        int failed = 0;
+        for (const QString &user : users) {
+            QProcess process;
+            if (root)
+                process.start(QStringLiteral("systemctl"),
+                              {QStringLiteral("--machine"), user + QStringLiteral("@.host"),
+                               QStringLiteral("--user"), QStringLiteral("start"),
+                               QStringLiteral("ultimate-iah-note-plugins.service")});
+            else
+                process.start(QStringLiteral("systemctl"),
+                              {QStringLiteral("--user"), QStringLiteral("start"),
+                               QStringLiteral("ultimate-iah-note-plugins.service")});
+            if (!process.waitForFinished(20000) || process.exitCode() != 0)
+                ++failed;
+        }
+        QTextStream(stdout) << QStringLiteral("note-plugins-all-users: %1 session(s), %2 échec(s)\n")
+                                   .arg(users.size()).arg(failed);
+        return failed == 0 ? 0 : 1;
     }
     if (arguments.value(0) == "note-plugins-run") {
         QCoreApplication app(argc, argv);

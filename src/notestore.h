@@ -36,6 +36,8 @@ class NoteStore : public QObject {
     Q_PROPERTY(bool gitDirty READ gitDirty NOTIFY gitChanged)
     Q_PROPERTY(QString gitRemote READ gitRemote NOTIFY gitChanged)
     Q_PROPERTY(QString gitLastCommit READ gitLastCommit NOTIFY gitChanged)
+    Q_PROPERTY(bool gitTokenConfigured READ gitTokenConfigured NOTIFY gitChanged)
+    Q_PROPERTY(QVariantList gitConflicts READ gitConflicts NOTIFY gitChanged)
 
 public:
     explicit NoteStore(const QString &vaultPath = {}, QObject *parent = nullptr);
@@ -64,6 +66,8 @@ public:
     bool gitDirty() const { return m_gitDirty; }
     QString gitRemote() const { return m_gitRemote; }
     QString gitLastCommit() const { return m_gitLastCommit; }
+    bool gitTokenConfigured() const;
+    QVariantList gitConflicts() const { return m_gitConflicts; }
     void setGraphOpen(bool open) {
         if (m_graphOpen == open) return;
         m_graphOpen = open;
@@ -104,6 +108,11 @@ public:
     Q_INVOKABLE bool gitSync(const QString &message = {});
     Q_INVOKABLE bool gitPull();
     Q_INVOKABLE bool gitPush();
+    Q_INVOKABLE bool gitSetToken(const QString &token);
+    Q_INVOKABLE void gitClearToken();
+    Q_INVOKABLE bool gitResolve(const QString &path, const QString &side);
+    Q_INVOKABLE bool gitAbort();
+    Q_INVOKABLE int pruneBackups(int keep = 10);
 
     static QString defaultVaultPath();
 
@@ -143,4 +152,5 @@ private:
     bool m_gitDirty = false;
     QString m_gitRemote;
     QString m_gitLastCommit;
+    QVariantList m_gitConflicts;
 };
