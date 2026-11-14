@@ -97,8 +97,9 @@ La planification survit à la fermeture de l'application : `bootstrap`
 installe `ultimate-iah-note-plugins.timer` (systemd utilisateur, toutes les
 minutes) qui appelle `ultimate-iah note-plugins-run`. Sans systemd
 utilisateur, il installe à la place un autostart
-`ultimate-iah note-plugins-daemon`. Les échéances sont stockées dans
-`settings.json`.
+`ultimate-iah note-plugins-daemon`. Les échéances sont stockées par vault
+dans `settings.json` ; plusieurs vaults peuvent être enregistrés et
+planifiés indépendamment.
 
 Les plugins externes sont exécutés par défaut dans **bubblewrap**
 (dépendance du paquet) :

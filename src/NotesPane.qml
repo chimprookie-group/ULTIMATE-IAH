@@ -211,6 +211,8 @@ Item {
                         Text { text: qsTr("Vault"); color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; font.letterSpacing: 0.8 }
                         Item { Layout.fillWidth: true }
                         Text { text: noteStore.count; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro }
+                        IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/database.svg"; hint: qsTr("Sauvegarde et export"); onClicked: backupDialog.open() }
+                        IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/branch.svg"; hint: qsTr("Synchronisation Git"); onClicked: { noteStore.gitRefresh(); gitDialog.open() } }
                         IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/plug.svg"; hint: qsTr("Plugins de notes"); onClicked: notePluginsDialog.open() }
                         IconButton { implicitWidth: 22; implicitHeight: 22; icon: "icons/plus.svg"; hint: qsTr("Nouvelle note"); onClicked: root.newNote() }
                     }
@@ -631,6 +633,121 @@ Item {
     }
 
     Dialog {
+        id: backupDialog
+        modal: true
+        width: Math.min(root.width - design.space6, 520)
+        height: 300
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Sauvegarde du vault"); color: theme.brightText; font.pixelSize: design.textBodyLarge; font.weight: Font.DemiBold }
+                IconButton { icon: "icons/close.svg"; hint: qsTr("Fermer"); onClicked: backupDialog.close() }
+            }
+            Text { Layout.fillWidth: true; text: noteStore.vaultPath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Archive tar.gz dans .backups, ou export Markdown avec manifeste JSON.")
+                color: theme.dimText
+                font.pixelSize: design.textCaption
+                wrapMode: Text.Wrap
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                ActionButton {
+                    text: qsTr("Sauvegarder maintenant")
+                    onClicked: {
+                        const path = noteStore.backupVault()
+                        backupStatus.text = path !== "" ? qsTr("Archive : %1").arg(path) : noteStore.error
+                    }
+                }
+                GhostButton { text: qsTr("Exporter…"); flat: true; onClicked: exportFolderDialog.open() }
+                GhostButton { text: qsTr("Ouvrir .backups"); flat: true; onClicked: Qt.openUrlExternally("file://" + noteStore.vaultPath + "/.backups") }
+            }
+            Text {
+                id: backupStatus
+                Layout.fillWidth: true
+                color: theme.dimText
+                font.family: backend.monoFont
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+            }
+            Item { Layout.fillHeight: true }
+        }
+    }
+
+    FolderDialog {
+        id: exportFolderDialog
+        title: qsTr("Exporter le vault")
+        onAccepted: {
+            const path = noteStore.exportVault(selectedFolder)
+            backupStatus.text = path !== "" ? qsTr("Export : %1").arg(path) : noteStore.error
+            backupDialog.open()
+        }
+    }
+
+    Dialog {
+        id: gitDialog
+        modal: true
+        width: Math.min(root.width - design.space6, 560)
+        height: 430
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        padding: design.space4
+        background: Rectangle { radius: design.radiusLg; color: theme.surface; border.width: 1; border.color: theme.borderStrong }
+        contentItem: ColumnLayout {
+            spacing: design.space2
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: qsTr("Synchronisation Git"); color: theme.brightText; font.pixelSize: design.textBodyLarge; font.weight: Font.DemiBold }
+                StatusDot { size: 5; color: noteStore.gitAvailable ? (noteStore.gitDirty ? theme.orange : theme.green) : theme.dimText }
+                IconButton { icon: "icons/close.svg"; hint: qsTr("Fermer"); onClicked: gitDialog.close() }
+            }
+            Text { Layout.fillWidth: true; text: noteStore.vaultPath; color: theme.dimText; font.family: backend.monoFont; font.pixelSize: design.textMicro; elide: Text.ElideMiddle }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Branche : %1 · %2 · %3")
+                      .arg(noteStore.gitBranch !== "" ? noteStore.gitBranch : qsTr("aucune"))
+                      .arg(noteStore.gitDirty ? qsTr("modifications") : qsTr("propre"))
+                      .arg(noteStore.gitLastCommit !== "" ? noteStore.gitLastCommit : qsTr("aucun commit"))
+                color: theme.mutedText
+                font.family: backend.monoFont
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+            }
+            SettingsField {
+                id: remoteField
+                Layout.fillWidth: true
+                placeholderText: qsTr("Dépôt distant (https:// ou git@)")
+                text: noteStore.gitRemote
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                GhostButton { text: qsTr("Init"); flat: true; onClicked: { noteStore.gitInit(); noteStore.gitRefresh() } }
+                GhostButton { text: qsTr("Enregistrer le dépôt"); flat: true; onClicked: { noteStore.gitSetRemote(remoteField.text); noteStore.gitRefresh() } }
+                Item { Layout.fillWidth: true }
+                GhostButton { text: qsTr("Tirer"); flat: true; onClicked: { noteStore.gitPull(); noteStore.gitRefresh() } }
+                GhostButton { text: qsTr("Pousser"); flat: true; onClicked: { noteStore.gitPush(); noteStore.gitRefresh() } }
+                ActionButton { text: qsTr("Synchroniser"); onClicked: { noteStore.gitSync(); noteStore.gitRefresh() } }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: noteStore.error
+                color: theme.red
+                font.pixelSize: design.textMicro
+                wrapMode: Text.Wrap
+                visible: noteStore.error !== ""
+            }
+            Item { Layout.fillHeight: true }
+        }
+        onOpened: { noteStore.gitRefresh(); remoteField.text = noteStore.gitRemote }
+    }
+
+    Dialog {
         id: notePluginsDialog
         modal: true
         width: Math.min(root.width - design.space6, 620)
@@ -764,6 +881,12 @@ Item {
                     }
                 }
                 Item { Layout.fillWidth: true }
+                Text {
+                    text: notePlugins.vaults.length + qsTr(" vault(s) planifié(s)")
+                    color: theme.dimText
+                    font.family: backend.monoFont
+                    font.pixelSize: 8
+                }
             }
             Text {
                 Layout.fillWidth: true

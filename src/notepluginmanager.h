@@ -24,6 +24,7 @@ class NotePluginManager : public QObject {
     Q_PROPERTY(QString lastOutput READ lastOutput NOTIFY changed)
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY changed)
     Q_PROPERTY(bool canRedo READ canRedo NOTIFY changed)
+    Q_PROPERTY(QVariantList vaults READ vaults NOTIFY changed)
 
 public:
     struct Plugin {
@@ -61,6 +62,9 @@ public:
     Q_INVOKABLE bool redoLast();
     Q_INVOKABLE void setSchedule(const QString &id, int minutes);
     Q_INVOKABLE void runDueSchedules();
+    Q_INVOKABLE QVariantList vaults() const;
+    Q_INVOKABLE void registerVault(const QString &path);
+    Q_INVOKABLE void unregisterVault(const QString &path);
 
     static QString defaultConfigDir();
 
@@ -102,6 +106,8 @@ private:
     QString m_lastOutput;
     QList<Snapshot> m_undo;
     QList<Snapshot> m_redo;
-    QHash<QString, Schedule> m_schedules;
+    QHash<QString, QHash<QString, Schedule>> m_schedules;
+    QString m_vaultPath;
+    QStringList m_vaults;
     QTimer *m_timer = nullptr;
 };

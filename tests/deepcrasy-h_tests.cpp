@@ -719,6 +719,44 @@ private slots:
         QVERIFY(store.contentOf(note).contains("Contenu"));
     }
 
+    void noteStoreBacksUpExportsAndSyncsGit()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        NoteStore store(dir.path() + "/vault");
+        const QString note = store.createNote("Sauvegarde");
+        QVERIFY(store.saveNote(note, "# Sauvegarde\n\nContenu.\n"));
+
+        const QString archive = store.backupVault();
+        QVERIFY(!archive.isEmpty());
+        QVERIFY(QFileInfo(archive).size() > 0);
+
+        const QString exportDir = dir.path() + "/export";
+        QCOMPARE(store.exportVault(exportDir), QFileInfo(exportDir).absoluteFilePath());
+        QVERIFY(QFileInfo::exists(exportDir + "/" + note));
+        QVERIFY(QFileInfo::exists(exportDir + "/ultimate-iah-export.json"));
+
+        if (QStandardPaths::findExecutable("git").isEmpty())
+            QSKIP("git is not installed");
+        const QString bare = dir.path() + "/remote.git";
+        QProcess init;
+        init.start("git", {"init", "--bare", bare});
+        QVERIFY(init.waitForFinished(10000));
+        QVERIFY(store.gitInit());
+        QVERIFY(store.gitSetRemote("file://" + bare));
+        QVERIFY2(store.gitSync("initial"), qPrintable(store.error()));
+        const QString second = store.createNote("Deuxième");
+        QVERIFY(store.saveNote(second, "# Deuxième\n"));
+        QVERIFY2(store.gitSync("second"), qPrintable(store.error()));
+        QProcess count;
+        count.start("git", {"-C", bare, "rev-list", "--count", "HEAD"});
+        QVERIFY(count.waitForFinished(10000));
+        QVERIFY(count.readAllStandardOutput().trimmed().toInt() >= 2);
+        store.gitRefresh();
+        QCOMPARE(store.gitDirty(), false);
+        QVERIFY(!store.gitBranch().isEmpty());
+    }
+
     void notePluginsRunBuiltinsAndCommands()
     {
         QTemporaryDir dir;
@@ -811,6 +849,20 @@ private slots:
             if (value.toMap().value("id").toString() == "toc")
                 persisted = value.toMap().value("scheduleMinutes").toInt() == 60;
         QVERIFY(persisted);
+        NoteStore secondStore(dir.path() + "/vault2");
+        NotePluginManager second(&secondStore, "/tmp/workspace2", config);
+        second.setSchedule("toc", 30);
+        bool secondScheduled = false;
+        for (const QVariant &value : second.plugins())
+            if (value.toMap().value("id").toString() == "toc")
+                secondScheduled = value.toMap().value("scheduleMinutes").toInt() == 30;
+        QVERIFY(secondScheduled);
+        bool firstUnchanged = false;
+        for (const QVariant &value : manager.plugins())
+            if (value.toMap().value("id").toString() == "toc")
+                firstUnchanged = value.toMap().value("scheduleMinutes").toInt() == 60;
+        QVERIFY(firstUnchanged);
+        QVERIFY(second.vaults().size() >= 1);
         manager.setSchedule("toc", 0);
     }
 

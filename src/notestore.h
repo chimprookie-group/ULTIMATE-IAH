@@ -31,6 +31,11 @@ class NoteStore : public QObject {
     Q_PROPERTY(int count READ count NOTIFY changed)
     Q_PROPERTY(bool graphOpen READ graphOpen WRITE setGraphOpen NOTIFY graphOpenChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
+    Q_PROPERTY(bool gitAvailable READ gitAvailable NOTIFY gitChanged)
+    Q_PROPERTY(QString gitBranch READ gitBranch NOTIFY gitChanged)
+    Q_PROPERTY(bool gitDirty READ gitDirty NOTIFY gitChanged)
+    Q_PROPERTY(QString gitRemote READ gitRemote NOTIFY gitChanged)
+    Q_PROPERTY(QString gitLastCommit READ gitLastCommit NOTIFY gitChanged)
 
 public:
     explicit NoteStore(const QString &vaultPath = {}, QObject *parent = nullptr);
@@ -54,6 +59,11 @@ public:
     int count() const;
     QString error() const { return m_error; }
     bool graphOpen() const { return m_graphOpen; }
+    bool gitAvailable() const;
+    QString gitBranch() const { return m_gitBranch; }
+    bool gitDirty() const { return m_gitDirty; }
+    QString gitRemote() const { return m_gitRemote; }
+    QString gitLastCommit() const { return m_gitLastCommit; }
     void setGraphOpen(bool open) {
         if (m_graphOpen == open) return;
         m_graphOpen = open;
@@ -86,6 +96,14 @@ public:
     Q_INVOKABLE QString contentOf(const QString &path) const;
     Q_INVOKABLE QVariantList searchNotes(const QString &query) const;
     Q_INVOKABLE void clearError();
+    Q_INVOKABLE QString backupVault();
+    Q_INVOKABLE QString exportVault(const QString &destination, bool withMetadata = true);
+    Q_INVOKABLE void gitRefresh();
+    Q_INVOKABLE bool gitInit();
+    Q_INVOKABLE bool gitSetRemote(const QString &url);
+    Q_INVOKABLE bool gitSync(const QString &message = {});
+    Q_INVOKABLE bool gitPull();
+    Q_INVOKABLE bool gitPush();
 
     static QString defaultVaultPath();
 
@@ -94,6 +112,7 @@ signals:
     void selectedChanged();
     void errorChanged();
     void graphOpenChanged();
+    void gitChanged();
 
 private:
     bool ensureSchema();
@@ -120,4 +139,8 @@ private:
     QString m_activeStatus;
     QString m_error;
     bool m_graphOpen = false;
+    QString m_gitBranch;
+    bool m_gitDirty = false;
+    QString m_gitRemote;
+    QString m_gitLastCommit;
 };
