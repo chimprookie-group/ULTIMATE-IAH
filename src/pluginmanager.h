@@ -57,6 +57,7 @@ public:
     Q_INVOKABLE void openPluginFolder();
     Q_INVOKABLE void openArtcraftInstallGuide();
     Q_INVOKABLE void installOrUpdateArtcraft(bool update);
+    Q_INVOKABLE void installArtcraftCraft(const QString &id);
 
     QJsonArray toolDefinitions() const;
     bool isPluginTool(const QString &name) const;
@@ -98,5 +99,6 @@ private:
     bool m_artcraftUpdate = false;
     int m_artcraftStage = 0;
     QString m_artcraftStatus;
+    QString m_artcraftTarget;
     QProcess *m_artcraftProcess = nullptr;
 };

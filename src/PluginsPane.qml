@@ -192,11 +192,18 @@ Item {
                                     Text { text: modelData.toolName; color: theme.accent; font.family: backend.monoFont; font.pixelSize: 8; elide: Text.ElideRight }
                                     Item { Layout.fillWidth: true }
                                     GhostButton {
-                                        text: modelData.enabled ? qsTr("Désactiver") : qsTr("Activer")
+                                        text: modelData.installed
+                                              ? (modelData.enabled ? qsTr("Désactiver") : qsTr("Activer"))
+                                              : qsTr("Installer")
                                         flat: true
                                         font.pixelSize: 8
-                                        enabled: modelData.installed
-                                        onClicked: plugins.setEnabled(modelData.id, !modelData.enabled)
+                                        enabled: !plugins.artcraftBusy
+                                        onClicked: {
+                                            if (modelData.installed)
+                                                plugins.setEnabled(modelData.id, !modelData.enabled)
+                                            else
+                                                plugins.installArtcraftCraft(modelData.id)
+                                        }
                                     }
                                 }
                             }
