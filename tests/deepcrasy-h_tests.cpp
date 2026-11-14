@@ -829,6 +829,24 @@ private slots:
         QVERIFY(!DecisionEngine::resolve(empty).valid());
     }
 
+    void decisionEngineBuildsFallbackChain()
+    {
+        DecisionEngine::Context context;
+        context.deepSeekKey = QStringLiteral("sk-test");
+        context.routerEndpoint = QStringLiteral("http://127.0.0.1:8788/v1");
+        context.routerToken = QStringLiteral("token");
+        DecisionEngine::Endpoint endpoint =
+            DecisionEngine::fallbackFrom(context, {QStringLiteral("harness")});
+        QCOMPARE(endpoint.source, QString("deepseek"));
+        endpoint = DecisionEngine::fallbackFrom(
+            context, {QStringLiteral("harness"), QStringLiteral("deepseek")});
+        QCOMPARE(endpoint.source, QString("4crasy"));
+        QCOMPARE(endpoint.model, QString("auto"));
+        QVERIFY(!DecisionEngine::fallbackFrom(
+            context, {QStringLiteral("harness"), QStringLiteral("deepseek"),
+                      QStringLiteral("4crasy")}).valid());
+    }
+
     void decisionEngineAppliesDecisionRules()
     {
         DecisionEngine engine;

@@ -234,6 +234,26 @@ DecisionEngine::Endpoint DecisionEngine::resolve(const Context &context) {
     return {};
 }
 
+DecisionEngine::Endpoint DecisionEngine::fallback(const QStringList &usedSources) const {
+    return fallbackFrom(context(), usedSources);
+}
+
+DecisionEngine::Endpoint DecisionEngine::fallbackFrom(const Context &context,
+                                                      const QStringList &usedSources) {
+    Context candidate = context;
+    const QStringList order{QStringLiteral("harness"), QStringLiteral("deepseek"),
+                            QStringLiteral("4crasy")};
+    for (const QString &source : order) {
+        if (usedSources.contains(source))
+            continue;
+        candidate.source = source;
+        const Endpoint endpoint = resolve(candidate);
+        if (endpoint.valid())
+            return endpoint;
+    }
+    return {};
+}
+
 void DecisionEngine::refresh() {
     m_endpoint = resolve(context());
     emit changed();

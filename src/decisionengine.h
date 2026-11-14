@@ -87,6 +87,8 @@ public:
     static Endpoint resolve(const Context &context);
     Decision decide(const QString &prompt, const QString &risk,
                     const QString &mode, int round) const;
+    Endpoint fallback(const QStringList &usedSources) const;
+    static Endpoint fallbackFrom(const Context &context, const QStringList &usedSources);
 
     QString strategy() const { return m_strategy; }
     QString autonomy() const { return m_autonomy; }
