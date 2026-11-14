@@ -128,21 +128,30 @@ def provider_summary(provider_id, entry):
         "builtin": provider_id == "deepseek-official",
     }
 
+def has_deepseek_provider():
+    for pid, entry in providers.items():
+        if pid == "deepseek" or "deepseek" in pid.lower():
+            return True
+        if "api.deepseek.com" in (entry.get("baseURL") or ""):
+            return True
+    return False
+
 op = data.get("op", "list")
 if op == "saveDeepSeek":
     key = data.get("apiKey", "").strip()
     if key:
         refs["DEEPSEEK_API_KEY"] = key
-    providers["deepseek-official"] = {
-        "displayName": "DeepSeek",
-        "api": "openai-completions",
-        "baseURL": "https://api.deepseek.com",
-        "apiKeyEnv": "DEEPSEEK_API_KEY",
-        "models": [
-            {"id": "deepseek-chat", "name": "DeepSeek Chat"},
-            {"id": "deepseek-reasoner", "name": "DeepSeek Reasoner"},
-        ],
-    }
+    if not has_deepseek_provider():
+        providers["deepseek-official"] = {
+            "displayName": "DeepSeek",
+            "api": "openai-completions",
+            "baseURL": "https://api.deepseek.com",
+            "apiKeyEnv": "DEEPSEEK_API_KEY",
+            "models": [
+                {"id": "deepseek-chat", "name": "DeepSeek Chat"},
+                {"id": "deepseek-reasoner", "name": "DeepSeek Reasoner"},
+            ],
+        }
     if data.get("makeDefault") and not default_model:
         default_provider, default_model = "deepseek-official", "deepseek-chat"
 elif op == "saveProvider":
@@ -170,7 +179,7 @@ elif op == "setDefault":
     default_provider, default_model = data["provider"], data["model"]
 
 deepseek_key = refs.get("DEEPSEEK_API_KEY", "")
-if deepseek_key and "deepseek-official" not in providers:
+if deepseek_key and not has_deepseek_provider() and "deepseek-official" not in providers:
     providers["deepseek-official"] = {
         "displayName": "DeepSeek",
         "api": "openai-completions",
@@ -183,6 +192,9 @@ if deepseek_key and "deepseek-official" not in providers:
     }
 if deepseek_key and not default_provider:
     default_provider, default_model = "deepseek-official", "deepseek-chat"
+if default_provider == "deepseek-official" and "deepseek-official" not in providers and "deepseek" in providers:
+    default_provider = "deepseek"
+    default_model = (providers["deepseek"].get("models") or [{"id": "deepseek-flash"}])[0].get("id", "deepseek-flash")
 if default_provider == "deepseek-official" and default_model in ("deepseek-flash", "deepseek-v4-pro"):
     default_model = "deepseek-chat"
 
@@ -215,7 +227,8 @@ if env_path:
 
 summary = [provider_summary(pid, entry) for pid, entry in sorted(providers.items())]
 deepseek = refs.get("DEEPSEEK_API_KEY", "")
-if deepseek and not any(item.get("id") == "deepseek-official" for item in summary):
+if deepseek and not any("deepseek" in item.get("id", "").lower()
+                        or "api.deepseek.com" in item.get("baseURL", "") for item in summary):
     summary.insert(0, {
         "id": "deepseek-official",
         "name": "DeepSeek",
