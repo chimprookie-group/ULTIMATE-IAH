@@ -695,7 +695,7 @@ private slots:
         QVERIFY(store.saveNote(note, "# Plan\n\n- [ ] Première\n- [ ] Deuxième\n"));
         const QString config = dir.path() + "/note-plugins";
         NotePluginManager manager(&store, "/tmp/workspace", config);
-        QCOMPARE(manager.plugins().size(), 3);
+        QCOMPARE(manager.plugins().size(), 10);
 
         const QVariantMap extracted = manager.run("task-extract", note);
         QVERIFY2(extracted.value("ok").toBool(),
@@ -722,13 +722,29 @@ private slots:
                        + R"(","mode":"replace"})");
         manifest.close();
         manager.refresh();
-        QCOMPARE(manager.plugins().size(), 4);
+        QCOMPARE(manager.plugins().size(), 11);
         const QVariantMap upper = manager.run("upper", note);
         QVERIFY2(upper.value("ok").toBool(), qPrintable(upper.value("error").toString()));
         QVERIFY(store.contentOf(note).contains("PREMI"));
         QVERIFY(manager.setEnabled("upper", false));
         const QVariantMap disabled = manager.run("upper", note);
         QVERIFY(!disabled.value("ok").toBool());
+
+        const QString checks = store.createNote("Checks");
+        QVERIFY(store.saveNote(checks, "# Checks\n\n- [ ] Une chose\n"));
+        const QVariantMap inferred = manager.run("frontmatter", checks);
+        QVERIFY2(inferred.value("ok").toBool(), qPrintable(inferred.value("error").toString()));
+        QCOMPARE(store.selectedNote().value("status").toString(), QString("todo"));
+
+        const QVariantMap toc = manager.run("toc", checks);
+        QVERIFY2(toc.value("ok").toBool(), qPrintable(toc.value("error").toString()));
+        QVERIFY(store.contentOf(checks).contains("## Sommaire"));
+
+        const QString linked = store.createNote("Liens");
+        QVERIFY(store.saveNote(linked, "# Liens\n\n[[Note absente]]\n"));
+        const QVariantMap audit = manager.run("link-audit", linked);
+        QVERIFY(audit.value("ok").toBool());
+        QVERIFY(audit.value("output").toString().contains("Note absente"));
     }
 
     void noteStoreSupportsFoldersOutlineAndSearchFilters()

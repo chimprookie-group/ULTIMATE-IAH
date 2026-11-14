@@ -54,11 +54,18 @@ agent, pas seulement listés dans l’interface.
 Deux familles, configurables dans
 `~/.config/Crasy/deepcrasy-h/note-plugins/` :
 
-### Intégrés au harness
+### Intégrés au harness (actifs par défaut)
 
 - `task-extract` : transforme les cases `- [ ]` en notes-tâches `todo`.
+- `task-sync` : passe en `done` les notes-tâches dont la case est cochée.
 - `taskify` : crée une note-tâche à partir de la note courante.
-- `brief` : ajoute workspace, modèle, nombre de notes et tâches ouvertes.
+- `section-tasks` : crée une note-tâche par section de niveau 2.
+- `harness-brief` : ajoute workspace, modèle et tâches ouvertes.
+- `frontmatter` : déduit `todo`/`done` depuis les cases à cocher.
+- `toc` : insère ou met à jour un sommaire des titres.
+- `link-audit` : liste les wikilinks non résolus.
+- `skill-suggest` : propose les skills du harness pertinents.
+- `memory-capture` : enregistre l'essentiel dans la mémoire du projet.
 
 ### Commandes externes
 

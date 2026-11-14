@@ -6,6 +6,8 @@
 #include <QVariantMap>
 
 class NoteStore;
+class SkillManager;
+class MemoryStore;
 class QProcess;
 
 // Note plugins: builtin harness actions and user command manifests.
@@ -33,6 +35,8 @@ public:
     explicit NotePluginManager(NoteStore *notes, const QString &workspace = {},
                                const QString &configDir = {}, QObject *parent = nullptr);
     void setWorkspace(const QString &workspace) { m_workspace = workspace; }
+    void setSkills(SkillManager *skills) { m_skills = skills; }
+    void setMemory(MemoryStore *memory) { m_memory = memory; }
 
     QVariantList plugins() const;
     QString error() const { return m_error; }
@@ -62,6 +66,8 @@ private:
 
     NoteStore *m_notes = nullptr;
     QString m_workspace;
+    SkillManager *m_skills = nullptr;
+    MemoryStore *m_memory = nullptr;
     QString m_configDir;
     QVariantList m_plugins;
     QHash<QString, bool> m_enabled;
