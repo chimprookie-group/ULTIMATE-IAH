@@ -5,7 +5,7 @@ Application Qt 6 / QML native agentique pour Omarchy.
 ## Processus
 
 - **Backend** : configuration, thème, Git, diagnostics et workspace.
-- **Agent runtime** : Ultimate Agent est le moteur natif ; aucun serveur web DSH
+- **Agent runtime** : Ultimate Agent est le moteur natif ; aucun serveur web IAH
   n'est lancé. Les jobs utilisent le même binaire en mode `--agent-job`.
 - **TerminalSession** : PTY forkpty + xterm.js, chargé à la première ouverture.
 - **HarnessConnections** : providers, credentials locaux et `agent.env` mode
@@ -48,7 +48,7 @@ Agents, Terminal agent, Bots, Providers, Plugins, MCP, Installation, Réglages.
 - Données : `~/.local/share/Crasy/deepcrasy-h/` (memory.db, autopilot.db,
   missions.db, bots.db, bots_mcp.py, agent-conversations.db,
   agent-attachments/, vault/, integrations).
-- Aucun serveur web DSH n'est lancé. Les jobs agent utilisent le même binaire
+- Aucun serveur web IAH n'est lancé. Les jobs agent utilisent le même binaire
   en mode `--agent-job`.
 - API bots : `127.0.0.1:8790`, jeton `~/.config/Crasy/deepcrasy-h/bot.token` mode 600, dashboard local.
 - Credentials : store local historique (mode 600).

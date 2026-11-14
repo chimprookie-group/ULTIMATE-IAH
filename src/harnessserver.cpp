@@ -151,7 +151,7 @@ void HarnessServer::start() {
         m_process.setWorkingDirectory(m_directory);
 
     QStringList arguments;
-    // `--patch` is a launcher option. DSH only accepts it with an explicit
+    // `--patch` is a launcher option. The runtime only accepts it with an explicit
     // --profile, before the app arguments; `dsh web --patch p` rejects it.
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     QStringList patches;
@@ -180,7 +180,7 @@ void HarnessServer::start() {
     // harness must not inherit it or it may advertise the wrong URL.
     environment.remove("DSH_WEB_URL");
 
-    // Provider keys ride in the child environment instead of DSH settings.
+    // Provider keys ride in the child environment instead of runtime settings.
     QFile agentEnv(configDir + "/agent.env");
     if (agentEnv.open(QIODevice::ReadOnly)) {
         const QStringList lines = QString::fromUtf8(agentEnv.readAll()).split('\n', Qt::SkipEmptyParts);

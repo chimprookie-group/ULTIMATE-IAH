@@ -1692,7 +1692,7 @@ QJsonArray UltimateAgent::tools() {
                                 {QStringLiteral("path"), agentProperty(QStringLiteral("string"), QStringLiteral("Optional path for diff."))}}),
                     {QStringLiteral("action")}));
     out.append(tool(QStringLiteral("ultimate_install"),
-                    QStringLiteral("Audit or install missing ecosystem components: system dependencies and DSH."),
+                    QStringLiteral("Audit or install missing ecosystem components: system dependencies and IAH."),
                     properties({{QStringLiteral("action"),
                                  enumProperty(QStringLiteral("Operation."),
                                               {QStringLiteral("audit"), QStringLiteral("system"),

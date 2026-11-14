@@ -287,7 +287,7 @@ void migrateLegacyLauncher() {
 
     // The old crasy package keeps a system entry with the old whale icon. Hide
     // it through a user override so the package stays installed (it provides
-    // the system DSH runtime) without showing a second retired launcher.
+    // the system IAH runtime) without showing a second retired launcher.
     const QString oldEntry = applications + QStringLiteral("/crasy.desktop");
     if (QFileInfo::exists(QStringLiteral("/usr/share/applications/crasy.desktop"))
         && !QFileInfo::exists(oldEntry)) {
@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
     // stable config/data paths that hold the user's memory, providers and
     // integrations. The visible product is Ultimate IAH.
     QCoreApplication::setApplicationName(QStringLiteral("deepcrasy-h"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.49"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.25.50"));
     QCoreApplication::setOrganizationName(QStringLiteral("Crasy"));
 
     QStringList arguments;

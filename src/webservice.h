@@ -9,7 +9,7 @@ class QNetworkAccessManager;
 
 // Native web capability for Ultimate Agent: search + bounded fetch, cache,
 // provider reporting and DeepSeek native-search credentials. It is the native
-// equivalent of the DSH web service/tool-web/web-fetch-http trio.
+// equivalent of the IAH web service/tool-web/web-fetch-http trio.
 class WebService : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString searchProvider READ searchProvider NOTIFY changed)

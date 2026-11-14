@@ -9,7 +9,7 @@ class QNetworkAccessManager;
 class QNetworkReply;
 
 // Native provider and MCP connections for the DeepSeek Harness. Expands the
-// harness profile with llm-pi-ai routes, stores API keys in the DSH credential
+// harness profile with llm-pi-ai routes, stores API keys in the IAH credential
 // store, and writes a stable overlay consumed by HarnessServer.
 class HarnessConnections : public QObject {
     Q_OBJECT

@@ -9,7 +9,7 @@ class HarnessConnections;
 class MemoryStore;
 class McpManager;
 
-// Cross-layer connection health: DSH, env, credentials, provider overlay,
+// Cross-layer connection health: IAH, env, credentials, provider overlay,
 // MCP and workspace. Each check carries an actionable detail.
 class ConnectionDoctor : public QObject {
     Q_OBJECT

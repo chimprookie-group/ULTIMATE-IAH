@@ -18,7 +18,7 @@ portail, home, QtWebEngine, skills, base de connaissances, 4Crasy et provider.
 ## Paquet système
 
 ```bash
-pkexec pacman -U ultimate-iah-1.25.49-1-x86_64.pkg.tar.zst
+pkexec pacman -U ultimate-iah-1.25.50-1-x86_64.pkg.tar.zst
 ```
 
 Le paquet dépend de Qt 6, QtWebEngine, Node.js, npm, Python, PyYAML, Git,
@@ -26,7 +26,7 @@ GitHub CLI et xdg-desktop-portal.
 
 ## Runtime Ultimate Agent
 
-Ultimate Agent est embarqué dans le paquet. Aucun runtime DSH externe, aucun
+Ultimate Agent est embarqué dans le paquet. Aucun runtime IAH externe, aucun
 serveur web séparé. Les jobs agent utilisent le binaire installé avec
 `--agent-job`.
 
