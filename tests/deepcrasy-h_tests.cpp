@@ -901,6 +901,15 @@ private slots:
         QVERIFY(!parsed.at(1).toMap().value("free").toBool());
     }
 
+    void pluginManagerRejectsUnknownArtcraftCraft()
+    {
+        QTemporaryDir dir;
+        PluginManager plugins(dir.path());
+        plugins.installArtcraftCraft("does-not-exist");
+        QVERIFY(!plugins.error().isEmpty());
+        QVERIFY(!plugins.artcraftBusy());
+    }
+
     void pluginManagerDiscoversNewArtcraftCrafts()
     {
         QTemporaryDir dir;

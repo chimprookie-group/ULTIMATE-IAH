@@ -464,6 +464,7 @@ void PluginManager::installOrUpdateArtcraft(bool update) {
     }
     m_artcraftBusy = true;
     m_artcraftUpdate = update;
+    m_artcraftTarget.clear();
     m_artcraftStatus = update ? tr("Mise à jour de la suite ArtCraft…")
                               : tr("Complétion des crafts manquants…");
     setError({});
@@ -487,13 +488,53 @@ void PluginManager::installOrUpdateArtcraft(bool update) {
     }
 }
 
+void PluginManager::installArtcraftCraft(const QString &id) {
+    if (m_artcraftBusy)
+        return;
+    bool known = false;
+    for (const QVariant &value : m_plugins) {
+        const QVariantMap plugin = value.toMap();
+        if (plugin.value(QStringLiteral("kind")).toString() == QLatin1String("artcraft")
+            && plugin.value(QStringLiteral("id")).toString() == id) {
+            known = true;
+            break;
+        }
+    }
+    if (!known) {
+        setError(tr("Craft ArtCraft inconnu : %1.").arg(id));
+        return;
+    }
+    if (QStandardPaths::findExecutable(QStringLiteral("node")).isEmpty()) {
+        setError(tr("Node.js est requis pour installer la suite ArtCraft."));
+        return;
+    }
+    m_artcraftBusy = true;
+    m_artcraftUpdate = false;
+    m_artcraftTarget = id;
+    m_artcraftStatus = tr("Installation de %1…").arg(id);
+    setError({});
+    emit artcraftChanged();
+    QDir().mkpath(QFileInfo(artcraftSuitePath()).absolutePath());
+    if (!QFileInfo(artcraftSuitePath() + QStringLiteral("/.git")).exists()) {
+        runArtcraftProcess(QStringLiteral("git"),
+                           {QStringLiteral("clone"), QStringLiteral("--depth"), QStringLiteral("1"),
+                            QStringLiteral("https://github.com/lznnnnn1998/dsh-artcraft"),
+                            artcraftSuitePath()}, 0);
+    } else {
+        startArtcraftNode();
+    }
+}
+
 void PluginManager::startArtcraftNode() {
     m_artcraftStage = 1;
-    m_artcraftStatus = m_artcraftUpdate ? tr("Installation des mises à jour…")
-                                       : tr("Installation des crafts…");
+    m_artcraftStatus = m_artcraftTarget.isEmpty()
+        ? (m_artcraftUpdate ? tr("Installation des mises à jour…") : tr("Installation des crafts…"))
+        : tr("Installation de %1…").arg(m_artcraftTarget);
     emit artcraftChanged();
-    QStringList arguments{artcraftSuitePath() + QStringLiteral("/scripts/install-craft.mjs"),
-                          QStringLiteral("--dir"), artcraftPath()};
+    QStringList arguments{artcraftSuitePath() + QStringLiteral("/scripts/install-craft.mjs")};
+    if (!m_artcraftTarget.isEmpty())
+        arguments << m_artcraftTarget;
+    arguments << QStringLiteral("--dir") << artcraftPath();
     if (m_artcraftUpdate)
         arguments << QStringLiteral("--force");
     runArtcraftProcess(QStringLiteral("node"), arguments, 1);
