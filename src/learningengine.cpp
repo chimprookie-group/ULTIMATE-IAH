@@ -243,8 +243,14 @@ QVariantMap LearningEngine::observe(const QJsonObject &trajectory) {
     const int eventId = event.lastInsertId().toInt();
 
     int lessonId = 0;
-    if (!success || !failed.isEmpty()) {
-        const QString evidence = error.isEmpty() ? failed.join(QStringLiteral("; ")) : error;
+    const QString evidenceText = error.isEmpty() ? failed.join(QStringLiteral("; ")) : error;
+    const QString evidenceLower = evidenceText.toLower();
+    const bool hallucinatedTool = evidenceLower.contains(QStringLiteral("outil inconnu"))
+        || evidenceLower.contains(QStringLiteral("unknown tool"));
+    const bool policyRefusal = evidenceLower.contains(QStringLiteral("redirection"))
+        || evidenceLower.contains(QStringLiteral("web_redirect_blocked"));
+    if ((!success || !failed.isEmpty()) && !hallucinatedTool && !policyRefusal) {
+        const QString evidence = evidenceText;
         QString title;
         if (!failed.isEmpty()) {
             const QString first = failed.first();

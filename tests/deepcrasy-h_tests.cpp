@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTemporaryDir>
@@ -1233,6 +1235,57 @@ private slots:
         QVERIFY(knowledge.promptContext("utility_probe", 6500).contains("utility_probe"));
     }
 
+    void memoryRebuildsFtsAfterIndexLoss()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString path = dir.path() + "/memory.db";
+        {
+            MemoryStore store(path);
+            store.remember("projet", "note", "Atlas", "Le bot Atlas surveille le harness.", "bot");
+        }
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "corrupt-memory");
+            db.setDatabaseName(path);
+            QVERIFY(db.open());
+            QSqlQuery query(db);
+            QVERIFY(query.exec("INSERT INTO memories_fts(memories_fts) VALUES('delete-all')"));
+            query.finish();
+            db.close();
+            QSqlDatabase::removeDatabase("corrupt-memory");
+        }
+        {
+            MemoryStore store(path);
+            store.search("Atlas", "");
+            QVERIFY(!store.results().isEmpty());
+        }
+    }
+
+    void learningEngineIgnoresHallucinatedToolsAndPolicyRefusals()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        SkillManager skills(dir.path() + "/skills");
+        skills.setWorkspace(dir.path());
+        LearningEngine learning(dir.path() + "/learning.db", &skills);
+        const QJsonObject hallucination{
+            {"prompt", "Fais une chose"}, {"project", dir.path()}, {"ok", false},
+            {"error", "Outil inconnu"}, {"model", "test"},
+            {"tools", QJsonArray{QJsonObject{{"name", "ultimate_tasks_unused"}, {"ok", false},
+                                            {"detail", "Outil inconnu"}}}},
+        };
+        learning.observe(hallucination);
+        QCOMPARE(learning.stats().value("lessons").toInt(), 0);
+        const QJsonObject policy{
+            {"prompt", "Lis cette page"}, {"project", dir.path()}, {"ok", false},
+            {"error", "Redirection refusée"}, {"model", "test"},
+            {"tools", QJsonArray{QJsonObject{{"name", "web_fetch"}, {"ok", false},
+                                            {"detail", "Redirection refusée"}}}},
+        };
+        learning.observe(policy);
+        QCOMPARE(learning.stats().value("lessons").toInt(), 0);
+    }
+
     void learningEngineExtractsLessonsAndProposesSkills()
     {
         QTemporaryDir dir;
@@ -1245,10 +1298,10 @@ private slots:
             {"prompt", "Corrige le bug web et vérifie le résultat"},
             {"project", dir.path()},
             {"ok", false},
-            {"error", "Redirection refusée"},
+            {"error", "Compilation échouée"},
             {"model", "test-model"},
-            {"tools", QJsonArray{QJsonObject{{"name", "web_fetch"}, {"ok", false},
-                                            {"detail", "Redirection refusée"}}}},
+            {"tools", QJsonArray{QJsonObject{{"name", "ultimate_terminal"}, {"ok", false},
+                                            {"detail", "Compilation échouée"}}}},
         };
         QVERIFY(learning.observe(trajectory).value("learned").toBool());
         QCOMPARE(learning.stats().value("events").toInt(), 1);

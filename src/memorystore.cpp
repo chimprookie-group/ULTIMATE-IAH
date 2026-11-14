@@ -145,6 +145,8 @@ bool MemoryStore::open() {
     pragma.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
     pragma.exec(QStringLiteral("PRAGMA busy_timeout=5000"));
     m_ready = migrate();
+    if (m_ready)
+        rebuildIndex();
     QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner);
     return m_ready;
 }
@@ -242,6 +244,7 @@ void MemoryStore::search(const QString &queryText, const QString &project) {
     QSqlQuery query(m_db);
     const QStringList tokens = queryTokens(clean);
     const QString match = tokens.join(QStringLiteral(" AND "));
+    const QString projectFilter = project.isNull() ? QStringLiteral("") : project;
     if (!match.isEmpty()) {
         query.prepare(QStringLiteral(
             "SELECT m.id,m.project,m.kind,m.title,m.body,m.tags,m.pinned,m.importance,m.source,m.created_at,m.updated_at "
@@ -249,9 +252,11 @@ void MemoryStore::search(const QString &queryText, const QString &project) {
             "WHERE memories_fts MATCH ? AND (? = '' OR m.project = ?) "
             "ORDER BY m.pinned DESC, bm25(memories_fts), m.updated_at DESC LIMIT 120"));
         query.addBindValue(match);
-        query.addBindValue(project);
-        query.addBindValue(project);
+        query.addBindValue(projectFilter);
+        query.addBindValue(projectFilter);
         if (!query.exec()) {
+            const QString ftsError = query.lastError().text();
+            qWarning().noquote() << "memory FTS search failed:" << ftsError << "match=" << match;
             query.finish();
             query.prepare(QStringLiteral(
                 "SELECT id,project,kind,title,body,tags,pinned,importance,source,created_at,updated_at "
@@ -261,9 +266,10 @@ void MemoryStore::search(const QString &queryText, const QString &project) {
             query.addBindValue(like);
             query.addBindValue(like);
             query.addBindValue(like);
-            query.addBindValue(project);
-            query.addBindValue(project);
-            query.exec();
+            query.addBindValue(projectFilter);
+            query.addBindValue(projectFilter);
+            if (!query.exec())
+                setError(query.lastError().text());
         }
     }
     while (query.next())

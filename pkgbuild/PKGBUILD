@@ -1,6 +1,6 @@
 # Maintainer: Ultimate IAH
 pkgname=ultimate-iah
-pkgver=1.25.38
+pkgver=1.25.39
 pkgrel=1
 pkgdesc='Ultimate IAH — native agentic cockpit, notes and bots'
 arch=('x86_64' 'aarch64')
