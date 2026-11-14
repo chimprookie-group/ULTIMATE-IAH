@@ -130,8 +130,11 @@ Item {
 
     Flow {
         id: actionFlow
-        width: root.stacked ? root.width : Math.min(root.actionsWidth, Math.max(0, root.width))
-        x: root.stacked ? 0 : root.width - width
+        width: root.width
+        // Position from the placed children rather than a computed sum: a
+        // summed implicit width is a couple of pixels short of what the buttons
+        // actually occupy, which left the group slightly off the right edge.
+        x: root.stacked ? 0 : Math.max(0, root.width - childrenRect.width)
         y: root.stacked ? heading.height + design.space3 : 0
         spacing: design.space2
     }

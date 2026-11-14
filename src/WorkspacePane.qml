@@ -18,7 +18,16 @@ Item {
     readonly property string previewText: markdownPreview
         ? shownText.replace(/<img\b[^>]*>/gi, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "") : shownText
 
-    readonly property int leftWidth: Math.max(230, Math.min(320, width * 0.3))
+    // The rail used to keep a hard 230 px minimum and the preview toolbar could
+    // not shrink, so on a narrow pane the whole split was pushed past the right
+    // edge and clipped. Below `narrow` the pane stacks (list above preview)
+    // instead of splitting, and the rail may shrink before that point.
+    readonly property bool narrow: width < 620
+    readonly property int leftWidth: Math.max(168, Math.min(320, width * 0.3))
+    readonly property int railHeight: Math.min(240, Math.max(150, height * 0.34))
+    // Room actually left for the preview, which is what the toolbar has to fit in.
+    readonly property int previewWidth: narrow ? width : Math.max(0, width - leftWidth)
+    readonly property bool compactToolbar: previewWidth < 500
     readonly property var selectedFile: {
         for (let i = 0; i < workspaceModel.files.length; ++i) {
             if (workspaceModel.files[i].path === selectedPath)
@@ -166,20 +175,38 @@ Item {
             }
         }
 
-        RowLayout {
+        // Two columns side by side, or one column stacked on a narrow pane:
+        // GridLayout keeps both arrangements in a single place instead of
+        // duplicating the rail and the preview.
+        GridLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 0
+            columns: root.narrow ? 1 : 2
+            columnSpacing: 0
+            rowSpacing: 0
+            flow: GridLayout.LeftToRight
 
             Rectangle {
-                Layout.preferredWidth: root.leftWidth
-                Layout.fillHeight: true
+                Layout.fillWidth: !root.narrow
+                Layout.fillHeight: !root.narrow
+                Layout.preferredWidth: root.narrow ? -1 : root.leftWidth
+                Layout.maximumWidth: root.narrow ? Number.POSITIVE_INFINITY : root.leftWidth
+                Layout.preferredHeight: root.narrow ? root.railHeight : -1
+                Layout.maximumHeight: root.narrow ? root.railHeight : Number.POSITIVE_INFINITY
                 color: theme.background
 
                 Rectangle {
                     anchors.right: parent.right
                     width: 1
                     height: parent.height
+                    visible: !root.narrow
+                    color: theme.border
+                }
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: 1
+                    visible: root.narrow
                     color: theme.border
                 }
 
@@ -295,6 +322,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             text: root.selectedPath
                             color: theme.text
                             font.family: backend.monoFont
@@ -361,7 +389,10 @@ Item {
                             }
                         }
                         GhostButton {
-                            text: qsTr("Confier à Ultimate Agent")
+                            // The long label is what made this row wider than a
+                            // narrow preview. It shortens instead of pushing the
+                            // trailing buttons past the pane edge.
+                            text: root.compactToolbar ? qsTr("Agent") : qsTr("Confier à Ultimate Agent")
                             flat: true
                             font.pixelSize: design.textCaption
                             onClicked: root.askAboutFile()
