@@ -207,7 +207,9 @@ Item {
                         ScrollBar.vertical: AppScrollBar {}
 
                         delegate: Rectangle {
-                            width: ListView.view.width
+                            // Reserve the scrollbar gutter: an attached ScrollBar overlays the
+                            // delegate, which used to clip the file list on the right edge.
+                            width: ListView.view.width - design.space2
                             height: 36
                             radius: Math.min(5, theme.radius)
                             color: root.selectedPath === modelData.path

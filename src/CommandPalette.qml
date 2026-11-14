@@ -209,7 +209,9 @@ Item {
 
                 delegate: Rectangle {
                     id: row
-                    width: ListView.view.width
+                    // Reserve the scrollbar gutter: an attached ScrollBar overlays the
+                    // delegate, which used to clip the command rows on the right edge.
+                    width: ListView.view.width - design.space2
                     height: 46
                     radius: design.radiusSm
                     color: ListView.isCurrentItem ? theme.menuSelected : (rowMouse.containsMouse ? theme.menuHover : "transparent")

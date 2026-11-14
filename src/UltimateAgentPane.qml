@@ -1347,7 +1347,9 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: AppScrollBar { policy: ScrollBar.AsNeeded }
             delegate: Rectangle {
-                width: ListView.view.width
+                // Reserve the scrollbar gutter: an attached ScrollBar overlays the
+                // delegate, which used to clip the mention rows on the right edge.
+                width: ListView.view.width - design.space2
                 height: 28
                 radius: design.radiusSm
                 color: index === root.mentionIndex ? theme.menuSelected : "transparent"
@@ -1394,7 +1396,9 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: AppScrollBar { policy: ScrollBar.AsNeeded }
             delegate: Rectangle {
-                width: ListView.view.width
+                // Reserve the scrollbar gutter: an attached ScrollBar overlays the
+                // delegate, which used to clip the command rows on the right edge.
+                width: ListView.view.width - design.space2
                 height: 34
                 radius: design.radiusSm
                 color: index === root.commandIndex ? theme.menuSelected : "transparent"

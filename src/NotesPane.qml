@@ -301,7 +301,9 @@ Item {
                         ScrollBar.vertical: AppScrollBar {}
 
                         delegate: Rectangle {
-                            width: ListView.view.width
+                            // Reserve the scrollbar gutter: an attached ScrollBar overlays the
+                            // delegate, which used to clip the note list on the right edge.
+                            width: ListView.view.width - design.space2
                             height: 70
                             radius: design.radiusSm
                             color: modelData.path === noteStore.selectedPath

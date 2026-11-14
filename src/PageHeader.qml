@@ -4,6 +4,11 @@ import QtQuick.Layouts
 
 // Shared page heading. No all-caps eyebrow: a small index marker, the display
 // title and one plain-language description carry the hierarchy.
+//
+// Layout is deliberate rather than layout-managed: when the actions fit beside
+// the title they stay on one line exactly as before, and when the window is too
+// narrow for both they move to their own line under the title instead of being
+// pushed past the right edge and clipped.
 Item {
     id: root
 
@@ -14,19 +19,47 @@ Item {
     property color accent: theme.accent
     property bool brandMark: false
 
-    default property alias actions: actionRow.data
+    default property alias actions: actionFlow.data
+
+    readonly property real iconBox: 42
+    readonly property real gap: design.space4
+    // Sum the action buttons explicitly: a Flow's own implicitWidth is not a
+    // reliable single-row width, and basing the heading on it made the actions
+    // column-stack and push the whole page down.
+    readonly property real actionsWidth: {
+        var total = 0
+        var count = actionFlow.children.length
+        for (var i = 0; i < count; ++i) {
+            var child = actionFlow.children[i]
+            if (!child.visible || child.implicitWidth <= 0)
+                continue
+            total += (total > 0 ? actionFlow.spacing : 0) + child.implicitWidth
+        }
+        return total
+    }
+    // The actions only leave the heading line when they would leave less than
+    // this for the title. Kept small on purpose: pages that fitted before must
+    // keep their exact previous layout.
+    readonly property real titleMin: 96
+    readonly property bool stacked: actionsWidth > 0
+                                     && width - iconBox - gap - actionsWidth - gap < titleMin
 
     implicitWidth: parent ? parent.width : 800
-    implicitHeight: Math.max(58, titleColumn.implicitHeight)
+    implicitHeight: stacked ? heading.height + design.space3 + actionFlow.height
+                            : Math.max(58, heading.height)
 
-    RowLayout {
-        anchors.fill: parent
-        spacing: design.space4
+    Item {
+        id: heading
+        width: root.stacked || root.actionsWidth === 0
+               ? root.width
+               : root.width - root.actionsWidth - root.gap
+        height: Math.max(58, titleColumn.implicitHeight)
 
         Item {
-            width: 42
-            height: 42
-            Layout.alignment: Qt.AlignTop
+            id: iconSlot
+            width: root.iconBox
+            height: root.iconBox
+            anchors.top: parent.top
             Rectangle {
                 anchors.fill: parent
                 visible: !root.brandMark
@@ -38,7 +71,7 @@ Item {
             BrandMark {
                 anchors.fill: parent
                 visible: root.brandMark
-                size: 42
+                size: root.iconBox
                 accent: false
             }
             ThemedIcon {
@@ -51,9 +84,14 @@ Item {
             }
         }
 
+        // Same title block as before: only the action placement is responsive,
+        // so wide layouts keep their exact previous geometry.
         ColumnLayout {
             id: titleColumn
-            Layout.fillWidth: true
+            anchors.left: iconSlot.right
+            anchors.leftMargin: root.gap
+            anchors.right: parent.right
+            anchors.top: parent.top
             spacing: 3
 
             RowLayout {
@@ -88,11 +126,13 @@ Item {
                 elide: Text.ElideRight
             }
         }
+    }
 
-        RowLayout {
-            id: actionRow
-            Layout.alignment: Qt.AlignTop
-            spacing: design.space2
-        }
+    Flow {
+        id: actionFlow
+        width: root.stacked ? root.width : Math.min(root.actionsWidth, Math.max(0, root.width))
+        x: root.stacked ? 0 : root.width - width
+        y: root.stacked ? heading.height + design.space3 : 0
+        spacing: design.space2
     }
 }
